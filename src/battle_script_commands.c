@@ -1502,26 +1502,23 @@ static void DoublesHPBarReduction(void)
     gBattleStruct->doneDoublesSpreadHit = TRUE;
 }
 
-// Fantasy Retold: Carve the Trauma portion out of a special/crit hit and rewrite moveDamage to the
-// ACTUAL HP that will be lost. This must run before the health bar animates (i.e. in healthbarupdate,
-// the first of the healthbarupdate/datahpupdate pair) so the bar animation and the HP subtraction in
-// datahpupdate consume the same value. Otherwise the bar over-animates by the carved-off Trauma and
-// then rebounds, dead mons survive a hit, and reduced damage looks like healing.
-//
-// It does NOT touch current HP here; it only accumulates permanent Trauma (which lowers effective max
-// HP) and sets moveDamage = real loss. datahpupdate then performs the plain subtraction.
-static void FinalizeTraumaDamage(enum BattlerId battler)
+// Fantasy Retold: track the unhealable "Trauma" component of a hit. ALL of the move's damage still
+// hits current HP in full (handled normally by datahpupdate) — this does NOT touch the damage. Trauma
+// is a separate running tally of how much of the dealt damage can never be healed back; heals are
+// capped to maxHP - trauma (see GetBattlerEffectiveMaxHP). So a Special hit deals the same immediate
+// HP damage as any other hit, but a fraction of it sticks permanently. Runs once per hit (in
+// healthbarupdate, before the bar animates) so the scar shows up immediately.
+static void TrackTraumaFromHit(enum BattlerId battler)
 {
     s32 d = gBattleStruct->moveDamage[battler];
     u32 traumaGained = 0;
     struct PartyState *ps;
-    u32 maxHP, newTrauma, effMax;
-    s32 finalHp, hpBefore;
+    u32 maxHP;
 
     if (d <= 0 || GetMoveEffect(gCurrentMove) == EFFECT_PSYSHOCK)
         return;
 
-    // Critical hits convert their bonus portion (~1/3 of dealt damage) to Trauma, any category.
+    // A critical hit's bonus portion (~1/3 of the dealt damage) is unhealable, any category.
     if (gSpecialStatuses[battler].criticalHit)
     {
         u32 critTrauma = d / 3;
@@ -1529,7 +1526,8 @@ static void FinalizeTraumaDamage(enum BattlerId battler)
         traumaGained += critTrauma;
     }
 
-    // Special->Trauma split: f = 0.25 + 0.40*(BaseSta - CurrentSta)/BaseSta  (25%..65% to Trauma).
+    // Special hits make a stamina-scaled fraction of their damage unhealable:
+    // f = 0.25 + 0.40*(BaseSta - CurrentSta)/BaseSta  (25%..65%).
     if (d > 0 && IsBattleMoveSpecial(gCurrentMove))
     {
         u32 baseSta = GetBaseStamina(battler);
@@ -1540,32 +1538,17 @@ static void FinalizeTraumaDamage(enum BattlerId battler)
             curSta = baseSta;
         fPercent = 25 + (40 * (baseSta - curSta)) / baseSta;
         traumaRaw = (u32)d * fPercent / 100;
-        d -= traumaRaw;
         traumaGained += ApplyTraumaResistance(battler, traumaRaw);
     }
 
     if (traumaGained == 0)
-        return; // Physical hit (and not a crit): full damage to HP, nothing to rewrite.
+        return;
 
-    // Accumulate permanent Trauma (lowers effective max HP) without touching current HP here.
+    // Trauma is a running tally of unhealable damage, capped at max HP (at which point the mon can
+    // never recover any HP). It does not reduce the current hit's HP damage.
     ps = GetBattlerPartyState(battler);
     maxHP = gBattleMons[battler].maxHP;
-    newTrauma = ps->trauma + traumaGained;
-    if (newTrauma > maxHP)
-        newTrauma = maxHP;
-    ps->trauma = newTrauma;
-
-    // The HP channel (d) comes off current HP, but HP can't sit above the freshly-lowered effective
-    // max. moveDamage becomes the real HP delta so the bar and the subtraction agree.
-    hpBefore = gBattleMons[battler].hp;
-    effMax = maxHP - newTrauma;
-    finalHp = hpBefore - d;
-    if (finalHp > (s32)effMax)
-        finalHp = effMax;
-    if (finalHp < 0)
-        finalHp = 0;
-
-    gBattleStruct->moveDamage[battler] = hpBefore - finalHp;
+    ps->trauma = (ps->trauma + traumaGained > maxHP) ? maxHP : ps->trauma + traumaGained;
 }
 
 static void Cmd_healthbarupdate(void)
@@ -1598,8 +1581,9 @@ static void Cmd_healthbarupdate(void)
               && !DoesIceFaceBlockMove(battler, gCurrentMove))
         {
             s32 damage;
-            // Fantasy Retold: finalize the Trauma carve here so the bar animates the real HP loss.
-            FinalizeTraumaDamage(battler);
+            // Fantasy Retold: tally the unhealable Trauma component of this hit (does not change the
+            // HP damage — the full hit still lands on current HP).
+            TrackTraumaFromHit(battler);
             damage = min(gBattleStruct->moveDamage[battler], 10000);
             BtlController_EmitHealthBarUpdate(battler, B_COMM_TO_CONTROLLER, damage);
             MarkBattlerForControllerExec(battler);
@@ -1617,9 +1601,10 @@ static void PassiveDataHpUpdate(enum BattlerId battler, const u8 *nextInstr)
     if (gBattleStruct->passiveHpUpdate[battler] < 0)
     {
         // Negative damage is HP gain
+        u32 effMax = GetBattlerEffectiveMaxHP(battler); // Fantasy Retold: Trauma caps healing at maxHP - trauma.
         gBattleMons[battler].hp += -gBattleStruct->passiveHpUpdate[battler];
-        if (gBattleMons[battler].hp > gBattleMons[battler].maxHP)
-            gBattleMons[battler].hp = gBattleMons[battler].maxHP;
+        if (gBattleMons[battler].hp > effMax)
+            gBattleMons[battler].hp = effMax;
     }
     else
     {
@@ -1701,9 +1686,9 @@ static void MoveDamageDataHpUpdate(enum BattlerId battler, u32 scriptBattler, co
             u16 hpBefore;
             u16 hpLost;
 
-            // Fantasy Retold: the crit/special->Trauma carve was already applied in healthbarupdate
-            // (FinalizeTraumaDamage) so that the bar animation and this subtraction stay in sync.
-            // moveDamage here is already the real HP loss; just deal it.
+            // Fantasy Retold: full move damage hits current HP normally. Trauma (the unhealable tally)
+            // was recorded in healthbarupdate and only restricts future healing — it does not reduce
+            // this hit's HP damage.
 
             gBideDmg[battler] += gBattleStruct->moveDamage[battler];
             gBideTarget[battler] = gBattlerAttacker;
@@ -2405,7 +2390,8 @@ void SetMoveEffect(enum BattlerId battlerAtk, enum BattlerId effectBattler, enum
     if (!primary && !affectsUser && IsMoveEffectBlockedByTarget(abilities[effectBattler]))
         moveEffect = MOVE_EFFECT_NONE;
     else if (!primary
-          && IsSheerForceAffected(gCurrentMove, abilities[battlerAtk])
+          && (IsSheerForceAffected(gCurrentMove, abilities[battlerAtk])
+              || (BattlerHasInnate(battlerAtk, INNATE_SHEER_FORCE) && MoveIsAffectedBySheerForce(gCurrentMove))) // Fantasy Retold: Adamant/Modest natures
           && !(moveEffect == MOVE_EFFECT_ORDER_UP && gBattleStruct->battlerState[battlerAtk].commanderSpecies != SPECIES_NONE))
         moveEffect = MOVE_EFFECT_NONE;
     else if (!IsBattlerAlive(effectBattler) && !IgnoreTargetingForMoveEffect(moveEffect))
@@ -9429,9 +9415,10 @@ static void Cmd_switchoutabilities(void)
         }
     }
 
-    switch (GetBattlerAbility(battler))
+    // Fantasy Retold: these fire on the ability OR the matching Nature innate (which stacks with the
+    // ability). Natural Cure = Sassy/Gentle; Regenerator = Relaxed/Lax.
+    if (GetBattlerAbility(battler) == ABILITY_NATURAL_CURE || BattlerHasInnate(battler, INNATE_NATURAL_CURE))
     {
-    case ABILITY_NATURAL_CURE:
         if (gBattleMons[battler].status1 & STATUS1_SLEEP)
             TryDeactivateSleepClause(GetBattlerSide(battler), gBattlerPartyIndexes[battler]);
 
@@ -9441,22 +9428,24 @@ static void Cmd_switchoutabilities(void)
                                         sizeof(gBattleMons[battler].status1),
                                         &gBattleMons[battler].status1);
         MarkBattlerForControllerExec(battler);
-        break;
-    case ABILITY_REGENERATOR:
-    {
-        u32 regenerate = GetNonDynamaxMaxHP(battler) / 3;
-        regenerate += gBattleMons[battler].hp;
-        if (regenerate > gBattleMons[battler].maxHP)
-            regenerate = gBattleMons[battler].maxHP;
-        BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_HP_BATTLE,
-                                        1u << gBattleStruct->battlerPartyIndexes[battler],
-                                        sizeof(regenerate),
-                                        &regenerate);
-        MarkBattlerForControllerExec(battler);
-        break;
     }
-    default:
-        break;
+
+    {
+        u32 regenStacks = (GetBattlerAbility(battler) == ABILITY_REGENERATOR ? 1 : 0)
+                        + (BattlerHasInnate(battler, INNATE_REGENERATOR) ? 1 : 0);
+        if (regenStacks != 0)
+        {
+            // Heal 1/3 per source, capped at the effective max (maxHP - Trauma): Trauma can't be regen'd back.
+            u32 effMax = GetBattlerEffectiveMaxHP(battler);
+            u32 regenerate = gBattleMons[battler].hp + (GetNonDynamaxMaxHP(battler) / 3) * regenStacks;
+            if (regenerate > effMax)
+                regenerate = effMax;
+            BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_HP_BATTLE,
+                                            1u << gBattleStruct->battlerPartyIndexes[battler],
+                                            sizeof(regenerate),
+                                            &regenerate);
+            MarkBattlerForControllerExec(battler);
+        }
     }
 
     gBattleStruct->battlerState[battler].notOnField = TRUE;

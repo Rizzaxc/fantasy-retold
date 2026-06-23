@@ -426,4 +426,23 @@ u32 ApplyTraumaResistance(enum BattlerId battler, u32 trauma);
 u32 GetBattlerEffectiveMaxHP(enum BattlerId battler);
 void AddBattlerTrauma(enum BattlerId battler, u32 amount);
 
+// Fantasy Retold: Nature innates. Every Nature grants one innate effect that STACKS on top of the
+// mon's real ability (a mon whose ability already grants the same effect benefits twice, except
+// binary immunities such as Battle Armor which can't stack).
+enum NatureInnate
+{
+    INNATE_NONE,
+    INNATE_ADVANTAGE,    // Neutral natures: guaranteed functional hit when acting first
+    INNATE_SUPER_LUCK,   // under-used offensive natures: +1 critical-hit stage
+    INNATE_SHEER_FORCE,  // Adamant / Modest: +30% damage, no Lv1 status secondaries
+    INNATE_QUICK_START,  // Jolly / Timid: +1 Speed stage on switch-in
+    INNATE_BATTLE_ARMOR, // Bold / Impish: critical-hit immune (incl. the 0-Stamina auto-crit)
+    INNATE_RESILIENT,    // Calm / Careful: +1 Sp.Def (Trauma-resist) stage on switch-in
+    INNATE_REGENERATOR,  // Relaxed / Lax: restores HP on switch-out (Trauma-capped)
+    INNATE_NATURAL_CURE, // Sassy / Gentle: cured of status on switch-out
+};
+enum NatureInnate GetNatureInnate(u8 nature);
+bool32 BattlerHasInnate(enum BattlerId battler, enum NatureInnate innate);
+void ApplyNatureSwitchInInnates(enum BattlerId battler);
+
 #endif // GUARD_BATTLE_UTIL_H

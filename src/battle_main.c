@@ -13,6 +13,7 @@
 #include "battle_pyramid.h"
 #include "battle_scripts.h"
 #include "battle_setup.h"
+#include "battle_util.h"
 #include "battle_tower.h"
 #include "battle_z_move.h"
 #include "battle_gimmick.h"
@@ -3276,6 +3277,10 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
     }
     #endif // TESTING
 
+    // Fantasy Retold: apply on-switch-in Nature innates (Quick Start / Resilient) after the stat-stage
+    // reset above, so the +1 lands on the fresh stages and doesn't compound across switches.
+    ApplyNatureSwitchInInnates(battler);
+
     Ai_UpdateSwitchInData(battler);
 }
 
@@ -3811,6 +3816,7 @@ static void TryDoEventsBeforeFirstTurn(void)
             // Fantasy Retold: initial send-outs enter at full Stamina.
             gBattleStruct->battlerState[battler].currentStamina = GetBaseStamina(battler);
             gBattleStruct->battlerState[battler].staminaTurnStart = gBattleStruct->battlerState[battler].currentStamina;
+            ApplyNatureSwitchInInnates(battler); // Fantasy Retold: Quick Start / Resilient on the opening send-out
             // Fantasy Retold: the healthbox was first drawn before Stamina existed (showing 0); refresh
             // it now that the real value is set, so the readout is correct from the opening turn.
             UpdateStaminaTextOnHealthbox(battler);

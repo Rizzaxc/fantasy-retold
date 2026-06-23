@@ -39,18 +39,18 @@
 
 #define HEALTHBOX_BG_INDEX 2
 
-// Fantasy Retold: the Trauma scar is a purple bar segment on the right end of the HP bar. The
-// healthbox palette is full, so we repurpose index 15 (the EXP bar's lightest periwinkle — only
-// cosmetic collateral on the player EXP bar) as the scar colour, and build the scar tile at runtime
-// by copying the solid red HP-bar tile and remapping every non-transparent pixel to that index.
-#define TRAUMA_SCAR_PAL_INDEX 15
-#define TRAUMA_SCAR_COLOR     RGB(20, 4, 24) // purple; tweak to taste
+// Fantasy Retold: the Trauma scar reuses the solid (8px-filled) red HP-bar tile on the right end of
+// the HP bar. It's a genuine bar tile, so its geometry matches the HP tiles exactly. A true purple
+// scar needs a dedicated bar-tile asset (the 16-colour healthbox palette has no spare purple slot);
+// runtime recolouring proved unreliable, so that's a follow-up. Offset 8*32 = the 8px-full tile.
+#define TRAUMA_SCAR_GFX_PTR (GetHealthboxElementGfxPtr(HEALTHBOX_GFX_HP_BAR_RED) + 8 * 32)
 
 // Fantasy Retold: Stamina readout printed on the healthbox. Player shows "cur/base"; opponent shows a
 // percentage (no concrete number). These Y offsets are FIRST-GUESS positions on a cramped healthbox —
 // nudge them after seeing the build. Text prints at (yOffset + 5); the clear band is at (yOffset + 8).
 #define STAMINA_TEXT_Y_PLAYER    16
-#define STAMINA_TEXT_Y_OPPONENT  8   // sit on the HP-bar row (right of the bar, under the name) instead of floating below the box
+#define STAMINA_TEXT_Y_OPPONENT  16
+#define STAMINA_TEXT_X           3   // left-aligned readout (clear of the right-aligned HP x/y)
 
 enum
 {   // Corresponds to gHealthboxElementsGfxTable (and the tables after it) in graphics.c
@@ -952,7 +952,7 @@ static void PrintHpOnHealthbox(u32 spriteId, s16 currHp, s16 maxHp, u32 bgColor,
 // "cur/base"; opponent gets a percentage. Refreshed alongside the HP bar in UpdateHealthboxAttribute.
 static void PrintStaminaOnHealthbox(u32 spriteId, enum BattlerId battler, u8 yOffset)
 {
-    u32 width, spriteId2;
+    u32 spriteId2;
     u8 text[2 * 3 + 3], *txtPtr;
     s16 savedValue1, savedValue2;
     u32 curSta = gBattleStruct->battlerState[battler].currentStamina;
@@ -982,26 +982,12 @@ static void PrintStaminaOnHealthbox(u32 spriteId, enum BattlerId battler, u8 yOf
     gSprites[spriteId].data[1] = spriteId2;
     gSprites[spriteId2].data[1] = SPRITE_NONE;
 
-    width = GetStringWidth(HP_FONT, text, -1) + GetFontAttribute(HP_FONT, FONTATTR_LETTER_SPACING);
-
-    if (IsOnPlayerSide(battler))
-    {
-        // Player: the right-aligned HP "x/y" already owns the right of this row, so left-align Stamina
-        // on the left half so the two readouts sit side-by-side ("6/14   30/37") instead of stacking.
-        // The text lives on the box, so clear to the box background colour.
-        FillSpriteRectColor(spriteId, 0, yOffset + 8, 32, 8, HEALTHBOX_BG_INDEX);
-        AddSpriteTextPrinterParameterized6(spriteId, HP_FONT, 2, yOffset + 5, 0, 0, sHealthBoxTextColor, 0, text);
-    }
-    else
-    {
-        // Opponent: the percentage sits below the bar over the transparent field, so clear to
-        // transparent (index 0) — using the box colour painted the stray cream block.
-        FillSpriteRectColor(spriteId, 40, yOffset + 8, 56, 8, 0);
-        if (width < 32)
-            AddSpriteTextPrinterParameterized6(spriteId2, HP_FONT, 32 - width, yOffset + 5, 0, 0, sHealthBoxTextColor, 0, text);
-        else
-            AddSpriteTextPrinterParameterized6(spriteId, HP_FONT, 64 - (width - 32), yOffset + 5, 0, 0, sHealthBoxTextColor, 0, text);
-    }
+    // Both sides: left-aligned on the left of the row beneath the name. On the player the HP "x/y" owns
+    // the right of the same row, so the two sit side-by-side ("8/16   26/29"). Clear to transparent
+    // (index 0) on both — transparent fill still erases old digits (the font's blanks don't), and avoids
+    // painting a stray cream block over parts of the row that aren't covered by the box panel.
+    FillSpriteRectColor(spriteId, 0, yOffset + 8, 32, 8, 0);
+    AddSpriteTextPrinterParameterized6(spriteId, HP_FONT, STAMINA_TEXT_X, yOffset + 5, 0, 0, sHealthBoxTextColor, 0, text);
 
     gSprites[spriteId].data[1] = savedValue1;
     gSprites[spriteId2].data[1] = savedValue2;
@@ -2252,47 +2238,21 @@ static void MoveBattleBarGraphically(enum BattlerId battler, u8 whichBar)
             s32 barMaxHP = gBattleSpritesDataPtr->battleBars[battler].maxValue;
             if (trauma != 0 && barMaxHP > 0)
             {
-                static bool8 sScarTileBuilt = FALSE;
-                static u8 sScarTile[32]; // purple variant of the solid HP-bar tile, built once
                 u8 healthbarSpriteId = gSprites[gBattleSpritesDataPtr->battleBars[battler].healthboxSpriteId].hMain_HealthBarSpriteId;
-                u8 palNum;
-                // floor: the scar never exceeds the true Trauma fraction, so it can't cover green HP or
-                // the recoverable (dark) middle zone. Trauma below ~1/6 of max HP rounds down to no tile.
+                // Whole-tile (8px) granularity. Any nonzero Trauma shows at least one tile so a single
+                // Special hit is always visibly registered, even when it's under ~1/6 of max HP.
                 u32 traumaTiles = (trauma * 6) / barMaxHP;
+                if (traumaTiles == 0)
+                    traumaTiles = 1;
                 if (traumaTiles > 6)
                     traumaTiles = 6;
-
-                if (!sScarTileBuilt)
-                {
-                    // Copy the solid (8px) red bar tile and recolour every opaque pixel to the scar index,
-                    // keeping the bar's silhouette (transparent rows stay transparent) but a flat purple fill.
-                    const u8 *redFull = GetHealthboxElementGfxPtr(HEALTHBOX_GFX_HP_BAR_RED) + 8 * 32;
-                    u32 b;
-                    for (b = 0; b < 32; b++)
-                    {
-                        u8 lo = redFull[b] & 0xF, hi = redFull[b] >> 4;
-                        if (lo != 0) lo = TRAUMA_SCAR_PAL_INDEX;
-                        if (hi != 0) hi = TRAUMA_SCAR_PAL_INDEX;
-                        sScarTile[b] = lo | (hi << 4);
-                    }
-                    sScarTileBuilt = TRUE;
-                }
-
-                // Recolour the scar palette slot to purple (idempotent; survives palette re-fades).
-                palNum = IndexOfSpritePaletteTag(TAG_HEALTHBOX_PAL);
-                if (palNum != 0xFF)
-                {
-                    gPlttBufferFaded[0x100 + palNum * 16 + TRAUMA_SCAR_PAL_INDEX] = TRAUMA_SCAR_COLOR;
-                    gPlttBufferUnfaded[0x100 + palNum * 16 + TRAUMA_SCAR_PAL_INDEX] = TRAUMA_SCAR_COLOR;
-                }
-
                 for (i = 6 - traumaTiles; i < 6; i++)
                 {
                     if (i < 2)
-                        CpuCopy32(sScarTile,
+                        CpuCopy32(TRAUMA_SCAR_GFX_PTR,
                                   (void *)(OBJ_VRAM0 + (gSprites[healthbarSpriteId].oam.tileNum + 2 + i) * TILE_SIZE_4BPP), 32);
                     else
-                        CpuCopy32(sScarTile,
+                        CpuCopy32(TRAUMA_SCAR_GFX_PTR,
                                   (void *)(OBJ_VRAM0 + 64 + (i + gSprites[healthbarSpriteId].oam.tileNum) * TILE_SIZE_4BPP), 32);
                 }
             }

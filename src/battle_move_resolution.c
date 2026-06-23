@@ -3420,7 +3420,9 @@ static enum MoveEndResult MoveEndMoveBlockRecoil(struct BattleCalcValues *cv)
 
 static enum MoveEndResult MoveEndSheerForce(struct BattleCalcValues *cv)
 {
-    if (IsSheerForceAffected(cv->move, cv->abilities[cv->battlerAtk]))
+    // Fantasy Retold: Adamant/Modest natures grant Sheer Force innately (stacks with the ability).
+    if (IsSheerForceAffected(cv->move, cv->abilities[cv->battlerAtk])
+     || (BattlerHasInnate(cv->battlerAtk, INNATE_SHEER_FORCE) && MoveIsAffectedBySheerForce(cv->move)))
         gBattleScripting.moveendState = MOVEEND_ITEMS_EFFECTS_ALL;
     else
         gBattleScripting.moveendState++;

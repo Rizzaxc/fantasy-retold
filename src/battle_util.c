@@ -6431,6 +6431,12 @@ static inline u32 CalcMoveBasePowerAfterModifiers(struct DamageContext *ctx)
         break;
     }
 
+    // Fantasy Retold: Sheer Force innate (Adamant/Modest). Stacks on top of the Sheer Force ability's
+    // own +30% (handled in the ability switch above), so a Sheer Force-ability mon with this nature
+    // gets it twice (~1.69x). Status-secondary suppression is handled in IsMoveSheerForceBoosted.
+    if (BattlerHasInnate(battlerAtk, INNATE_SHEER_FORCE) && MoveIsAffectedBySheerForce(move))
+        modifier = uq4_12_multiply(modifier, UQ_4_12(1.3));
+
     // various effects
     for (u32 i = 0; i < gProtectStructs[battlerAtk].helpingHand; i++)
         modifier = uq4_12_multiply(modifier, UQ_4_12(1.5));
@@ -7646,6 +7652,53 @@ void AddBattlerTrauma(enum BattlerId battler, u32 amount)
         gBattleMons[battler].hp = effMax;
 }
 
+// Fantasy Retold: Nature innates -----------------------------------------------------------------
+
+enum NatureInnate GetNatureInnate(u8 nature)
+{
+    switch (nature)
+    {
+    case NATURE_HARDY: case NATURE_DOCILE: case NATURE_SERIOUS: case NATURE_BASHFUL: case NATURE_QUIRKY:
+        return INNATE_ADVANTAGE;
+    case NATURE_LONELY: case NATURE_BRAVE: case NATURE_NAUGHTY: case NATURE_HASTY:
+    case NATURE_NAIVE: case NATURE_MILD: case NATURE_QUIET: case NATURE_RASH:
+        return INNATE_SUPER_LUCK;
+    case NATURE_ADAMANT: case NATURE_MODEST:
+        return INNATE_SHEER_FORCE;
+    case NATURE_JOLLY: case NATURE_TIMID:
+        return INNATE_QUICK_START;
+    case NATURE_BOLD: case NATURE_IMPISH:
+        return INNATE_BATTLE_ARMOR;
+    case NATURE_CALM: case NATURE_CAREFUL:
+        return INNATE_RESILIENT;
+    case NATURE_RELAXED: case NATURE_LAX:
+        return INNATE_REGENERATOR;
+    case NATURE_SASSY: case NATURE_GENTLE:
+        return INNATE_NATURAL_CURE;
+    default:
+        return INNATE_NONE;
+    }
+}
+
+bool32 BattlerHasInnate(enum BattlerId battler, enum NatureInnate innate)
+{
+    return GetNatureInnate(GetNatureFromPersonality(gBattleMons[battler].personality)) == innate;
+}
+
+// Fantasy Retold: on-switch-in Nature innates. Applied every time the mon enters (after stat stages
+// are reset), so they don't compound across switches. Quick Start = Jolly/Timid (+1 Speed); Resilient
+// = Calm/Careful (+1 Sp.Def stage, i.e. the repurposed Trauma-resistance stage).
+void ApplyNatureSwitchInInnates(enum BattlerId battler)
+{
+    if (BattlerHasInnate(battler, INNATE_QUICK_START)
+     && gBattleMons[battler].statStages[STAT_SPEED] < MAX_STAT_STAGE)
+        gBattleMons[battler].statStages[STAT_SPEED]++;
+
+    if (BattlerHasInnate(battler, INNATE_RESILIENT)
+     && gBattleMons[battler].statStages[STAT_SPDEF] < MAX_STAT_STAGE)
+        gBattleMons[battler].statStages[STAT_SPDEF]++;
+}
+
 s32 DoFixedDamageMoveCalc(struct DamageContext *ctx)
 {
     s32 dmg = INT32_MAX;
@@ -7857,13 +7910,15 @@ s32 CalcCritChanceStage(struct DamageContext *ctx)
                     + GetHoldEffectCritChanceIncrease(ctx->battlerAtk, ctx->holdEffects[ctx->battlerAtk])
                     + ((B_AFFECTION_MECHANICS == TRUE && GetBattlerAffectionHearts(ctx->battlerAtk) == AFFECTION_FIVE_HEARTS) ? 2 : 0)
                     + (ctx->abilities[ctx->battlerAtk] == ABILITY_SUPER_LUCK ? 1 : 0)
+                    + (BattlerHasInnate(ctx->battlerAtk, INNATE_SUPER_LUCK) ? 1 : 0) // Fantasy Retold: Reckless natures; stacks with the ability
                     + gBattleMons[ctx->battlerAtk].volatiles.bonusCritStages;
 
         if (critChance >= ARRAY_COUNT(sCriticalHitOdds))
             critChance = ARRAY_COUNT(sCriticalHitOdds) - 1;
     }
 
-    if (critChance != CRITICAL_HIT_BLOCKED && (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR))
+    if (critChance != CRITICAL_HIT_BLOCKED && (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR
+            || BattlerHasInnate(ctx->battlerDef, INNATE_BATTLE_ARMOR))) // Fantasy Retold: Bold/Impish natures
     {
         // Record ability only if move had 100% chance to get a crit
         if (ctx->updateFlags)
@@ -7911,11 +7966,14 @@ s32 CalcCritChanceStageGen1(struct DamageContext *ctx)
 
     if (ctx->abilities[ctx->battlerAtk] == ABILITY_SUPER_LUCK)
         critChance *= 4;
+    if (BattlerHasInnate(ctx->battlerAtk, INNATE_SUPER_LUCK)) // Fantasy Retold: Reckless natures; stacks with the ability
+        critChance *= 4;
 
     if (critChance > 255)
         critChance = 255;
 
-    if (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR)
+    if (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR
+        || BattlerHasInnate(ctx->battlerDef, INNATE_BATTLE_ARMOR)) // Fantasy Retold: Bold/Impish natures
     {
         if (ctx->updateFlags)
             RecordAbilityBattle(ctx->battlerDef, ctx->abilities[ctx->battlerDef]);
@@ -7945,7 +8003,11 @@ static bool32 IsCriticalHit(struct DamageContext *ctx)
     // Fantasy Retold: Exhaustion Zone — auto-crit a target that ENTERED this turn at 0 Stamina.
     // Keyed off the turn-start snapshot (not live Stamina) so a mon drained to 0 during the turn
     // (its own action cost, or this very hit's attrition) is not retroactively converted to a crit.
-    if (gBattleStruct->battlerState[ctx->battlerDef].staminaTurnStart == 0)
+    // Battle Armor / Shell Armor (and the Bold/Impish innate) are immune even to this auto-crit.
+    if (gBattleStruct->battlerState[ctx->battlerDef].staminaTurnStart == 0
+     && ctx->abilities[ctx->battlerDef] != ABILITY_BATTLE_ARMOR
+     && ctx->abilities[ctx->battlerDef] != ABILITY_SHELL_ARMOR
+     && !BattlerHasInnate(ctx->battlerDef, INNATE_BATTLE_ARMOR))
     {
         gSpecialStatuses[ctx->battlerDef].criticalHit = TRUE;
         return TRUE;
@@ -10475,6 +10537,15 @@ bool32 DoesMoveMissTarget(struct BattleCalcValues *cv)
         return DoesOHKOMoveMissTarget(cv);
 
     if (CanMoveSkipAccuracyCalc(cv->battlerAtk, cv->battlerDef, cv->abilities[cv->battlerAtk], cv->abilities[cv->battlerDef], cv->move, RUN_SCRIPT))
+        return FALSE;
+
+    // Fantasy Retold: Advantage (Neutral natures) — when acting before the target, an offensive move
+    // with >=70% native accuracy bypasses the accuracy/evasion roll for a guaranteed functional hit.
+    // (It can still be Dodged via the L-button mechanic, which is resolved separately.)
+    if (BattlerHasInnate(cv->battlerAtk, INNATE_ADVANTAGE)
+     && !IsBattleMoveStatus(cv->move)
+     && GetMoveAccuracy(cv->move) >= 70
+     && GetBattlerTurnOrderNum(cv->battlerAtk) < GetBattlerTurnOrderNum(cv->battlerDef))
         return FALSE;
 
     u32 accuracy = GetTotalAccuracy(

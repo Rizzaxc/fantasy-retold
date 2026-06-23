@@ -96,40 +96,39 @@ The primary sustain mechanism used to stabilize an active Pokémon's resource de
 
 ## 4. Damage Modality: Health vs. Trauma
 
-To prevent eternal recovery stalling in a format where damage is halved, health tracking is split into two independent bars.
+To prevent eternal recovery stalling in a format where damage is halved, the **single HP bar** is tracked with **two numbers**: current HP and accumulated **Trauma**. Trauma is *not* a second bar.
 
-### Health Pool (HP)
+### The Core Model (one bar, two numbers)
 
-Standard health tracking that registers current match vitality. HP can be replenished using standard in-game items, abilities, or the Recuperate action.
+* **All damage is HP damage.** Every hit — physical or special, Trauma-causing or not — subtracts its full amount from current HP exactly as normal. Lethality is unchanged: a hit that would bring HP to 0 faints the target.
+* **Trauma is a running tally of *unhealable* damage.** A portion of certain hits (the Special fraction, and crit bonuses) is added to a per-Pokémon `Trauma` counter. This does **not** reduce the hit's HP damage — it only records how much of the bar can never be restored.
+* **Heals are capped at `maxHP − Trauma`.** Any HP recovery (items, abilities, Recuperate, end-of-turn, drain) may not raise current HP above this **effective max**. So Trauma is felt only when the target tries to recover.
+* **Persistence & death.** Trauma persists across switches for the whole engagement (only Level 1 statuses clear on switch). When Trauma reaches the original max HP, the effective max is 0 and the Pokémon can hold no HP — it faints.
 
-### Trauma Pool
+#### Special Move Translation (the Trauma fraction)
 
-Permanent, unhealable physical degradation that shrinks the maximum structural capacity of the HP bar **for the duration of the engagement** (Trauma persists across switches — only Level 1 statuses clear on switch). When accumulated Trauma reaches a Pokémon's original max HP, it faints.
+A Special hit deals its full damage to HP like anything else; additionally, a stamina-keyed fraction of that damage is logged as Trauma (unhealable):
 
-#### Special Move Translation (the Trauma split)
+$$\text{Trauma added} = D \times \left[a + b\,(1 - r)\right], \qquad \text{HP damage} = D \text{ (full, unchanged)}$$
 
-Every Special hit splits its output between the recoverable HP channel and the permanent Trauma channel, keyed to how drained the target is:
+where `D` is the (already halved) Special damage, $r = \frac{\text{CurrentSta}}{\text{BaseSta}}$, and the fraction $[a + b(1-r)] \le 1$.
 
-$$\text{Trauma} = D \times \left[a + b\,(1 - r)\right], \qquad \text{HP damage} = D \times \left(1 - [a + b\,(1-r)]\right)$$
-
-where `D` is the (already halved) Special damage, $r = \frac{\text{CurrentSta}}{\text{BaseSta}}$, and the capped fraction $[a + b(1-r)] \le 1$.
-
-* **Constants:** `a = 0.25` (floor — Trauma even versus a fresh target), `b = 0.40` (drain bonus). At full Stamina (`r=1`) **40%** of a Special hit becomes permanent Trauma; at 0 Stamina (`r=0`), **80%**.
-* **Design role:** Physical attackers shred Stamina (lowering `r`); Special attackers punish the drained target by converting an escalating share to Trauma. This is the core offensive combo, and it is what lets a Special attacker beat a Recuperate-stalling wall — Recuperate heals HP but can never refund the shrinking ceiling.
+* **Constants:** `a = 0.25` (floor — Trauma even versus a fresh target), `b = 0.40` (drain bonus). At full Stamina (`r=1`) **25%** of a Special hit is logged as Trauma; at 0 Stamina (`r=0`), **65%**.
+* **Design role:** Physical attackers shred Stamina (lowering `r`); Special attackers punish the drained target by making an escalating share of the (full) damage permanent. This is the core offensive combo, and it is what lets a Special attacker beat a Recuperate-stalling wall — Recuperate heals HP but can never refund the shrinking ceiling.
 
 #### Special Defense Stage = Trauma Resistance
 
-The repurposed **Special Defense stat *stage*** (from Calm Mind, Quiver Dance, etc.) reduces **only the Trauma channel** of incoming Special hits:
+The repurposed **Special Defense stat *stage*** (from Calm Mind, Quiver Dance, etc.) reduces **only the Trauma logged** by incoming Special hits (never the HP damage):
 
-* Each `+1` SpD stage multiplies incoming Special Trauma by **0.85** (bottoms at ~0.38 at `+6`).
-* It affects the **Trauma channel only** — never the HP-damage channel (handled by unified Defense), never `BaseSta`/Stamina, never Speed.
+* Each `+1` SpD stage multiplies the Trauma logged by **0.85** (bottoms at ~0.38 at `+6`).
+* It affects **only the Trauma tally** — never the HP damage dealt (handled by unified Defense), never `BaseSta`/Stamina, never Speed.
 * Consequence: Calm Mind is a *special-leaning* bulky setup that gives **zero** defensive value against Physical attacks, keeping it self-limiting. Quiver Dance (SpA + Speed + SpD-trauma-guard) is the build to watch for over-performance.
 
 ### Critical Hit Amplification
 
 * Critical hits bypass standard stat-stage modifiers.
-* The bonus damage portion generated by a critical strike is applied directly to the target's pool as **Trauma**, regardless of whether the move was classified as Physical or Special.
-* In the Exhaustion Zone (`CurrentSta = 0`), every incoming damaging move auto-crits, so its bonus portion is dumped straight into Trauma.
+* The crit still deals its full (boosted) damage to HP; additionally, the bonus portion (~1/3 of the dealt damage) is logged as **Trauma** (unhealable), regardless of whether the move was Physical or Special.
+* In the Exhaustion Zone (`CurrentSta = 0` at the start of the turn), every incoming damaging move auto-crits, so its bonus portion is logged as Trauma.
 
 ---
 
@@ -288,7 +287,7 @@ The honesty of the archetype rests on **setup-opportunity scarcity** — pivots,
 * **Life Orb**
 * **Leftover**
 * **Choice Band, Specs**: vanilla, but choice-locked moves don't auto miss against Dodge. Disable L&R
-* **Choice Scarf**: moves can't be Dodged, at worst still 50% damage. Signature moves deal 100%. Disable L&R
+* **Choice Scarf**: vanilla, moves can't be Dodged, at worst still 50% damage. Signature moves deal 100%. Disable L&R
 
 ### Sp. Def items → Stamina (consequence of unified Defense)
 
@@ -349,7 +348,7 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 | Nature     | Adamant / Modest                | Sheer Force (+30% dmg, no Lv1 status)               |
 | Nature     | Jolly / Timid                   | Quick Start (+1 Speed on entry)                     |
 | Nature     | Bold / Impish                   | Battle Armor (crit immune)                          |
-| Nature     | Calm / Careful                  | Resilient (halves Trauma)                           |
+| Nature     | Calm / Careful                  | Resilient (+1 Sp.Def / Trauma-resist stage on entry) |
 | Nature     | Relaxed / Lax                   | Regenerator (HP on switch-out)                      |
 | Nature     | Sassy / Gentle                  | Natural Cure (status cleared on switch)             |
 | Pacing     | Time-to-death (physical)        | frail 5–7 / mid 7–10 / giga 10+ turns               |
