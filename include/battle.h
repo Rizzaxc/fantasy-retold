@@ -520,6 +520,7 @@ struct BattlerState
     // End of Word
     u16 hpOnSwitchout;
     u16 currentStamina; // Fantasy Retold: CurrentSta. BaseSta is the (repurposed) Sp. Def stat. Persists across switches (banked into PartyState.storedStamina on switch-out); only a fresh first send-out enters at full.
+    u16 staminaTurnStart; // Fantasy Retold: CurrentSta snapshot taken at the start of each turn. The exhaustion auto-crit keys off THIS, so a mon must enter the turn at 0 to be auto-crit — being drained to 0 mid-turn (own action cost, or this hit's attrition) does not retroactively cause the crit.
     u16 switchIn:1;
     u16 notOnField:1;
     u16 redCardSwitched:1;

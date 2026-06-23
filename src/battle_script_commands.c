@@ -1769,6 +1769,8 @@ static void MoveDamageDataHpUpdate(enum BattlerId battler, u32 scriptBattler, co
             gBattleStruct->battlerState[battler].currentStamina -= attrition;
         else
             gBattleStruct->battlerState[battler].currentStamina = 0;
+
+        UpdateStaminaTextOnHealthbox(battler); // Fantasy Retold: reflect attrition immediately.
     }
 
     GetBattlerPartyState(battler)->timesGotHit++;

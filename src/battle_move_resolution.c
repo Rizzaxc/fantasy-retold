@@ -11,6 +11,7 @@
 #include "battle_z_move.h"
 #include "item.h"
 #include "battle_controllers.h"
+#include "battle_interface.h"
 #include "move.h"
 #include "constants/battle_move_resolution.h"
 
@@ -1024,6 +1025,8 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
             gBattleStruct->battlerState[cv->battlerAtk].currentStamina -= staCost;
         else
             gBattleStruct->battlerState[cv->battlerAtk].currentStamina = 0;
+
+        UpdateStaminaTextOnHealthbox(cv->battlerAtk); // Fantasy Retold: reflect action cost immediately.
     }
 
     gLastMoves[cv->battlerAtk] = gChosenMove;

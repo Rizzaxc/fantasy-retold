@@ -7942,8 +7942,10 @@ static bool32 IsCriticalHit(struct DamageContext *ctx)
     if (gSideStatuses[GetBattlerSide(ctx->battlerDef)] & SIDE_STATUS_LUCKY_CHANT)
         return FALSE;
 
-    // Fantasy Retold: Exhaustion Zone — any damaging move against a 0-Stamina target auto-crits.
-    if (gBattleStruct->battlerState[ctx->battlerDef].currentStamina == 0)
+    // Fantasy Retold: Exhaustion Zone — auto-crit a target that ENTERED this turn at 0 Stamina.
+    // Keyed off the turn-start snapshot (not live Stamina) so a mon drained to 0 during the turn
+    // (its own action cost, or this very hit's attrition) is not retroactively converted to a crit.
+    if (gBattleStruct->battlerState[ctx->battlerDef].staminaTurnStart == 0)
     {
         gSpecialStatuses[ctx->battlerDef].criticalHit = TRUE;
         return TRUE;
