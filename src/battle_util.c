@@ -7023,42 +7023,19 @@ static inline u32 CalcDefenseStat(struct DamageContext *ctx)
 {
     bool32 usesDefStat;
     u8 defStage;
-    u32 defStat, def, spDef;
+    u32 defStat, def;
     uq4_12_t modifier;
     enum BattlerId battlerDef = ctx->battlerDef;
     enum Move move = ctx->move;
-    enum BattleMoveEffects moveEffect = GetMoveEffect(move);
     def = gBattleMons[battlerDef].defense;
-    spDef = gBattleMons[battlerDef].spDefense;
 
-    if (moveEffect == EFFECT_PSYSHOCK || IsBattleMovePhysical(move)) // uses defense stat instead of sp.def
-    {
-        if (ctx->fieldStatuses & STATUS_FIELD_WONDER_ROOM) // the defense stats are swapped
-        {
-            defStat = spDef;
-            usesDefStat = FALSE;
-        }
-        else
-        {
-            defStat = def;
-            usesDefStat = TRUE;
-        }
-        defStage = gBattleMons[battlerDef].statStages[STAT_DEF];
-    }
-    else // is special
-    {
-        if (ctx->fieldStatuses & STATUS_FIELD_WONDER_ROOM) // the defense stats are swapped
-        {
-            defStat = def;
-            usesDefStat = TRUE;
-        }
-        else
-        {
-            defStat = spDef;
-            usesDefStat = FALSE;
-        }
-        defStage = gBattleMons[battlerDef].statStages[STAT_SPDEF];
-    }
+    // Fantasy Retold: Unified Defense — the Defense stat mitigates BOTH Physical and Special.
+    // Sp. Def is repurposed as Stamina (no longer a mitigation stat), so Wonder Room's Def/Sp.Def
+    // swap is neutered and EFFECT_PSYSHOCK no longer needs special handling here (it is repurposed
+    // toward Trauma in a later pass; see Def/SpDef audit).
+    defStat = def;
+    usesDefStat = TRUE;
+    defStage = gBattleMons[battlerDef].statStages[STAT_DEF];
 
     // Self-destruct / Explosion cut defense in half
     if (GetConfig(B_EXPLOSION_DEFENSE) < GEN_5 && IsExplosionMove(ctx->move))
@@ -7624,7 +7601,49 @@ s32 ApplyModifiersAfterDmgRoll(struct DamageContext *ctx, s32 dmg)
     DAMAGE_APPLY_MODIFIER(GetZMaxMoveAgainstProtectionModifier(ctx));
     DAMAGE_APPLY_MODIFIER(GetOtherModifiers(ctx));
 
+    // Fantasy Retold: Halved Damage Profile — all move damage outputs exactly 50% of vanilla.
+    DAMAGE_APPLY_MODIFIER(UQ_4_12(0.5));
+
     return dmg;
+}
+
+// Fantasy Retold: Trauma helpers ---------------------------------------------------------------
+
+// Trauma resistance from the repurposed Sp. Def stat stage (Calm Mind / Quiver Dance): each +1
+// stage multiplies incoming Trauma by 0.85; each -1 stage divides by it. (The Resilient nature's
+// halving is layered on top in Phase 6.)
+u32 ApplyTraumaResistance(enum BattlerId battler, u32 trauma)
+{
+    s32 i, stageDiff = (s32)gBattleMons[battler].statStages[STAT_SPDEF] - DEFAULT_STAT_STAGE;
+    for (i = 0; i < stageDiff; i++) // +Sp.Def stages reduce Trauma taken
+        trauma = trauma * 85 / 100;
+    for (i = 0; i > stageDiff; i--) // -Sp.Def stages increase it
+        trauma = trauma * 100 / 85;
+    return trauma;
+}
+
+u32 GetBattlerEffectiveMaxHP(enum BattlerId battler)
+{
+    u32 maxHP = gBattleMons[battler].maxHP;
+    u32 trauma = GetBattlerPartyState(battler)->trauma;
+    return (trauma >= maxHP) ? 0 : (maxHP - trauma);
+}
+
+// Accumulate permanent Trauma: shrinks effective max HP (capped at maxHP) and re-caps current HP.
+void AddBattlerTrauma(enum BattlerId battler, u32 amount)
+{
+    struct PartyState *ps = GetBattlerPartyState(battler);
+    u32 maxHP = gBattleMons[battler].maxHP;
+    u32 newTrauma = ps->trauma + amount;
+    u32 effMax;
+
+    if (newTrauma > maxHP)
+        newTrauma = maxHP;
+    ps->trauma = newTrauma;
+
+    effMax = maxHP - newTrauma;
+    if (gBattleMons[battler].hp > effMax)
+        gBattleMons[battler].hp = effMax;
 }
 
 s32 DoFixedDamageMoveCalc(struct DamageContext *ctx)
@@ -7923,6 +7942,13 @@ static bool32 IsCriticalHit(struct DamageContext *ctx)
     if (gSideStatuses[GetBattlerSide(ctx->battlerDef)] & SIDE_STATUS_LUCKY_CHANT)
         return FALSE;
 
+    // Fantasy Retold: Exhaustion Zone — any damaging move against a 0-Stamina target auto-crits.
+    if (gBattleStruct->battlerState[ctx->battlerDef].currentStamina == 0)
+    {
+        gSpecialStatuses[ctx->battlerDef].criticalHit = TRUE;
+        return TRUE;
+    }
+
     bool32 isCrit = FALSE;
     s32 critChance = 0;
 
@@ -8213,6 +8239,16 @@ static inline uq4_12_t CalcTypeEffectivenessMultiplierInternal(struct DamageCont
 
     if (ctx->updateFlags)
         TryInitializeFirstSTABMoveTrainerSlide(ctx->battlerDef, ctx->battlerAtk, ctx->moveType);
+
+    // Fantasy Retold: hard-cap type effectiveness at 2x — compress 4x weakness/resistance to 2x.
+    // Immunity (0x) is left untouched.
+    if (modifier != UQ_4_12(0.0))
+    {
+        if (modifier > UQ_4_12(2.0))
+            modifier = UQ_4_12(2.0);
+        else if (modifier < UQ_4_12(0.5))
+            modifier = UQ_4_12(0.5);
+    }
 
     return modifier;
 }

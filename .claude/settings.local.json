@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"D:/Work/fantasy-retold\" && ls -la && echo \"---PARENT---\" && ls -la .. 2>/dev/null | head -50)"
+    ]
+  }
+}

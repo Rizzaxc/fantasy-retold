@@ -519,6 +519,7 @@ struct BattlerState
     u32 lastMoveTarget:3; // The last target on which each mon used a move, for the sake of Instruct
     // End of Word
     u16 hpOnSwitchout;
+    u16 currentStamina; // Fantasy Retold: CurrentSta. BaseSta is the (repurposed) Sp. Def stat. Persists across switches (banked into PartyState.storedStamina on switch-out); only a fresh first send-out enters at full.
     u16 switchIn:1;
     u16 notOnField:1;
     u16 redCardSwitched:1;
@@ -526,6 +527,11 @@ struct BattlerState
     u16 padding:11;
     // End of Word
 };
+
+// Fantasy Retold: flat Stamina granted on switch-out ("rest bonus"). Switching no longer refills to full;
+// it banks CurrentSta + this amount (capped at BaseSta), so frail mons get a near-full reset while a big
+// BaseSta pool gains only a sliver — Recuperate stays the bulky mon's better in-place option.
+#define STAMINA_SWITCH_RESTORE 50
 
 struct PartyState
 {
@@ -541,6 +547,8 @@ struct PartyState
     u32 isKnockedOff:1;
     u32 padding:8;
     u16 usedHeldItem;
+    u16 storedStamina; // Fantasy Retold: CurrentSta banked at switch-out (+STAMINA_SWITCH_RESTORE rest bonus), restored on the mon's next switch-in. Read only when sentOut is set.
+    u16 trauma;        // Fantasy Retold: permanent Trauma. Reduces effective max HP; persists across switches for the whole battle.
 };
 
 struct EventStates

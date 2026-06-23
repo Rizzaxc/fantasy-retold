@@ -3118,6 +3118,20 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
 {
     enum BattleMoveEffects effect = GetMoveEffect(gCurrentMove);
 
+    // Fantasy Retold: Stamina persists across switches. A mon that has already been on the field this
+    // battle returns with its banked Stamina (CurrentSta at switch-out + the STAMINA_SWITCH_RESTORE rest
+    // bonus, applied when it left), capped at BaseSta. Only a fresh first send-out enters at full.
+    // storedStamina is non-zero only once a mon has banked at a prior switch-out (a banked value is always
+    // >= STAMINA_SWITCH_RESTORE), so zero unambiguously marks a first send-out.
+    {
+        struct PartyState *partyState = GetBattlerPartyState(battler);
+        u32 baseSta = GetBaseStamina(battler);
+        if (partyState->storedStamina != 0)
+            gBattleStruct->battlerState[battler].currentStamina = min(partyState->storedStamina, baseSta);
+        else
+            gBattleStruct->battlerState[battler].currentStamina = baseSta;
+    }
+
     ClearIllusionMon(battler);
     if (effect != EFFECT_BATON_PASS)
     {
@@ -3673,7 +3687,12 @@ static void DoBattleIntro(void)
 
             // mark all battlers as sent out
             for (battler = 0; battler < gBattlersCount; battler++)
+            {
                 GetBattlerPartyState(battler)->sentOut = TRUE;
+                // Fantasy Retold: initialize Stamina as early as possible so no code path
+                // can observe the AllocZeroed default of 0 (which triggers exhaustion auto-crit).
+                gBattleStruct->battlerState[battler].currentStamina = GetBaseStamina(battler);
+            }
 
 #define UNPACK_STARTING_STATUS_TO_BATTLE(_enum, _fieldName, ...) gStartingStatuses._fieldName = (statusesOpponentA._fieldName || statusesOpponentB._fieldName || gStartingStatuses._fieldName);
 
@@ -3784,7 +3803,11 @@ static void TryDoEventsBeforeFirstTurn(void)
     case FIRST_TURN_SWITCH_IN_EVENTS:
         gBattleStruct->eventState.switchIn = 0;
         for (enum BattlerId battler = 0; battler < gBattlersCount; battler++)
+        {
             gBattleStruct->battlerState[battler].switchIn = TRUE;
+            // Fantasy Retold: initial send-outs enter at full Stamina.
+            gBattleStruct->battlerState[battler].currentStamina = GetBaseStamina(battler);
+        }
         BattleScriptPushCursorAndCallback(BattleScript_FirstTurnSwitchInEvents);
         gBattleStruct->eventState.beforeFirstTurn++;
         break;
@@ -4653,6 +4676,35 @@ void SwapTurnOrder(u8 id1, u8 id2)
 }
 
 // For AI, so it doesn't 'cheat' by knowing player's ability
+// Fantasy Retold: BaseSta is the (repurposed) Sp. Def stat. Items that used to boost Sp. Def
+// mitigation now boost the Stamina pool instead, since Sp. Def is no longer a mitigation stat.
+u32 GetBaseStamina(enum BattlerId battler)
+{
+    u32 baseSta = gBattleMons[battler].spDefense;
+
+    switch (GetBattlerHoldEffect(battler))
+    {
+    case HOLD_EFFECT_ASSAULT_VEST: // +50% Stamina pool (still locked out of status moves).
+        baseSta = (baseSta * 3) / 2;
+        break;
+    case HOLD_EFFECT_DEEP_SEA_SCALE:
+        if (gBattleMons[battler].species == SPECIES_CLAMPERL)
+            baseSta *= 2;
+        break;
+    case HOLD_EFFECT_SOUL_DEW:
+        if (B_SOUL_DEW_BOOST < GEN_7
+         && (gBattleMons[battler].species == SPECIES_LATIAS || gBattleMons[battler].species == SPECIES_LATIOS))
+            baseSta = (baseSta * 3) / 2;
+        break;
+    default:
+        break;
+    }
+
+    if (baseSta == 0)
+        baseSta = 1;
+    return baseSta;
+}
+
 u32 GetBattlerTotalSpeedStat(enum BattlerId battler, enum Ability ability, enum HoldEffect holdEffect)
 {
     u32 speed = gBattleMons[battler].speed;
@@ -4714,6 +4766,15 @@ u32 GetBattlerTotalSpeedStat(enum BattlerId battler, enum Ability ability, enum 
 
     if (gSideStatuses[GetBattlerSide(battler)] & SIDE_STATUS_SWAMP)
         speed /= 4;
+
+    // Fantasy Retold: Stamina-driven speed decay. EffSpeed = Speed * (0.15 + CurrentSta/BaseSta).
+    {
+        u32 baseSta = GetBaseStamina(battler);
+        u32 staRatioPercent = (gBattleStruct->battlerState[battler].currentStamina * 100) / baseSta;
+        if (staRatioPercent > 100)
+            staRatioPercent = 100;
+        speed = speed * (15 + staRatioPercent) / 100;
+    }
 
     return speed;
 }

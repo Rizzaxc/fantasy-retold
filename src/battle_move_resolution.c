@@ -1012,6 +1012,20 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
     else
         gBattleMons[cv->battlerAtk].pp[movePosition] = 0;
 
+    // Fantasy Retold: Stamina action cost. Damaging: BP/10 + 2% BaseSta body tax. Status: flat 10.
+    {
+        u32 staCost;
+        if (IsBattleMoveStatus(cv->move))
+            staCost = 10;
+        else
+            staCost = (GetMovePower(cv->move) / 10) + ((GetBaseStamina(cv->battlerAtk) * 2) / 100);
+
+        if (gBattleStruct->battlerState[cv->battlerAtk].currentStamina > staCost)
+            gBattleStruct->battlerState[cv->battlerAtk].currentStamina -= staCost;
+        else
+            gBattleStruct->battlerState[cv->battlerAtk].currentStamina = 0;
+    }
+
     gLastMoves[cv->battlerAtk] = gChosenMove;
 
     if (MOVE_IS_PERMANENT(cv->battlerAtk, movePosition))

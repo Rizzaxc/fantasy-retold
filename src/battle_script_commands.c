@@ -1502,6 +1502,72 @@ static void DoublesHPBarReduction(void)
     gBattleStruct->doneDoublesSpreadHit = TRUE;
 }
 
+// Fantasy Retold: Carve the Trauma portion out of a special/crit hit and rewrite moveDamage to the
+// ACTUAL HP that will be lost. This must run before the health bar animates (i.e. in healthbarupdate,
+// the first of the healthbarupdate/datahpupdate pair) so the bar animation and the HP subtraction in
+// datahpupdate consume the same value. Otherwise the bar over-animates by the carved-off Trauma and
+// then rebounds, dead mons survive a hit, and reduced damage looks like healing.
+//
+// It does NOT touch current HP here; it only accumulates permanent Trauma (which lowers effective max
+// HP) and sets moveDamage = real loss. datahpupdate then performs the plain subtraction.
+static void FinalizeTraumaDamage(enum BattlerId battler)
+{
+    s32 d = gBattleStruct->moveDamage[battler];
+    u32 traumaGained = 0;
+    struct PartyState *ps;
+    u32 maxHP, newTrauma, effMax;
+    s32 finalHp, hpBefore;
+
+    if (d <= 0 || GetMoveEffect(gCurrentMove) == EFFECT_PSYSHOCK)
+        return;
+
+    // Critical hits convert their bonus portion (~1/3 of dealt damage) to Trauma, any category.
+    if (gSpecialStatuses[battler].criticalHit)
+    {
+        u32 critTrauma = d / 3;
+        d -= critTrauma;
+        traumaGained += critTrauma;
+    }
+
+    // Special->Trauma split: f = 0.25 + 0.40*(BaseSta - CurrentSta)/BaseSta  (25%..65% to Trauma).
+    if (d > 0 && IsBattleMoveSpecial(gCurrentMove))
+    {
+        u32 baseSta = GetBaseStamina(battler);
+        u32 curSta = gBattleStruct->battlerState[battler].currentStamina;
+        u32 fPercent, traumaRaw;
+
+        if (curSta > baseSta)
+            curSta = baseSta;
+        fPercent = 25 + (40 * (baseSta - curSta)) / baseSta;
+        traumaRaw = (u32)d * fPercent / 100;
+        d -= traumaRaw;
+        traumaGained += ApplyTraumaResistance(battler, traumaRaw);
+    }
+
+    if (traumaGained == 0)
+        return; // Physical hit (and not a crit): full damage to HP, nothing to rewrite.
+
+    // Accumulate permanent Trauma (lowers effective max HP) without touching current HP here.
+    ps = GetBattlerPartyState(battler);
+    maxHP = gBattleMons[battler].maxHP;
+    newTrauma = ps->trauma + traumaGained;
+    if (newTrauma > maxHP)
+        newTrauma = maxHP;
+    ps->trauma = newTrauma;
+
+    // The HP channel (d) comes off current HP, but HP can't sit above the freshly-lowered effective
+    // max. moveDamage becomes the real HP delta so the bar and the subtraction agree.
+    hpBefore = gBattleMons[battler].hp;
+    effMax = maxHP - newTrauma;
+    finalHp = hpBefore - d;
+    if (finalHp > (s32)effMax)
+        finalHp = effMax;
+    if (finalHp < 0)
+        finalHp = 0;
+
+    gBattleStruct->moveDamage[battler] = hpBefore - finalHp;
+}
+
 static void Cmd_healthbarupdate(void)
 {
     CMD_ARGS(u8 battler, u8 updateState);
@@ -1531,7 +1597,10 @@ static void Cmd_healthbarupdate(void)
               && !DoesDisguiseBlockMove(battler, gCurrentMove)
               && !DoesIceFaceBlockMove(battler, gCurrentMove))
         {
-            s32 damage = min(gBattleStruct->moveDamage[battler], 10000);
+            s32 damage;
+            // Fantasy Retold: finalize the Trauma carve here so the bar animates the real HP loss.
+            FinalizeTraumaDamage(battler);
+            damage = min(gBattleStruct->moveDamage[battler], 10000);
             BtlController_EmitHealthBarUpdate(battler, B_COMM_TO_CONTROLLER, damage);
             MarkBattlerForControllerExec(battler);
             if (IsOnPlayerSide(battler) && damage > 0)
@@ -1622,14 +1691,19 @@ static void MoveDamageDataHpUpdate(enum BattlerId battler, u32 scriptBattler, co
         if (gBattleStruct->moveDamage[battler] < 0)
         {
             // Negative damage is HP gain
+            u32 effMax = GetBattlerEffectiveMaxHP(battler); // Fantasy Retold: Trauma caps healing.
             gBattleMons[battler].hp += -gBattleStruct->moveDamage[battler];
-            if (gBattleMons[battler].hp > gBattleMons[battler].maxHP)
-                gBattleMons[battler].hp = gBattleMons[battler].maxHP;
+            if (gBattleMons[battler].hp > effMax)
+                gBattleMons[battler].hp = effMax;
         }
         else
         {
             u16 hpBefore;
             u16 hpLost;
+
+            // Fantasy Retold: the crit/special->Trauma carve was already applied in healthbarupdate
+            // (FinalizeTraumaDamage) so that the bar animation and this subtraction stay in sync.
+            // moveDamage here is already the real HP loss; just deal it.
 
             gBideDmg[battler] += gBattleStruct->moveDamage[battler];
             gBideTarget[battler] = gBattlerAttacker;
@@ -1680,6 +1754,21 @@ static void MoveDamageDataHpUpdate(enum BattlerId battler, u32 scriptBattler, co
             gProtectStructs[battler].specialBattlerId = gBattlerAttacker;
             gProtectStructs[battler].lastHitBySpecialMove = TRUE;
         }
+    }
+
+    // Fantasy Retold: Stamina attrition — Physical hits AND Def-targeting special moves (Psyshock
+    // family) drain the target's CurrentSta by BP/10 * TypeEffectiveness {0.5, 1, 2}.
+    if (IsBattleMovePhysical(gCurrentMove) || GetMoveEffect(gCurrentMove) == EFFECT_PSYSHOCK)
+    {
+        u32 attrition = GetMovePower(gCurrentMove) / 10;
+        if (gBattleStruct->moveResultFlags[battler] & MOVE_RESULT_SUPER_EFFECTIVE)
+            attrition *= 2;
+        else if (gBattleStruct->moveResultFlags[battler] & MOVE_RESULT_NOT_VERY_EFFECTIVE)
+            attrition /= 2;
+        if (gBattleStruct->battlerState[battler].currentStamina > attrition)
+            gBattleStruct->battlerState[battler].currentStamina -= attrition;
+        else
+            gBattleStruct->battlerState[battler].currentStamina = 0;
     }
 
     GetBattlerPartyState(battler)->timesGotHit++;
@@ -4988,6 +5077,17 @@ static void Cmd_getswitchedmondata(void)
     assertf(IsValidSwitchIn(trainer, gBattleStruct->monToSwitchIntoId[battler]))
     {
         gBattleStruct->monToSwitchIntoId[battler] = GetArbitraryValidSwitchIn(trainer);
+    }
+
+    // Fantasy Retold: bank the outgoing mon's Stamina (+STAMINA_SWITCH_RESTORE rest bonus, capped at
+    // BaseSta) before the slot index is reassigned to the incoming mon below. Restored on its next
+    // switch-in. GetBattlerPartyState is keyed on gBattlerPartyIndexes[battler] (the per-mon identity, the
+    // same storage as timesGotHit/Rage Fist), so this lands on the outgoing mon and persists per-mon — the
+    // display-order reshuffle in SwitchPartyOrder rewrites only battlerPartyOrders, never this index.
+    {
+        u32 baseSta = GetBaseStamina(battler);
+        u32 banked = gBattleStruct->battlerState[battler].currentStamina + STAMINA_SWITCH_RESTORE;
+        GetBattlerPartyState(battler)->storedStamina = min(banked, baseSta);
     }
 
     gBattlerPartyIndexes[battler] = gBattleStruct->monToSwitchIntoId[battler];

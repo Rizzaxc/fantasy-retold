@@ -421,4 +421,9 @@ bool32 IsBattlersFirstTurn(enum BattlerId battler);
 struct PartyState *GetBattlerPartyState(enum BattlerId battler);
 void SetValuesOnFaint(enum BattlerId battler);
 
+// Fantasy Retold: Trauma pool.
+u32 ApplyTraumaResistance(enum BattlerId battler, u32 trauma);
+u32 GetBattlerEffectiveMaxHP(enum BattlerId battler);
+void AddBattlerTrauma(enum BattlerId battler, u32 amount);
+
 #endif // GUARD_BATTLE_UTIL_H
