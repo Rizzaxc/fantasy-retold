@@ -8095,17 +8095,30 @@ static bool32 IsCriticalHit(struct DamageContext *ctx)
     if (gSideStatuses[GetBattlerSide(ctx->battlerDef)] & SIDE_STATUS_LUCKY_CHANT)
         return FALSE;
 
-    // Fantasy Retold: Exhaustion Zone — auto-crit a target that ENTERED this turn at 0 Stamina.
-    // Keyed off the turn-start snapshot (not live Stamina) so a mon drained to 0 during the turn
-    // (its own action cost, or this very hit's attrition) is not retroactively converted to a crit.
+    // Fantasy Retold: Exhaustion Zone — auto-crit a target whose live Stamina is already 0 when
+    // this hit is resolving. Because crits are decided before damage / post-hit attrition is applied,
+    // being drained to 0 by this very hit does not retroactively convert it into a crit.
     // Battle Armor / Shell Armor (and the Bold/Impish innate) are immune even to this auto-crit.
-    if (gBattleStruct->battlerState[ctx->battlerDef].staminaTurnStart == 0
-     && ctx->abilities[ctx->battlerDef] != ABILITY_BATTLE_ARMOR
-     && ctx->abilities[ctx->battlerDef] != ABILITY_SHELL_ARMOR
-     && !BattlerHasInnate(ctx->battlerDef, INNATE_BATTLE_ARMOR))
+    if (gBattleStruct->battlerState[ctx->battlerDef].currentStamina == 0)
     {
-        gSpecialStatuses[ctx->battlerDef].criticalHit = TRUE;
-        return TRUE;
+        if (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR
+         || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR
+         || BattlerHasInnate(ctx->battlerDef, INNATE_BATTLE_ARMOR))
+        {
+            gSpecialStatuses[ctx->battlerDef].criticalHitBlocked = TRUE;
+            gSpecialStatuses[ctx->battlerDef].criticalHitBlockedByInnate =
+                BattlerHasInnate(ctx->battlerDef, INNATE_BATTLE_ARMOR)
+             && ctx->abilities[ctx->battlerDef] != ABILITY_BATTLE_ARMOR
+             && ctx->abilities[ctx->battlerDef] != ABILITY_SHELL_ARMOR;
+            if (ctx->updateFlags
+             && (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR))
+                RecordAbilityBattle(ctx->battlerDef, ctx->abilities[ctx->battlerDef]);
+        }
+        else
+        {
+            gSpecialStatuses[ctx->battlerDef].criticalHit = TRUE;
+            return TRUE;
+        }
     }
 
     bool32 isCrit = FALSE;
@@ -9986,6 +9999,8 @@ void ClearDamageCalcResults(void)
         gBattleStruct->moveResultFlags[battler] = 0;
         gBattleStruct->passiveHpUpdate[battler] = 0;
         gSpecialStatuses[battler].criticalHit = FALSE;
+        gSpecialStatuses[battler].criticalHitBlocked = FALSE;
+        gSpecialStatuses[battler].criticalHitBlockedByInnate = FALSE;
         gSpecialStatuses[battler].damagedByAttack = FALSE;
     }
 

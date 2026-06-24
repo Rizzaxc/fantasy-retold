@@ -47,3 +47,27 @@ SINGLE_BATTLE_TEST("Mold Breaker, Teravolt and Turboblaze ignore Battle Armor an
         MESSAGE("A critical hit!");
     }
 }
+
+SINGLE_BATTLE_TEST("Battle Armor and Shell Armor announce when they block exhaustion auto-crit")
+{
+    u32 species;
+    enum Ability ability;
+
+    PARAMETRIZE { species = SPECIES_KINGLER; ability = ABILITY_SHELL_ARMOR; }
+    PARAMETRIZE { species = SPECIES_ARMALDO; ability = ABILITY_BATTLE_ARMOR; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET) { Speed(50); Moves(MOVE_SCRATCH); }
+        OPPONENT(species) { Ability(ability); Speed(100); SpDefense(10); Moves(MOVE_SPLASH); }
+    } WHEN {
+        TURN { MOVE(opponent, MOVE_SPLASH); MOVE(player, MOVE_SCRATCH); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SPLASH, opponent);
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, player);
+        if (species == SPECIES_KINGLER)
+            MESSAGE("The opposing Kingler's armor blocked the critical hit!");
+        else
+            MESSAGE("The opposing Armaldo's armor blocked the critical hit!");
+        NOT MESSAGE("A critical hit!");
+    }
+}

@@ -74,3 +74,22 @@ SINGLE_BATTLE_TEST("Crit Change: Fixed damage moves don't print a crit message")
     }
 }
 #undef CRIT_MESSAGE
+
+SINGLE_BATTLE_TEST("Exhaustion auto-crit uses live pre-hit stamina for physical and special attacks")
+{
+    enum Move move;
+
+    PARAMETRIZE { move = MOVE_SCRATCH; }
+    PARAMETRIZE { move = MOVE_EMBER; }
+
+    GIVEN {
+        PLAYER(SPECIES_WOBBUFFET) { Speed(100); SpDefense(10); Moves(MOVE_SPLASH); }
+        OPPONENT(SPECIES_CHARMANDER) { Speed(50); Moves(move); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_SPLASH); MOVE(opponent, move); }
+    } SCENE {
+        ANIMATION(ANIM_TYPE_MOVE, MOVE_SPLASH, player);
+        ANIMATION(ANIM_TYPE_MOVE, move, opponent);
+        MESSAGE("A critical hit!");
+    }
+}

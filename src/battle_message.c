@@ -379,6 +379,8 @@ const u8 *const gBattleStringsTable[STRINGID_COUNT] =
     [STRINGID_STATROSE]                             = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s {B_BUFF1} rose{B_BUFF2}!"),
     [STRINGID_STATFELL]                             = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s {B_BUFF1} {B_BUFF2}fell!"),
     [STRINGID_CRITICALHIT]                          = COMPOUND_STRING("A critical hit!"),
+    [STRINGID_CRITICALHITBLOCKED]                   = COMPOUND_STRING("{B_DEF_NAME_WITH_PREFIX}'s armor blocked the critical hit!"),
+    [STRINGID_CRITICALHITIMMUNITY]                  = COMPOUND_STRING("But {B_DEF_NAME_WITH_PREFIX} is immune to critical hits!"),
     [STRINGID_ONEHITKO]                             = COMPOUND_STRING("It's a one-hit KO!"),
     [STRINGID_123POOF]                              = COMPOUND_STRING("One…{PAUSE 10}two…{PAUSE 10}and…{PAUSE 10}{PAUSE 20}{PLAY_SE SE_BALL_BOUNCE_1}ta-da!\p"),
     [STRINGID_ANDELLIPSIS]                          = COMPOUND_STRING("And…\p"),
@@ -3871,6 +3873,7 @@ void BattlePutTextOnWindow(const u8 *text, u8 windowId)
         else
             speed = GetPlayerTextSpeedDelay();
 
+        speed = ScaleBattleTextSpeed(speed);
         gTextFlags.canABSpeedUpPrint = 1;
     }
     else

@@ -14,6 +14,8 @@
 * **Unified Defense:** The traditional **Defense** stat handles mitigation for both Physical and Special attack formulas. The **Special Defense** stat is no longer a mitigation stat.
 * **Stat Repurposing:** The **Special Defense** stat block is stripped of its vanilla mitigation function and rebuilt as **Stamina** (its stat value becomes `BaseSta`). Its in-battle *stat stage* is repurposed as a Trauma-resistance modifier (see §4).
 * **Type Effectiveness Caps:** Maximum type weakness or resistance multipliers are hard-capped at **2x** (4x weaknesses and 4x resistances are compressed down to 2x).
+* **Accelerated Overworld Cadence:** Outside of battle, link / wireless, and test-runner sensitive paths, the main callback loop advances `OVERWORLD_LOGIC_UPDATES_PER_FRAME` times per rendered frame (currently **4x**). Music mixing and map-music cadence remain on the original VBlank schedule, so BGM tempo stays vanilla; **sound effects stay tied to game logic** and therefore accelerate with the faster simulation. The play-time counter also remains VBlank-based so the save clock tracks real time rather than simulation ticks.
+* **Battle Pace Compression:** Battles keep their controller/menu loop at **1x** for stability, but combat presentation is accelerated in two safe ways: (1) stable in-battle visual/task updates run `BATTLE_VISUAL_UPDATES_PER_FRAME` times per rendered frame (currently **3x**) **only while `gMain.callback2 == BattleMainCB2`**, so party/bag/menu handoffs remain untouched; and (2) `BATTLE_SPEED_MULTIPLIER` (currently **2x**) shortens battle-script pauses, battle text delay, and battle animation-script frame waits. This speeds up combat flow without reintroducing the menu/switch hangs caused by multi-stepping the full battle loop.
 
 ---
 
@@ -25,6 +27,7 @@ Stamina serves as the primary operational currency governing action speed, move 
 
 * `BaseSta` is the repurposed Special Defense stat, used at its native scale (no rescaling — EV/IV expectations are preserved).
 * **Stamina persists across switches.** A Pokémon's first send-out of the battle enters fresh at `CurrentSta = BaseSta`. On every **switch-out**, it banks its current Stamina plus a flat **+50 rest bonus** (capped at `BaseSta`); it returns to the field at that banked value. Speed decay is a function of `CurrentSta/BaseSta`, so it carries across switches too — an exhausted mon that pivots out comes back slow *and* near-empty.
+* **UI note:** The player healthbox shows exact Stamina (`CurrentSta/BaseSta`). The opponent healthbox shows a percentage for readability, rounded so any non-zero foe Stamina displays as at least **1%**. Exhaustion / auto-crit checks always use the exact live `CurrentSta`, not the displayed percentage.
 
 #### Why a flat +50 (frail pivots, bulk plants)
 
@@ -48,7 +51,7 @@ Turn priority is dynamically re-calculated at the start of every combat round us
 $$\text{Effective Speed} = \text{Base Speed} \times \left(0.15 + \frac{\text{CurrentSta}}{\text{BaseSta}}\right)$$
 
 * **The Exhaustion Cliff:** Fast but resource-inefficient attackers experience severe speed degradation across consecutive turns.
-* **The Auto-Crit State:** If `CurrentSta` hits **0**, the Pokémon enters the *Exhaustion Zone*. Any incoming damaging move received while at 0 Stamina triggers an **automatic critical hit**.
+* **The Auto-Crit State:** If `CurrentSta` hits **0**, the Pokémon enters the *Exhaustion Zone*. Any incoming damaging move received while at 0 Stamina triggers an **automatic critical hit**. The check uses the target's **live pre-hit Stamina**, not a turn-start snapshot: if a mon exhausts itself earlier in the round, later incoming hits auto-crit; if a physical hit is the thing that drains Stamina to 0, that same hit does **not** retroactively become a crit. If Battle Armor / Shell Armor blocks that exhaustion auto-crit, the battle log explicitly announces that the target's armor blocked the critical hit; if the Bold / Impish innate armor effect is the blocker, it instead says the target is immune to critical hits.
 
 ### Pacing Targets (the Physical Clock)
 

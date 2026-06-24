@@ -1011,6 +1011,8 @@ static void Cmd_delay(void)
     sAnimFramesToWait = sBattleAnimScriptPtr[0];
     if (sAnimFramesToWait == 0)
         sAnimFramesToWait = -1;
+    else
+        sAnimFramesToWait = ScaleBattleFrameDelay(sAnimFramesToWait);
     sBattleAnimScriptPtr++;
     gAnimScriptCallback = WaitAnimFrameCount;
 }

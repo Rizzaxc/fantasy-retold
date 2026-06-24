@@ -3134,8 +3134,6 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
             gBattleStruct->battlerState[battler].currentStamina = min(partyState->storedStamina, baseSta);
         else
             gBattleStruct->battlerState[battler].currentStamina = baseSta;
-        // Fantasy Retold: a freshly switched-in mon hasn't over-exerted this turn — snapshot its entry Stamina.
-        gBattleStruct->battlerState[battler].staminaTurnStart = gBattleStruct->battlerState[battler].currentStamina;
 
         // Fantasy Retold: status rails (design.md §6). The rail in PartyState is authoritative and persists
         // across switches (Lv2+; Lv1 was dropped on switch-out). On a mon's first send-out (storedStamina
@@ -3710,7 +3708,6 @@ static void DoBattleIntro(void)
                 // Fantasy Retold: initialize Stamina as early as possible so no code path
                 // can observe the AllocZeroed default of 0 (which triggers exhaustion auto-crit).
                 gBattleStruct->battlerState[battler].currentStamina = GetBaseStamina(battler);
-                gBattleStruct->battlerState[battler].staminaTurnStart = gBattleStruct->battlerState[battler].currentStamina;
             }
 
 #define UNPACK_STARTING_STATUS_TO_BATTLE(_enum, _fieldName, ...) gStartingStatuses._fieldName = (statusesOpponentA._fieldName || statusesOpponentB._fieldName || gStartingStatuses._fieldName);
@@ -3826,7 +3823,6 @@ static void TryDoEventsBeforeFirstTurn(void)
             gBattleStruct->battlerState[battler].switchIn = TRUE;
             // Fantasy Retold: initial send-outs enter at full Stamina.
             gBattleStruct->battlerState[battler].currentStamina = GetBaseStamina(battler);
-            gBattleStruct->battlerState[battler].staminaTurnStart = gBattleStruct->battlerState[battler].currentStamina;
             ApplyNatureSwitchInInnates(battler); // Fantasy Retold: Quick Start / Resilient on the opening send-out
             // Fantasy Retold: the healthbox was first drawn before Stamina existed (showing 0); refresh
             // it now that the real value is set, so the readout is correct from the opening turn.
@@ -5135,8 +5131,6 @@ static void TurnValuesCleanUp(bool8 var0)
 
             gBattleStruct->battlerState[i].canPickupItem = FALSE;
             gBattleStruct->battlerState[i].wasAboveHalfHp = FALSE;
-            // Fantasy Retold: snapshot Stamina coming into the next turn for the exhaustion auto-crit.
-            gBattleStruct->battlerState[i].staminaTurnStart = gBattleStruct->battlerState[i].currentStamina;
         }
 
         if (gBattleMons[i].volatiles.substituteHP == 0)

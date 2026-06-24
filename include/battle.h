@@ -35,6 +35,24 @@
    (!(gBattleMons[battler].volatiles.transformed)           \
  && !(gBattleMons[battler].volatiles.mimickedMoves & (1u << moveSlot)))
 
+#define BATTLE_SPEED_MULTIPLIER 2
+
+static inline u16 ScaleBattleFrameDelay(u16 frames)
+{
+    if (BATTLE_SPEED_MULTIPLIER <= 1 || frames == 0)
+        return frames;
+
+    return (frames + BATTLE_SPEED_MULTIPLIER - 1) / BATTLE_SPEED_MULTIPLIER;
+}
+
+static inline u8 ScaleBattleTextSpeed(u8 delay)
+{
+    if (BATTLE_SPEED_MULTIPLIER <= 1 || delay == 0)
+        return delay;
+
+    return (delay + BATTLE_SPEED_MULTIPLIER - 1) / BATTLE_SPEED_MULTIPLIER;
+}
+
 // Battle Actions
 // These determine what each battler will do in a turn
 #define B_ACTION_USE_MOVE               0
@@ -126,7 +144,8 @@ struct SpecialStatus
     u8 dancerUsedMove:1;
     u8 criticalHit:1;
     u8 shellBellEmergencyExit:1;
-    u8 padding:2;
+    u8 criticalHitBlocked:1;
+    u8 criticalHitBlockedByInnate:1;
     // End of byte
     u8 gemParam:7;
     u8 gemBoost:1;
@@ -522,7 +541,6 @@ struct BattlerState
     // End of Word
     u16 hpOnSwitchout;
     u16 currentStamina; // Fantasy Retold: CurrentSta. BaseSta is the (repurposed) Sp. Def stat. Persists across switches (banked into PartyState.storedStamina on switch-out); only a fresh first send-out enters at full.
-    u16 staminaTurnStart; // Fantasy Retold: CurrentSta snapshot taken at the start of each turn. The exhaustion auto-crit keys off THIS, so a mon must enter the turn at 0 to be auto-crit — being drained to 0 mid-turn (own action cost, or this hit's attrition) does not retroactively cause the crit.
     u16 switchIn:1;
     u16 notOnField:1;
     u16 redCardSwitched:1;

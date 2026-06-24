@@ -969,6 +969,10 @@ static void PrintStaminaOnHealthbox(u32 spriteId, enum BattlerId battler, u8 yOf
         u32 pct = (baseSta != 0) ? (curSta * 100 / baseSta) : 0;
         if (pct > 100)
             pct = 100;
+        // Fantasy Retold: avoid displaying "0%" while the foe still has a non-zero Stamina point total,
+        // because exhaustion auto-crit keys off the exact live value (CurrentSta == 0), not the rounded UI.
+        else if (curSta != 0 && pct == 0)
+            pct = 1;
         txtPtr = ConvertIntToDecimalStringN(text, pct, STR_CONV_MODE_LEFT_ALIGN, 3);
         *txtPtr++ = CHAR_PERCENT;
         *txtPtr = EOS;

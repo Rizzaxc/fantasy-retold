@@ -77,6 +77,10 @@ static EWRAM_DATA u16 sTrainerId = 0;
 //EWRAM_DATA void (**gFlashTimerIntrFunc)(void) = NULL;
 
 static void UpdateLinkAndCallCallbacks(void);
+static void RunMainLoopCallbacks(void);
+static bool8 ShouldRunSecondMainLoopUpdate(void);
+static bool8 ShouldRunExtraBattleVisualUpdate(void);
+static void ClearNewKeyPresses(void);
 static void InitMainCallbacks(void);
 static void CallCallbacks(void);
 #ifdef BUGFIX
@@ -88,6 +92,8 @@ static void WaitForVBlank(void);
 void EnableVCountIntrAtLine150(void);
 
 #define B_START_SELECT (B_BUTTON | START_BUTTON | SELECT_BUTTON)
+#define OVERWORLD_LOGIC_UPDATES_PER_FRAME 4
+#define BATTLE_VISUAL_UPDATES_PER_FRAME 3
 
 void AgbMain(void)
 {
@@ -146,31 +152,91 @@ void AgbMainLoop(void)
             DoSoftReset();
         }
 
-        if (Overworld_SendKeysToLinkIsRunning() == TRUE)
-        {
-            gLinkTransferringData = TRUE;
-            UpdateLinkAndCallCallbacks();
-            gLinkTransferringData = FALSE;
-        }
-        else
-        {
-            gLinkTransferringData = FALSE;
-            UpdateLinkAndCallCallbacks();
+        RunMainLoopCallbacks();
 
-            if (Overworld_RecvKeysFromLinkIsRunning() == TRUE)
-            {
-                gMain.newKeys = 0;
-                ClearSpriteCopyRequests();
-                gLinkTransferringData = TRUE;
-                UpdateLinkAndCallCallbacks();
-                gLinkTransferringData = FALSE;
-            }
+        for (u8 i = 1; i < OVERWORLD_LOGIC_UPDATES_PER_FRAME && ShouldRunSecondMainLoopUpdate(); i++)
+        {
+            // Keep held input advancing faster without double-firing edge-triggered inputs.
+            ClearNewKeyPresses();
+            RunMainLoopCallbacks();
         }
+
+        for (u8 i = 1; i < BATTLE_VISUAL_UPDATES_PER_FRAME && ShouldRunExtraBattleVisualUpdate(); i++)
+            gMain.callback2();
 
         PlayTimeCounter_Update();
         MapMusicMain();
         WaitForVBlank();
     }
+}
+
+static void RunMainLoopCallbacks(void)
+{
+    if (Overworld_SendKeysToLinkIsRunning() == TRUE)
+    {
+        gLinkTransferringData = TRUE;
+        UpdateLinkAndCallCallbacks();
+        gLinkTransferringData = FALSE;
+    }
+    else
+    {
+        gLinkTransferringData = FALSE;
+        UpdateLinkAndCallCallbacks();
+
+        if (Overworld_RecvKeysFromLinkIsRunning() == TRUE)
+        {
+            gMain.newKeys = 0;
+            ClearSpriteCopyRequests();
+            gLinkTransferringData = TRUE;
+            UpdateLinkAndCallCallbacks();
+            gLinkTransferringData = FALSE;
+        }
+    }
+}
+
+static bool8 ShouldRunSecondMainLoopUpdate(void)
+{
+    // Link / wireless / test flows are timing-sensitive, so keep them on the original cadence.
+    if (gTestRunnerEnabled)
+        return FALSE;
+
+    if (gMain.inBattle)
+        return FALSE;
+
+    if (gWirelessCommType != 0 || gReceivedRemoteLinkPlayers)
+        return FALSE;
+
+    if (Overworld_SendKeysToLinkIsRunning() == TRUE || Overworld_RecvKeysFromLinkIsRunning() == TRUE)
+        return FALSE;
+
+    if (IsSendingKeysOverCable() == TRUE)
+        return FALSE;
+
+    return TRUE;
+}
+
+static bool8 ShouldRunExtraBattleVisualUpdate(void)
+{
+    if (gTestRunnerEnabled)
+        return FALSE;
+
+    if (!gMain.inBattle)
+        return FALSE;
+
+    if (gWirelessCommType != 0 || gReceivedRemoteLinkPlayers)
+        return FALSE;
+
+    if (gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED))
+        return FALSE;
+
+    return gMain.callback2 == BattleMainCB2;
+}
+
+static void ClearNewKeyPresses(void)
+{
+    gMain.newKeysRaw = 0;
+    gMain.newKeys = 0;
+    gMain.newAndRepeatedKeys = 0;
 }
 
 static void UpdateLinkAndCallCallbacks(void)
