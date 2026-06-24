@@ -917,11 +917,27 @@ void HandleInputChooseMove(enum BattlerId battler)
             MoveSelectionDisplayMoveType(battler);
         }
     }
-    else if (JOY_NEW(B_MOVE_DESCRIPTION_BUTTON) &&
-        !(B_MOVE_DESCRIPTION_BUTTON == L_BUTTON && gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A))
+    // Fantasy Retold: innate commands live on the move screen, alongside the moves. L (where "Move Info"
+    // was) = Dodge, R = Recuperate. Both consume the turn. The engine remaps these from the move screen in
+    // STATE_WAIT_ACTION_CASE_CHOSEN (see battle_main.c). L is skipped in L=A button mode (L acts as A there).
+    else if (JOY_NEW(L_BUTTON) &&
+        !(gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A))
     {
-        gBattleStruct->descriptionSubmenu = TRUE;
-        TryMoveSelectionDisplayMoveDescription(battler);
+        PlaySE(SE_SELECT);
+        TryToHideMoveInfoWindow();
+        HideGimmickTriggerSprite();
+        TryHideLastUsedBall();
+        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_DODGE, 0);
+        BtlController_Complete(battler);
+    }
+    else if (JOY_NEW(R_BUTTON))
+    {
+        PlaySE(SE_SELECT);
+        TryToHideMoveInfoWindow();
+        HideGimmickTriggerSprite();
+        TryHideLastUsedBall();
+        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_RECUPERATE, 0);
+        BtlController_Complete(battler);
     }
     else if (JOY_NEW(START_BUTTON))
     {

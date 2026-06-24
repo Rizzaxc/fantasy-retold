@@ -714,6 +714,8 @@ extern const u8 BattleScript_GhostGetOutGetOut[];
 extern const u8 BattleScript_TooScaredToMove[];
 extern const u8 BattleScript_SilphScopeUnveiled[];
 extern const u8 BattleScript_StatChangeFailed[];
+extern const u8 BattleScript_FRDodge[];       // Fantasy Retold: L innate command
+extern const u8 BattleScript_FRRecuperate[];  // Fantasy Retold: R innate command
 extern const u8 BattleScript_ToxicThread[];
 extern const u8 BattleScript_PlayMoveAnim[];
 extern const u8 BattleScript_PlayTidyUp[];

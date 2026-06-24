@@ -2228,32 +2228,67 @@ static void MoveBattleBarGraphically(enum BattlerId battler, u8 whichBar)
                           (void *)(OBJ_VRAM0 + 64 + (i + gSprites[healthbarSpriteId].oam.tileNum) * TILE_SIZE_4BPP), 32);
         }
 
-        // Fantasy Retold: overlay the Trauma scar on the right end of the HP bar. The bar spans 6 tiles
-        // (B_HEALTHBAR_PIXELS px) representing the ORIGINAL max HP; Trauma is permanently-lost capacity,
-        // so the rightmost traumaTiles get repainted with the scar tile. Current HP is capped to the
-        // effective max (maxHP - trauma) by battle logic, so the green fill never reaches under the scar.
-        // Whole-tile granularity (8px) keeps the copy byte-identical to the HP tiles above — no garbling.
+        // Fantasy Retold: overlay the Trauma scar on the right end of the HP bar. The bar spans
+        // B_HEALTHBAR_PIXELS px (6 tiles) representing the ORIGINAL max HP; Trauma is permanently-lost
+        // capacity, so the rightmost traumaPixels are repainted red. Pixel-accurate (8 sub-steps per
+        // tile), matching the HP fill: the boundary tile keeps the HP fill on its left and goes red only
+        // on the exact scarred pixels, so the bar reads green (current HP) -> black (recoverable loss) ->
+        // red (Trauma). Current HP is capped at maxHP - trauma, so green never reaches under the scar.
         {
             u32 trauma = GetBattlerPartyState(battler)->trauma;
             s32 barMaxHP = gBattleSpritesDataPtr->battleBars[battler].maxValue;
             if (trauma != 0 && barMaxHP > 0)
             {
                 u8 healthbarSpriteId = gSprites[gBattleSpritesDataPtr->battleBars[battler].healthboxSpriteId].hMain_HealthBarSpriteId;
-                // Whole-tile (8px) granularity. Any nonzero Trauma shows at least one tile so a single
-                // Special hit is always visibly registered, even when it's under ~1/6 of max HP.
-                u32 traumaTiles = (trauma * 6) / barMaxHP;
-                if (traumaTiles == 0)
-                    traumaTiles = 1;
-                if (traumaTiles > 6)
-                    traumaTiles = 6;
-                for (i = 6 - traumaTiles; i < 6; i++)
+                const u8 *redTile = TRAUMA_SCAR_GFX_PTR;
+                u8 redIdx = redTile[0] & 0x0F; // colour index of the solid scar tile
+                // Scar occupies the rightmost traumaPixels of the bar; >=1px so a single hit registers.
+                u32 traumaPixels = (trauma * B_HEALTHBAR_PIXELS) / barMaxHP;
+                s32 scarStartPx;
+                if (traumaPixels == 0)
+                    traumaPixels = 1;
+                if (traumaPixels > B_HEALTHBAR_PIXELS)
+                    traumaPixels = B_HEALTHBAR_PIXELS;
+                scarStartPx = B_HEALTHBAR_PIXELS - traumaPixels; // first scarred pixel from the left
+
+                for (i = 0; i < 6; i++)
                 {
+                    s32 tileLeftPx = 8 * i;
+                    void *dst;
                     if (i < 2)
-                        CpuCopy32(TRAUMA_SCAR_GFX_PTR,
-                                  (void *)(OBJ_VRAM0 + (gSprites[healthbarSpriteId].oam.tileNum + 2 + i) * TILE_SIZE_4BPP), 32);
+                        dst = (void *)(OBJ_VRAM0 + (gSprites[healthbarSpriteId].oam.tileNum + 2 + i) * TILE_SIZE_4BPP);
                     else
-                        CpuCopy32(TRAUMA_SCAR_GFX_PTR,
-                                  (void *)(OBJ_VRAM0 + 64 + (i + gSprites[healthbarSpriteId].oam.tileNum) * TILE_SIZE_4BPP), 32);
+                        dst = (void *)(OBJ_VRAM0 + 64 + (i + gSprites[healthbarSpriteId].oam.tileNum) * TILE_SIZE_4BPP);
+
+                    if (tileLeftPx + 8 <= scarStartPx)
+                    {
+                        continue; // wholly left of the scar — leave the HP fill as drawn
+                    }
+                    else if (tileLeftPx >= scarStartPx)
+                    {
+                        CpuCopy32(redTile, dst, 32); // wholly scarred
+                    }
+                    else
+                    {
+                        // Boundary tile: keep the HP fill, paint red from localStart..8 (4bpp: low nibble
+                        // = even/left pixel, high nibble = odd/right pixel).
+                        u8 tile[32];
+                        u32 localStart = scarStartPx - tileLeftPx;
+                        u32 row, x, b;
+                        CpuCopy32(GetHealthboxElementGfxPtr(barElementId) + array[i] * 32, tile, 32);
+                        for (row = 0; row < 8; row++)
+                        {
+                            for (x = localStart; x < 8; x++)
+                            {
+                                b = row * 4 + (x >> 1);
+                                if (x & 1)
+                                    tile[b] = (tile[b] & 0x0F) | (redIdx << 4);
+                                else
+                                    tile[b] = (tile[b] & 0xF0) | redIdx;
+                            }
+                        }
+                        CpuCopy32(tile, dst, 32);
+                    }
                 }
             }
         }

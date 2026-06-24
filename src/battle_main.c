@@ -438,6 +438,8 @@ static void (*const sTurnActionsFuncsTable[])(void) =
     [B_ACTION_FINISHED]               = HandleAction_ActionFinished,
     [B_ACTION_NOTHING_FAINTED]        = HandleAction_NothingIsFainted,
     [B_ACTION_THROW_BALL]             = HandleAction_ThrowBall,
+    [B_ACTION_DODGE]                  = HandleAction_Dodge,       // Fantasy Retold: L innate command
+    [B_ACTION_RECUPERATE]             = HandleAction_Recuperate,  // Fantasy Retold: R innate command
 };
 
 static void (*const sEndTurnFuncsTable[])(void) =
@@ -4411,6 +4413,10 @@ static void HandleTurnActionSelectionState(void)
                         gChosenActionByBattler[battler] = B_ACTION_SWITCH;
                         UpdateBattlerPartyOrdersOnSwitch(battler);
                         return;
+                    case B_ACTION_DODGE:      // Fantasy Retold: L on the move screen — re-resolve as Dodge.
+                    case B_ACTION_RECUPERATE: // Fantasy Retold: R on the move screen — re-resolve as Recuperate.
+                        gChosenActionByBattler[battler] = gBattleResources->bufferB[battler][1];
+                        return;
                     default:
                         RecordedBattle_CheckMovesetChanges(B_RECORD_MODE_PLAYBACK);
                         if ((gBattleResources->bufferB[battler][2] | (gBattleResources->bufferB[battler][3] << 8)) == 0xFFFF)
@@ -4503,6 +4509,10 @@ static void HandleTurnActionSelectionState(void)
                     break;
                 case B_ACTION_THROW_BALL:
                     gBattleStruct->throwingPokeBall = TRUE;
+                    gBattleCommunication[battler]++;
+                    break;
+                case B_ACTION_DODGE:      // Fantasy Retold: L innate command — nothing extra to confirm.
+                case B_ACTION_RECUPERATE: // Fantasy Retold: R innate command.
                     gBattleCommunication[battler]++;
                     break;
                 case B_ACTION_SAFARI_POKEBLOCK:

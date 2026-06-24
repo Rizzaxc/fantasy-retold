@@ -5,6 +5,7 @@
 #include "battle_environment.h"
 #include "battle_pyramid.h"
 #include "battle_util.h"
+#include "battle_main.h"
 #include "battle_controllers.h"
 #include "battle_interface.h"
 #include "battle_setup.h"
@@ -758,6 +759,68 @@ void HandleAction_ThrowBall(void)
     if (!GetItemImportance(gLastUsedItem))
         RemoveBagItem(gLastUsedItem, 1);
     gBattlescriptCurrInstr = BattleScript_BallThrow;
+    gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+}
+
+// Fantasy Retold: innate command — Dodge (L button). Consumes the turn and spends Stamina; the actual
+// evasion (full miss if the dodger is faster, else 50% damage and no status) is resolved when an attack
+// targets a battler whose chosen action this turn is B_ACTION_DODGE (see BattlerIsDodging).
+// Fantasy Retold: a battler is "dodging" for the whole turn if its chosen action this turn is Dodge.
+// This is set at action selection (before any action runs), so attacks resolve correctly regardless of
+// turn order — a slow dodger is still flagged when a fast attacker hits it earlier in the round.
+bool32 BattlerIsDodging(enum BattlerId battler)
+{
+    return gChosenActionByBattler[battler] == B_ACTION_DODGE;
+}
+
+void HandleAction_Dodge(void)
+{
+    enum BattlerId battler = gBattlerByTurnOrder[gCurrentTurnActionNumber];
+    u32 baseSta = GetBaseStamina(battler);
+    u32 cost = 5 + (baseSta * 2) / 100; // MVP: flat cost; consecutive-use escalation is TBD.
+
+    gBattlerAttacker = battler;
+    gBattle_BG0_X = 0;
+    gBattle_BG0_Y = 0;
+
+    if (gBattleStruct->battlerState[battler].currentStamina > cost)
+        gBattleStruct->battlerState[battler].currentStamina -= cost;
+    else
+        gBattleStruct->battlerState[battler].currentStamina = 0;
+    UpdateStaminaTextOnHealthbox(battler);
+
+    gBattlescriptCurrInstr = BattleScript_FRDodge;
+    gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+}
+
+// Fantasy Retold: innate command — Recuperate (R button). Restores 50% of BaseSta Stamina (Body-Tax
+// exempt) and a minor HP heal scaled by the restored Stamina ratio, capped at the Trauma effective max.
+void HandleAction_Recuperate(void)
+{
+    enum BattlerId battler = gBattlerByTurnOrder[gCurrentTurnActionNumber];
+    u32 baseSta = GetBaseStamina(battler);
+    u32 newSta = gBattleStruct->battlerState[battler].currentStamina + baseSta / 2;
+    u32 r, healAmount;
+
+    gBattlerAttacker = battler;
+    gBattle_BG0_X = 0;
+    gBattle_BG0_Y = 0;
+
+    if (newSta > baseSta)
+        newSta = baseSta;
+    gBattleStruct->battlerState[battler].currentStamina = newSta;
+    UpdateStaminaTextOnHealthbox(battler);
+
+    // Minor HP heal, scaling with the restored Stamina ratio (more fuel = more recovery). Queued as a
+    // passive heal; PassiveDataHpUpdate caps it at the Trauma effective max (maxHP - trauma) and animates.
+    r = (newSta * 100) / baseSta;
+    if (r > 100)
+        r = 100;
+    healAmount = (GetNonDynamaxMaxHP(battler) / 4) * r / 100;
+    SetHealAmount(battler, healAmount);
+    // TODO (status rail / Phase 5): purge 1 random Level 1 status.
+
+    gBattlescriptCurrInstr = BattleScript_FRRecuperate;
     gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
 }
 
@@ -7610,6 +7673,13 @@ s32 ApplyModifiersAfterDmgRoll(struct DamageContext *ctx, s32 dmg)
     // Fantasy Retold: Halved Damage Profile — all move damage outputs exactly 50% of vanilla.
     DAMAGE_APPLY_MODIFIER(UQ_4_12(0.5));
 
+    // Fantasy Retold: Dodge (L command) — if the target is dodging and the attacker is FASTER (acts
+    // first), the move can't be fully evaded but lands at 50% damage. (If the attacker were slower the
+    // move would have missed outright in DoesMoveMissTarget.) Status moves don't reach this path.
+    if (BattlerIsDodging(ctx->battlerDef)
+     && GetBattlerTurnOrderNum(ctx->battlerAtk) < GetBattlerTurnOrderNum(ctx->battlerDef))
+        DAMAGE_APPLY_MODIFIER(UQ_4_12(0.5));
+
     return dmg;
 }
 
@@ -10547,6 +10617,14 @@ bool32 DoesMoveMissTarget(struct BattleCalcValues *cv)
      && GetMoveAccuracy(cv->move) >= 70
      && GetBattlerTurnOrderNum(cv->battlerAtk) < GetBattlerTurnOrderNum(cv->battlerDef))
         return FALSE;
+
+    // Fantasy Retold: Dodge (L command) — if the target is dodging and the attacker is SLOWER (the
+    // dodger acts first this round), an offensive move misses entirely. If the attacker is faster the
+    // move still lands but at 50% (applied in the damage modifier). Status moves bypass Dodge.
+    if (BattlerIsDodging(cv->battlerDef)
+     && !IsBattleMoveStatus(cv->move)
+     && GetBattlerTurnOrderNum(cv->battlerDef) < GetBattlerTurnOrderNum(cv->battlerAtk))
+        return TRUE;
 
     u32 accuracy = GetTotalAccuracy(
                         cv->battlerAtk,

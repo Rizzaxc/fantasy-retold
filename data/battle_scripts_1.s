@@ -95,6 +95,20 @@ BattleScript_StatChangeFailed::
 	waitmessage B_WAIT_TIME_LONG
 	goto BattleScript_MoveEnd
 
+@ Fantasy Retold: innate command actions (Dodge / Recuperate). Reuses Double Team / Recover
+@ animations for feel; the actual effects are custom (resolved in C). MVP — no message yet (UI later).
+BattleScript_FRDodge::
+	playmoveanimation MOVE_DOUBLE_TEAM
+	waitanimation
+	finishaction
+
+BattleScript_FRRecuperate::
+	playmoveanimation MOVE_RECOVER
+	waitanimation
+	healthbarupdate BS_ATTACKER, PASSIVE_HP_UPDATE
+	datahpupdate BS_ATTACKER, PASSIVE_HP_UPDATE
+	finishaction
+
 BattleScript_PlayMoveAnimAndChangeHP::
 	call BattleScript_PlayMoveAnim
 	healthbarupdate BS_ATTACKER, PASSIVE_HP_UPDATE

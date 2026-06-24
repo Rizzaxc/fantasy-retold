@@ -157,6 +157,9 @@ enum SubCheck
 };
 
 void HandleAction_ThrowBall(void);
+void HandleAction_Dodge(void);       // Fantasy Retold: L innate command
+void HandleAction_Recuperate(void);  // Fantasy Retold: R innate command
+bool32 BattlerIsDodging(enum BattlerId battler);
 u32 GetCurrentBattleWeather(void);
 bool32 EndOrContinueWeather(void);
 enum DamageCategory GetReflectDamageMoveDamageCategory(enum BattlerId battler, enum Move move);
