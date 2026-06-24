@@ -1201,6 +1201,7 @@ struct SaveBlock1
     /*0x3???*/ struct TrainerHillSave trainerHill;
 #endif //FREE_TRAINER_HILL
     /*0x3???*/ struct WaldaPhrase waldaPhrase;
+    u8 moveUseTracking[PARTY_SIZE][MAX_MON_MOVES]; // Fantasy Retold: per-slot move usage counts for signature move determination
 #if FREE_TRAINER_TOWER == FALSE && IS_FRLG
     u32 towerChallengeId;
     struct TrainerTower trainerTower[NUM_TOWER_CHALLENGE_TYPES];

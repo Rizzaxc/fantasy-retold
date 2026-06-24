@@ -2,6 +2,7 @@
 #include "main.h"
 #include "battle.h"
 #include "battle_anim.h"
+#include "battle_util.h"
 #include "frontier_util.h"
 #include "battle_message.h"
 #include "battle_tent.h"
@@ -226,7 +227,8 @@ static EWRAM_DATA struct PokemonSummaryScreenData
     s16 switchCounter; // Used for various switch statement cases that decompress/load graphics or Pokémon data
     u16 monAnimTimer; // tracks time between re-playing mon anims
     bool8 monAnimPlayed; // tracks if anim has been played at least once
-    u8 unk_filler4[2];
+    bool8 showingInnate; // Fantasy Retold: true = ability window shows nature innate instead of species ability
+    u8 unk_filler4[1];
 } *sMonSummaryScreen = NULL;
 
 static EWRAM_DATA u8 sMoveSlotToReplace = 0;
@@ -292,6 +294,11 @@ static void PrintMonOTID(void);
 static void PrintMonDexNumberSpecies(void);
 static void PrintMonAbilityName(void);
 static void PrintMonAbilityDescription(void);
+static void PrintNatureInnateInAbilityWindow(void);
+static void PrintAbilityInAbilityWindow(void);
+static void RefillPromptInfoWithDefault(void);
+static void ShowSkillsPageHint(u8);
+static void ShowInnateToggleHint(bool8);
 static void BufferMonTrainerMemo(void);
 static void PrintMonTrainerMemo(void);
 static void BufferNatureString(void);
@@ -2373,20 +2380,13 @@ static void ChangeSummaryState(s16 *data, u8 taskId)
         tSkillsState = SKILL_STATE_IVS;
         break;
     case SKILL_STATE_IVS:
-        tSkillsState = SKILL_STATE_EVS;
-        break;
-    case SKILL_STATE_EVS:
-        if (BW_SUMMARY_IV_EV_DISPLAY == BW_IV_EV_GRADED)
-            tSkillsState = SKILL_STATE_IVS;
-        else
-            tSkillsState = SKILL_STATE_STATS;
+        tSkillsState = SKILL_STATE_STATS;
         break;
     }
 
     gTasks[taskId].func = Task_HandleInput;
 }
 
-// draw button prompts when cycling between stats, IVs and EVs
 static void DrawNextSkillsButtonPrompt(u8 mode)
 {
     switch (mode)
@@ -2397,19 +2397,7 @@ static void DrawNextSkillsButtonPrompt(u8 mode)
             break;
         case SKILL_STATE_IVS:
             ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_IVS);
-            PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_EVS);
-            break;
-        case SKILL_STATE_EVS:
-            if (BW_SUMMARY_IV_EV_DISPLAY == BW_IV_EV_GRADED)
-            {
-                ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_EVS);
-                PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_IVS);
-            }
-            else
-            {
-                ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_EVS);
-                PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_STATS);
-            }
+            PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_STATS);
             break;
     }
     ScheduleBgCopyTilemapToVram(0);
@@ -2425,21 +2413,29 @@ static void Task_HandleInput(u8 taskId)
         if (JOY_NEW(DPAD_UP))
         {
             tSkillsState = defaultSkillsState;
+            sMonSummaryScreen->showingInnate = FALSE;
+            ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_STATS);
+            ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_IVS);
             ChangeSummaryPokemon(taskId, -1);
         }
         else if (JOY_NEW(DPAD_DOWN))
         {
             tSkillsState = defaultSkillsState;
+            sMonSummaryScreen->showingInnate = FALSE;
+            ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_STATS);
+            ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_IVS);
             ChangeSummaryPokemon(taskId, 1);
         }
         else if ((JOY_NEW(DPAD_LEFT)) || GetLRKeysPressed() == MENU_L_PRESSED)
         {
             tSkillsState = defaultSkillsState;
+            sMonSummaryScreen->showingInnate = FALSE;
             ChangePage(taskId, -1);
         }
         else if ((JOY_NEW(DPAD_RIGHT)) || GetLRKeysPressed() == MENU_R_PRESSED)
         {
             tSkillsState = defaultSkillsState;
+            sMonSummaryScreen->showingInnate = FALSE;
             ChangePage(taskId, 1);
         }
         else if (JOY_NEW(A_BUTTON))
@@ -2466,16 +2462,25 @@ static void Task_HandleInput(u8 taskId)
             }
             else
             {
-                if (BW_SUMMARY_IV_EV_DISPLAY != BW_IV_EV_HIDDEN)
+                PlaySE(SE_SELECT);
+                if (tSkillsState == SKILL_STATE_STATS && !sMonSummaryScreen->showingInnate)
                 {
-                    // Cycle through IVs/EVs/stats on pressing A
+                    sMonSummaryScreen->showingInnate = TRUE;
+                    PrintNatureInnateInAbilityWindow();
+                    ShowInnateToggleHint(TRUE);
+                }
+                else
+                {
+                    if (sMonSummaryScreen->showingInnate)
+                    {
+                        sMonSummaryScreen->showingInnate = FALSE;
+                        PrintAbilityInAbilityWindow();
+                    }
                     ChangeSummaryState(data, taskId);
-                    DrawNextSkillsButtonPrompt(tSkillsState);
-                    PlaySE(SE_SELECT);
-                    if (BW_SUMMARY_IV_EV_DISPLAY == BW_IV_EV_GRADED)
-                        ShowGradeIcons(tSkillsState);
-                    else
-                        BufferAndPrintStats_HandleState(tSkillsState);
+                    ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_STATS);
+                    ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_IVS);
+                    BufferAndPrintStats_HandleState(tSkillsState);
+                    ShowSkillsPageHint(tSkillsState);
                 }
             }
         }
@@ -2669,10 +2674,6 @@ static void Task_ChangeSummaryMon(u8 taskId)
         } 
         else if (sMonSummaryScreen->currPageIndex == PSS_PAGE_SKILLS)
         {
-            if (BW_SUMMARY_IV_EV_DISPLAY == BW_IV_EV_PRECISE)
-                DrawNextSkillsButtonPrompt(SKILL_STATE_STATS);
-            else if (BW_SUMMARY_IV_EV_DISPLAY == BW_IV_EV_GRADED)
-                DrawNextSkillsButtonPrompt(SKILL_STATE_IVS);
         }
         break;
     case 12:
@@ -3750,10 +3751,7 @@ static void PutPageWindowTilemaps(u8 page)
     case PSS_PAGE_SKILLS:
         PutWindowTilemap(PSS_LABEL_WINDOW_POKEMON_SKILLS_TITLE);
         PutWindowTilemap(PSS_LABEL_WINDOW_POKEMON_SKILLS_EXP);
-        if (BW_SUMMARY_IV_EV_DISPLAY == BW_IV_EV_PRECISE)
-            PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_IVS);
-        else if (BW_SUMMARY_IV_EV_DISPLAY == BW_IV_EV_GRADED)
-            PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_EVS);
+        ShowInnateToggleHint(sMonSummaryScreen->showingInnate);
         break;
     case PSS_PAGE_BATTLE_MOVES:
         PutWindowTilemap(PSS_LABEL_WINDOW_BATTLE_MOVES_TITLE);
@@ -3764,6 +3762,7 @@ static void PutPageWindowTilemaps(u8 page)
         }
         else
         {
+            RefillPromptInfoWithDefault();
             PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_INFO);
             if (ShouldShowMoveRelearner())
                 ShowMoveRelearner();
@@ -3773,6 +3772,7 @@ static void PutPageWindowTilemaps(u8 page)
         PutWindowTilemap(PSS_LABEL_WINDOW_CONTEST_MOVES_TITLE);
         if (sMonSummaryScreen->mode != SUMMARY_MODE_SELECT_MOVE)
         {
+            RefillPromptInfoWithDefault();
             PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_INFO);
             if (ShouldShowMoveRelearner())
                 ShowMoveRelearner();
@@ -3796,6 +3796,7 @@ static void ClearPageWindowTilemaps(u8 page)
         ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_CANCEL);
         break;
     case PSS_PAGE_SKILLS:
+        ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_INFO);
         ClearWindowTilemap(PSS_LABEL_WINDOW_POKEMON_SKILLS_EXP);
         if (BW_SUMMARY_IV_EV_DISPLAY != BW_IV_EV_HIDDEN)
         {
@@ -4012,6 +4013,94 @@ static void PrintMonAbilityDescription(void)
 {
     u16 ability = GetAbilityBySpecies(sMonSummaryScreen->summary.species, sMonSummaryScreen->summary.abilityNum);
     PrintTextOnWindow_BW_Font(AddWindowFromTemplateList(sPageSkillsTemplate, PSS_DATA_WINDOW_SKILLS_ABILITY), gAbilitiesInfo[ability].description, 4, 15, 0, 0);
+}
+
+static const u8 *const sNatureInnateNames[] = {
+    [INNATE_NONE]         = COMPOUND_STRING(""),
+    [INNATE_ADVANTAGE]    = COMPOUND_STRING("Advantage"),
+    [INNATE_SUPER_LUCK]   = COMPOUND_STRING("Super Luck"),
+    [INNATE_SHEER_FORCE]  = COMPOUND_STRING("Sheer Force"),
+    [INNATE_QUICK_START]  = COMPOUND_STRING("Quick Start"),
+    [INNATE_BATTLE_ARMOR] = COMPOUND_STRING("Battle Armor"),
+    [INNATE_RESILIENT]    = COMPOUND_STRING("Resilient"),
+    [INNATE_REGENERATOR]  = COMPOUND_STRING("Regenerator"),
+    [INNATE_NATURAL_CURE] = COMPOUND_STRING("Natural Cure"),
+};
+
+static const u8 *const sNatureInnateDescs[] = {
+    [INNATE_NONE]         = COMPOUND_STRING(""),
+    [INNATE_ADVANTAGE]    = COMPOUND_STRING("Guaranteed hit when acting first."),
+    [INNATE_SUPER_LUCK]   = COMPOUND_STRING("Heightened critical-hit rate."),
+    [INNATE_SHEER_FORCE]  = COMPOUND_STRING("+30% power, no Lv1 secondaries."),
+    [INNATE_QUICK_START]  = COMPOUND_STRING("+1 Speed on switch-in."),
+    [INNATE_BATTLE_ARMOR] = COMPOUND_STRING("Immune to critical hits."),
+    [INNATE_RESILIENT]    = COMPOUND_STRING("Trauma resistance on switch-in."),
+    [INNATE_REGENERATOR]  = COMPOUND_STRING("Restores HP on switch-out."),
+    [INNATE_NATURAL_CURE] = COMPOUND_STRING("Cured of status on switch-out."),
+};
+
+static void RefillPromptInfoWithDefault(void)
+{
+    int stringXPos = GetStringRightAlignXOffset(FONT_NORMAL, sText_Info, 62);
+    int iconXPos = stringXPos - 16;
+    if (iconXPos < 0)
+        iconXPos = 0;
+    FillWindowPixelBuffer(PSS_LABEL_WINDOW_PROMPT_INFO, PIXEL_FILL(0));
+    PrintAOrBButtonIcon(PSS_LABEL_WINDOW_PROMPT_INFO, FALSE, iconXPos);
+    PrintTextOnWindow(PSS_LABEL_WINDOW_PROMPT_INFO, sText_Info, stringXPos, 1, 0, 1);
+    CopyWindowToVram(PSS_LABEL_WINDOW_PROMPT_INFO, COPYWIN_GFX);
+}
+
+static void ShowSkillsPageHint(u8 skillsState)
+{
+    const u8 *text;
+
+    if (skillsState == SKILL_STATE_STATS && !sMonSummaryScreen->showingInnate)
+        text = COMPOUND_STRING("INNATE");
+    else if (skillsState == SKILL_STATE_STATS && sMonSummaryScreen->showingInnate)
+        text = COMPOUND_STRING("VIEW IV");
+    else
+        text = COMPOUND_STRING("STATS");
+
+    int stringXPos = GetStringRightAlignXOffset(FONT_NORMAL, text, 62);
+    int iconXPos = stringXPos - 16;
+    if (iconXPos < 0)
+        iconXPos = 0;
+    FillWindowPixelBuffer(PSS_LABEL_WINDOW_PROMPT_INFO, PIXEL_FILL(0));
+    PrintAOrBButtonIcon(PSS_LABEL_WINDOW_PROMPT_INFO, FALSE, iconXPos);
+    PrintTextOnWindow(PSS_LABEL_WINDOW_PROMPT_INFO, text, stringXPos, 1, 0, 1);
+    PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_INFO);
+    CopyWindowToVram(PSS_LABEL_WINDOW_PROMPT_INFO, COPYWIN_GFX);
+}
+
+static void ShowInnateToggleHint(bool8 showingInnate)
+{
+    ShowSkillsPageHint(SKILL_STATE_STATS);
+}
+
+static void PrintNatureInnateInAbilityWindow(void)
+{
+    enum NatureInnate innate = GetNatureInnate(sMonSummaryScreen->summary.nature);
+    u32 windowId = AddWindowFromTemplateList(sPageSkillsTemplate, PSS_DATA_WINDOW_SKILLS_ABILITY);
+    FillWindowPixelBuffer(windowId, PIXEL_FILL(0));
+    if (innate != INNATE_NONE)
+    {
+        u8 buf[32];
+        u8 *ptr = StringCopy(buf, sNatureInnateNames[innate]);
+        ptr = StringCopy(ptr, COMPOUND_STRING(" (Innate)"));
+        PrintTextOnWindow(windowId, buf, 4, 2, 0, 0);
+        PrintTextOnWindow_BW_Font(windowId, sNatureInnateDescs[innate], 4, 15, 0, 0);
+    }
+    CopyWindowToVram(windowId, COPYWIN_GFX);
+}
+
+static void PrintAbilityInAbilityWindow(void)
+{
+    u32 windowId = AddWindowFromTemplateList(sPageSkillsTemplate, PSS_DATA_WINDOW_SKILLS_ABILITY);
+    FillWindowPixelBuffer(windowId, PIXEL_FILL(0));
+    PrintMonAbilityName();
+    PrintMonAbilityDescription();
+    CopyWindowToVram(windowId, COPYWIN_GFX);
 }
 
 static void BufferMonTrainerMemo(void)

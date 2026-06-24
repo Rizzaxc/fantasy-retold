@@ -320,7 +320,17 @@ s32 LearnMove(const struct MoveLearnUI *ui, u8 taskId)
         if (GetMoveSlotToReplace() == MAX_MON_MOVES)
             return REFUSE_REPLACE_1;
         else
+        {
+            enum Move selectedMove = GetBoxMonData(boxmon, MON_DATA_MOVE1 + GetMoveSlotToReplace());
+            if (selectedMove != MOVE_NONE && GetBoxMonData(boxmon, MON_DATA_SIGNATURE_MOVE) == selectedMove)
+            {
+                GetBoxMonNickname(boxmon, gStringVar1);
+                StringCopy(gStringVar2, GetMoveName(selectedMove));
+                ui->printMessage(gText_SignatureMoveCannotBeReplaced);
+                return WANT_REPLACE_2;
+            }
             return FORGOT_MOVE_1;
+        }
     case LEARNED_MOVE_1:
         GetBoxMonNickname(boxmon, gStringVar1);
         StringCopy(gStringVar2, GetMoveName(move));

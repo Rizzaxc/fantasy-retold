@@ -794,19 +794,29 @@ void HandleAction_Dodge(void)
     gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
 }
 
-// Fantasy Retold: innate command — Recuperate (R button). Restores 50% of BaseSta Stamina (Body-Tax
-// exempt) and a minor HP heal scaled by the restored Stamina ratio, capped at the Trauma effective max.
+// Fantasy Retold: innate command — Recuperate (R button). It can only be used at 40% BaseSta or below;
+// when legal, it restores 40% of BaseSta Stamina (Body-Tax exempt) and grants a minor HP heal scaled by
+// the restored Stamina ratio, capped at the Trauma effective max.
 void HandleAction_Recuperate(void)
 {
     enum BattlerId battler = gBattlerByTurnOrder[gCurrentTurnActionNumber];
     u32 baseSta = GetBaseStamina(battler);
-    u32 newSta = gBattleStruct->battlerState[battler].currentStamina + baseSta / 2;
+    u32 currentSta = gBattleStruct->battlerState[battler].currentStamina;
+    u32 newSta;
     u32 r, healAmount;
 
     gBattlerAttacker = battler;
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
 
+    if (currentSta * 100 > baseSta * 40)
+    {
+        gBattlescriptCurrInstr = BattleScript_ButItFailed;
+        gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+        return;
+    }
+
+    newSta = currentSta + (baseSta * 40) / 100;
     if (newSta > baseSta)
         newSta = baseSta;
     gBattleStruct->battlerState[battler].currentStamina = newSta;

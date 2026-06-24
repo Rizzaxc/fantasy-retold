@@ -13,6 +13,7 @@
 #include "battle_controllers.h"
 #include "battle_interface.h"
 #include "move.h"
+#include "signature_move.h"
 #include "constants/battle_move_resolution.h"
 
 static void ValidateBattlers(void);
@@ -1028,6 +1029,10 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
 
         UpdateStaminaTextOnHealthbox(cv->battlerAtk); // Fantasy Retold: reflect action cost immediately.
     }
+
+    // Fantasy Retold: track move usage for signature move determination.
+    if (IsOnPlayerSide(cv->battlerAtk))
+        IncrementMoveUseCount(gBattlerPartyIndexes[cv->battlerAtk], movePosition);
 
     gLastMoves[cv->battlerAtk] = gChosenMove;
 

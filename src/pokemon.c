@@ -2470,6 +2470,14 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
                 }.combinedValue;
             }
             break;
+        case MON_DATA_SIGNATURE_MOVE:
+            {
+                struct PokemonSubstruct0 *substruct0 = GetSubstruct0(boxMon);
+                retVal = substruct0->signatureMoveLo
+                       | (substruct0->signatureMoveMid << 6)
+                       | (substruct0->signatureMoveHi << 9);
+            }
+            break;
         default:
             break;
         }
@@ -2900,6 +2908,16 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
             SET32(evoTracker.combinedValue);
             substruct1->evolutionTracker1 = evoTracker.tracker1;
             substruct1->evolutionTracker2 = evoTracker.tracker2;
+            break;
+        }
+        case MON_DATA_SIGNATURE_MOVE:
+        {
+            struct PokemonSubstruct0 *substruct0 = GetSubstruct0(boxMon);
+            u16 move;
+            SET16(move);
+            substruct0->signatureMoveLo = move & 0x3F;
+            substruct0->signatureMoveMid = (move >> 6) & 0x7;
+            substruct0->signatureMoveHi = (move >> 9) & 0x3;
             break;
         }
         default:

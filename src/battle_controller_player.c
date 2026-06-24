@@ -5,6 +5,7 @@
 #include "battle_controllers.h"
 #include "battle_dome.h"
 #include "battle_interface.h"
+#include "battle_main.h"
 #include "battle_message.h"
 #include "battle_setup.h"
 #include "battle_tv.h"
@@ -90,11 +91,19 @@ static void Task_SetControllerToWaitForString(u8);
 static void Task_GiveExpWithExpBar(u8);
 static void Task_UpdateLvlInHealthbox(u8);
 static void PrintLinkStandbyMsg(void);
+void HandleInputChooseMove(enum BattlerId battler);
 
 static void ReloadMoveNames(enum BattlerId battler);
 static u32 CheckTypeEffectiveness(enum BattlerId battlerAtk, enum BattlerId battlerDef);
 static u32 CheckTargetTypeEffectiveness(enum BattlerId battler);
 static void MoveSelectionDisplayMoveEffectiveness(u32 foeEffectiveness, enum BattlerId battler);
+static bool32 CanUseRecuperate(enum BattlerId battler);
+static void WaitForRecuperateSelectionMessage(enum BattlerId battler);
+
+static const u8 sText_RecuperateThreshold[] = _(
+    "Recuperate can only be used\n"
+    "at 40% Stamina or below!\p"
+);
 
 static void (*const sPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(enum BattlerId battler) =
 {
@@ -689,6 +698,20 @@ static bool32 CanSelectBattler(enum MoveTarget target)
     return FALSE;
 }
 
+static bool32 CanUseRecuperate(enum BattlerId battler)
+{
+    u32 baseSta = GetBaseStamina(battler);
+    u32 currentSta = gBattleStruct->battlerState[battler].currentStamina;
+
+    return currentSta * 100 <= baseSta * 40;
+}
+
+static void WaitForRecuperateSelectionMessage(enum BattlerId battler)
+{
+    if (!IsTextPrinterActiveOnWindow(B_WIN_MSG))
+        gBattlerControllerFuncs[battler] = HandleInputChooseMove;
+}
+
 void HandleInputChooseMove(enum BattlerId battler)
 {
     u32 canSelectTarget = 0;
@@ -918,8 +941,10 @@ void HandleInputChooseMove(enum BattlerId battler)
         }
     }
     // Fantasy Retold: innate commands live on the move screen, alongside the moves. L (where "Move Info"
-    // was) = Dodge, R = Recuperate. Both consume the turn. The engine remaps these from the move screen in
-    // STATE_WAIT_ACTION_CASE_CHOSEN (see battle_main.c). L is skipped in L=A button mode (L acts as A there).
+    // was) = Dodge, R = Recuperate. Valid uses consume the turn. Recuperate is blocked in the chooser if the
+    // user is above its 40% Stamina threshold, so the player can pick a different action instead. The engine
+    // remaps valid innate selections from the move screen in STATE_WAIT_ACTION_CASE_CHOSEN (see battle_main.c).
+    // L is skipped in L=A button mode (L acts as A there).
     else if (JOY_NEW(L_BUTTON) &&
         !(gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A))
     {
@@ -932,12 +957,23 @@ void HandleInputChooseMove(enum BattlerId battler)
     }
     else if (JOY_NEW(R_BUTTON))
     {
-        PlaySE(SE_SELECT);
-        TryToHideMoveInfoWindow();
-        HideGimmickTriggerSprite();
-        TryHideLastUsedBall();
-        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_RECUPERATE, 0);
-        BtlController_Complete(battler);
+        if (CanUseRecuperate(battler))
+        {
+            PlaySE(SE_SELECT);
+            TryToHideMoveInfoWindow();
+            HideGimmickTriggerSprite();
+            TryHideLastUsedBall();
+            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_RECUPERATE, 0);
+            BtlController_Complete(battler);
+        }
+        else
+        {
+            PlaySE(SE_SELECT);
+            gBattle_BG0_X = 0;
+            gBattle_BG0_Y = 0;
+            BattlePutTextOnWindow(sText_RecuperateThreshold, B_WIN_MSG);
+            gBattlerControllerFuncs[battler] = WaitForRecuperateSelectionMessage;
+        }
     }
     else if (JOY_NEW(START_BUTTON))
     {

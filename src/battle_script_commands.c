@@ -70,6 +70,7 @@
 #include "test/battle.h"
 #include "battle_util.h"
 #include "status_rail.h"
+#include "signature_move.h"
 #include "constants/pokemon.h"
 #include "config/battle.h"
 #include "data/battle_move_effects.h"
@@ -4216,6 +4217,7 @@ static void Cmd_getexp(void)
                         SWAP(gBattleMons[battler].attack, gBattleMons[battler].defense, temp);
                 }
 
+                TryDetermineSignatureMove(&gParties[B_TRAINER_PLAYER][*expMonId], *expMonId);
                 gBattleScripting.getexpState = 5;
             }
             else

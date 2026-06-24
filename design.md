@@ -34,7 +34,7 @@ Stamina serves as the primary operational currency governing action speed, move 
 The rest bonus is a flat amount, not a percentage, so it deliberately scales *against* pool size:
 
 * **Frail mon** (small `BaseSta`, e.g. 80): +50 is most of the tank — pivoting is a near-full reset, and a frail mon (which can't take hits) is *expected* to rotate out. Worth ~2 attacks + a Dodge on return.
-* **Bulky mon** (large `BaseSta`, e.g. 250): +50 is a sliver. **Recuperate** (+50% of `BaseSta` = +125, in place) is the far better reset, so the wall has no resource reason to leave the field — it plants and grinds the attrition war, which is its job.
+* **Bulky mon** (large `BaseSta`, e.g. 250): +50 is a sliver. **Recuperate** (+40% of `BaseSta` = +100, in place, but only once the user is at 40% max Stamina or lower) is the far better reset, so the wall has no resource reason to leave the field — it plants and grinds the attrition war, which is its job.
 
 This is the lever that lets switching stay frail-favorable without the old full-refresh bribing bulky mons off the field. It also kills resource-refresh cycling outright: nobody gets a free top-to-full by tapping the bench.
 
@@ -91,7 +91,7 @@ Dodge is a mechanical command completely distinct from standard accuracy and eva
 
 The primary sustain mechanism used to stabilize an active Pokémon's resource depth. **It is the wincon engine for bulky mons** — its purpose is to let a tank out-sustain chip damage, with the Trauma pool (§4) acting as the inescapable counter-clock.
 
-* **Mechanical Resolution:** Instantly restores `CurrentSta` by exactly $50\%$ of `BaseSta`. Exempt from the Body Tax.
+* **Mechanical Resolution:** Can only be selected if the user is at **40% of `BaseSta` or lower**. When legal, it instantly restores `CurrentSta` by exactly $40\%$ of `BaseSta`. Exempt from the Body Tax.
 * **Sustain Properties:** Grants a minor HP heal and purges **1 random Level 1 status condition** from the user's status rail. (It cannot touch Level 2+ statuses — persistent conditions and Trauma are how walls are beaten.)
 * **Scaling Ceiling:** Any operational HP healing function in the engine scales dynamically using `CurrentSta` as its primary scaling vector ($\propto r = \frac{\text{CurrentSta}}{\text{BaseSta}}$), capping healing efficiency when exhausted.
 
@@ -339,7 +339,7 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 | Stamina    | Persistence                     | carries across switches (not refilled to full)      |
 | Stamina    | Switch-out rest bonus           | +50 flat (capped at BaseSta); first send-out = full |
 | Dodge      | Cost                            | 5 + 20×consecutive + 0.02×BaseSta                   |
-| Recuperate | Stamina restore                 | +50% BaseSta (Body-Tax-exempt)                      |
+| Recuperate | Stamina restore / gate          | +40% BaseSta; usable only at ≤40% BaseSta          |
 | Trauma     | Special split (floor `a`)       | 0.25                                                |
 | Trauma     | Special split (drain bonus `b`) | 0.40                                                |
 | Trauma     | SpD stage resistance            | ×0.85 per +1 stage (Trauma channel only)            |

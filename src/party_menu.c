@@ -35,6 +35,7 @@
 #include "item.h"
 #include "item_menu.h"
 #include "item_use.h"
+#include "signature_move.h"
 #include "caps.h"
 #include "link.h"
 #include "link_rfu.h"
@@ -5857,8 +5858,23 @@ static void Task_ReturnToPartyMenuWhileLearningMove(u8 taskId)
 {
     if (!gPaletteFade.active)
     {
-        if (GetMoveSlotToReplace() != MAX_MON_MOVES)
-            DisplayPartyMenuForgotMoveMessage(taskId);
+        u8 moveSlot = GetMoveSlotToReplace();
+        if (moveSlot != MAX_MON_MOVES)
+        {
+            struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][gPartyMenu.slotId];
+            enum Move move = GetMonData(mon, MON_DATA_MOVE1 + moveSlot);
+            if (IsSignatureMove(mon, move))
+            {
+                GetMonNickname(mon, gStringVar1);
+                StringCopy(gStringVar2, GetMoveName(move));
+                DisplayLearnMoveMessage(gText_SignatureMoveCannotBeReplaced);
+                gTasks[taskId].func = Task_ShowSummaryScreenToForgetMove;
+            }
+            else
+            {
+                DisplayPartyMenuForgotMoveMessage(taskId);
+            }
+        }
         else
             StopLearningMovePrompt(taskId);
     }
@@ -6212,6 +6228,7 @@ static void PartyMenuTryEvolution(u8 taskId)
     }
     else
     {
+        TryDetermineSignatureMove(mon, gPartyMenu.slotId);
         if (gPartyMenu.menuType == PARTY_MENU_TYPE_FIELD && CheckBagHasItem(gSpecialVar_ItemId, 1))
             gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
         else
