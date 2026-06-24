@@ -21,6 +21,7 @@
 #include "util.h"
 #include "battle_scripts.h"
 #include "random.h"
+#include "status_rail.h"
 #include "text.h"
 #include "safari_zone.h"
 #include "sound.h"
@@ -818,7 +819,15 @@ void HandleAction_Recuperate(void)
         r = 100;
     healAmount = (GetNonDynamaxMaxHP(battler) / 4) * r / 100;
     SetHealAmount(battler, healAmount);
-    // TODO (status rail / Phase 5): purge 1 random Level 1 status.
+
+    // Fantasy Retold: purge 1 random Level 1 status condition (design.md §6). Level 2+ is immune — that
+    // is how persistent conditions and Toxic beat a Recuperate-stalling wall. Propagate the cleared
+    // status1 mirror to the controller so the status icon updates.
+    if (PurgeRandomLevel1StatusRail(battler))
+    {
+        BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[battler].status1), &gBattleMons[battler].status1);
+        MarkBattlerForControllerExec(battler);
+    }
 
     gBattlescriptCurrInstr = BattleScript_FRRecuperate;
     gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
@@ -5305,7 +5314,9 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
     {
     case MOVE_EFFECT_POISON:
     case MOVE_EFFECT_TOXIC:
-        if (gBattleMons[battlerDef].status1 & (STATUS1_POISON | STATUS1_TOXIC_POISON))
+        // Fantasy Retold: regular Poison (rail Lv1) can still be advanced to Toxic (Lv2) by reapplication
+        // (design.md §6); only an already-Toxic target (rail at max) reports "already poisoned".
+        if (gBattleMons[battlerDef].status1 & STATUS1_TOXIC_POISON)
         {
             battleScript = BattleScript_AlreadyPoisoned;
         }
@@ -5452,7 +5463,11 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
     }
     else if (gBattleMons[battlerDef].status1 & STATUS1_ANY)
     {
-        battleScript = BattleScript_ButItFailed;
+        // Fantasy Retold: regular Poison (rail Lv1) must not block advancing the Poison -> Toxic rail
+        // (design.md §6); any other pre-existing non-volatile status still blocks application.
+        if (!((effect == MOVE_EFFECT_POISON || effect == MOVE_EFFECT_TOXIC)
+              && (gBattleMons[battlerDef].status1 & STATUS1_ANY) == STATUS1_POISON))
+            battleScript = BattleScript_ButItFailed;
     }
 
     if (IsNonVolatileStatusBlocked(battlerDef, abilityDef, abilityAffected, battleScript, option))
@@ -7722,6 +7737,16 @@ void AddBattlerTrauma(enum BattlerId battler, u32 amount)
         gBattleMons[battler].hp = effMax;
 }
 
+// Log Trauma (the unhealable tally) WITHOUT reducing current HP. Use this when the HP loss is already
+// being dealt through the normal animated damage path (e.g. Toxic's end-of-turn tick) and we only need
+// to record that the loss can never be healed back. Caps the tally at maxHP.
+void LogBattlerTrauma(enum BattlerId battler, u32 amount)
+{
+    struct PartyState *ps = GetBattlerPartyState(battler);
+    u32 maxHP = gBattleMons[battler].maxHP;
+    ps->trauma = min(ps->trauma + amount, maxHP);
+}
+
 // Fantasy Retold: Nature innates -----------------------------------------------------------------
 
 enum NatureInnate GetNatureInnate(u8 nature)
@@ -9606,15 +9631,23 @@ u32 CalcSecondaryEffectChance(enum BattlerId battler, enum Ability battlerAbilit
 {
     bool8 hasSereneGrace = (battlerAbility == ABILITY_SERENE_GRACE);
     bool8 hasRainbow = (gSideStatuses[GetBattlerSide(battler)] & SIDE_STATUS_RAINBOW) != 0;
-    u16 secondaryEffectChance = additionalEffect->chance;
+    u32 secondaryEffectChance = additionalEffect->chance;
+    enum MoveEffect moveEffect = additionalEffect->moveEffect;
+    bool32 isStatusEffect = (moveEffect >= MOVE_EFFECT_SLEEP && moveEffect <= MOVE_EFFECT_CONFUSION);
 
-    if (hasRainbow && hasSereneGrace && additionalEffect->moveEffect == MOVE_EFFECT_FLINCH)
-        return secondaryEffectChance * 2;
+    // Attacking moves are twice as likely to inflict a status condition.
+    if (isStatusEffect && !IsBattleMoveStatus(gCurrentMove))
+        secondaryEffectChance *= 2;
+
+    // Serene Grace and Rainbow each grant 1.5x (down from 2x), and stack.
+    // Preserve the original cap: with both active, flinch only receives one multiplier.
+    if (hasRainbow && hasSereneGrace && moveEffect == MOVE_EFFECT_FLINCH)
+        return secondaryEffectChance * 3 / 2;
 
     if (hasSereneGrace)
-        secondaryEffectChance *= 2;
-    if (hasRainbow && additionalEffect->moveEffect != MOVE_EFFECT_SECRET_POWER)
-        secondaryEffectChance *= 2;
+        secondaryEffectChance = secondaryEffectChance * 3 / 2;
+    if (hasRainbow && moveEffect != MOVE_EFFECT_SECRET_POWER)
+        secondaryEffectChance = secondaryEffectChance * 3 / 2;
 
     return secondaryEffectChance;
 }

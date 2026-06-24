@@ -34,9 +34,10 @@ DOUBLE_BATTLE_TEST("Water and Fire Pledge create a rainbow on the user's side of
     }
 }
 
-DOUBLE_BATTLE_TEST("Rainbow doubles the chance of secondary move effects")
+DOUBLE_BATTLE_TEST("Rainbow boosts the chance of secondary move effects")
 {
-    PASSES_RANDOMLY(20, 100, RNG_SECONDARY_EFFECT);
+    // Ember is an attacking move: 10% burn -> 20% (attacking status x2) -> 30% (Rainbow x1.5).
+    PASSES_RANDOMLY(30, 100, RNG_SECONDARY_EFFECT);
     GIVEN {
         ASSUME(MoveHasAdditionalEffect(MOVE_EMBER, MOVE_EFFECT_BURN) == TRUE);
         PLAYER(SPECIES_WOBBUFFET) { Speed(4); }
@@ -57,7 +58,8 @@ DOUBLE_BATTLE_TEST("Rainbow doubles the chance of secondary move effects")
 
 DOUBLE_BATTLE_TEST("Rainbow flinch chance does not stack with Serene Grace")
 {
-    PASSES_RANDOMLY(60, 100, RNG_SECONDARY_EFFECT);
+    // Bite flinch (30%): Rainbow + Serene Grace on flinch apply a single 1.5x multiplier -> 45%.
+    PASSES_RANDOMLY(45, 100, RNG_SECONDARY_EFFECT);
     GIVEN {
         ASSUME(MoveHasAdditionalEffect(MOVE_BITE, MOVE_EFFECT_FLINCH) == TRUE);
         PLAYER(SPECIES_TOGEPI) { Speed(8); Ability(ABILITY_SERENE_GRACE); }

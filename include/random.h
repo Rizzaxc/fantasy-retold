@@ -159,6 +159,7 @@ enum RandomTag
     RNG_SECONDARY_EFFECT_2,
     RNG_SECONDARY_EFFECT_3,
     RNG_SHED_SKIN,
+    RNG_STATUS_RAIL_CLEANSE, // Fantasy Retold: Recuperate purging a random Level 1 status rail
     RNG_SLEEP_TURNS,
     RNG_TAUNT_TURNS,
     RNG_ENCORE_TURNS,

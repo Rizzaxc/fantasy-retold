@@ -536,6 +536,13 @@ struct BattlerState
 // BaseSta pool gains only a sliver — Recuperate stays the bulky mon's better in-place option.
 #define STAMINA_SWITCH_RESTORE 50
 
+// Fantasy Retold: per-rail status state (design.md §6). See enum StatusRail in constants/battle.h.
+struct StatusRailEntry
+{
+    u8 level;   // 0 = none; 1..3 (rail-specific max)
+    u8 counter; // rail-specific: Toxic escalation turns (RAIL_POISON); later sleep/confusion turns, burn stacks, etc.
+};
+
 struct PartyState
 {
     u32 intrepidSwordBoost:1;
@@ -552,6 +559,7 @@ struct PartyState
     u16 usedHeldItem;
     u16 storedStamina; // Fantasy Retold: CurrentSta banked at switch-out (+STAMINA_SWITCH_RESTORE rest bonus), restored on the mon's next switch-in. Read only when sentOut is set.
     u16 trauma;        // Fantasy Retold: permanent Trauma. Reduces effective max HP; persists across switches for the whole battle.
+    struct StatusRailEntry rails[NUM_STATUS_RAILS]; // Fantasy Retold: multi-stage status rails (design.md §6). Lv1 cleared on switch-out; Lv2+ persists.
 };
 
 struct EventStates

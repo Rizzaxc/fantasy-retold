@@ -424,10 +424,11 @@ bool32 IsBattlersFirstTurn(enum BattlerId battler);
 struct PartyState *GetBattlerPartyState(enum BattlerId battler);
 void SetValuesOnFaint(enum BattlerId battler);
 
-// Fantasy Retold: Trauma pool.
+// Fantasy Retold: Trauma — the unhealable portion of the single HP bar (caps healing at maxHP - trauma).
 u32 ApplyTraumaResistance(enum BattlerId battler, u32 trauma);
 u32 GetBattlerEffectiveMaxHP(enum BattlerId battler);
 void AddBattlerTrauma(enum BattlerId battler, u32 amount);
+void LogBattlerTrauma(enum BattlerId battler, u32 amount);
 
 // Fantasy Retold: Nature innates. Every Nature grants one innate effect that STACKS on top of the
 // mon's real ability (a mon whose ability already grants the same effect benefits twice, except

@@ -2272,7 +2272,7 @@ static void MoveBattleBarGraphically(enum BattlerId battler, u8 whichBar)
                     {
                         // Boundary tile: keep the HP fill, paint red from localStart..8 (4bpp: low nibble
                         // = even/left pixel, high nibble = odd/right pixel).
-                        u8 tile[32];
+                        ALIGNED(4) u8 tile[32]; // CpuCopy32 copies 32-bit words; the buffer must be word-aligned
                         u32 localStart = scarStartPx - tileLeftPx;
                         u32 row, x, b;
                         CpuCopy32(GetHealthboxElementGfxPtr(barElementId) + array[i] * 32, tile, 32);

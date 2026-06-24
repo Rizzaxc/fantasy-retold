@@ -14,6 +14,7 @@
 #include "battle_scripts.h"
 #include "battle_setup.h"
 #include "battle_util.h"
+#include "status_rail.h"
 #include "battle_tower.h"
 #include "battle_z_move.h"
 #include "battle_gimmick.h"
@@ -3135,6 +3136,14 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
             gBattleStruct->battlerState[battler].currentStamina = baseSta;
         // Fantasy Retold: a freshly switched-in mon hasn't over-exerted this turn — snapshot its entry Stamina.
         gBattleStruct->battlerState[battler].staminaTurnStart = gBattleStruct->battlerState[battler].currentStamina;
+
+        // Fantasy Retold: status rails (design.md §6). The rail in PartyState is authoritative and persists
+        // across switches (Lv2+; Lv1 was dropped on switch-out). On a mon's first send-out (storedStamina
+        // still 0) seed the rail from its incoming status1 so an overworld-inflicted status carries in; on
+        // any later send-out the rail overwrites the status1 mirror so the persisted level is restored.
+        if (partyState->storedStamina == 0)
+            ReconcileStatusRailsFromBridge(battler);
+        SyncStatusRailBridge(battler);
     }
 
     ClearIllusionMon(battler);

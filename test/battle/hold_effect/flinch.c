@@ -37,7 +37,8 @@ SINGLE_BATTLE_TEST("Kings Rock does not increase flinch chance of a move that ha
 
 DOUBLE_BATTLE_TEST("Kings Rock flinch chance boosted by Serene Grace does not stack with rainbow")
 {
-    PASSES_RANDOMLY(20, 100, RNG_HOLD_EFFECT_FLINCH);
+    // Serene Grace grants 1.5x to the King's Rock flinch chance (10% -> 15%), and Rainbow does not stack.
+    PASSES_RANDOMLY(15, 100, RNG_HOLD_EFFECT_FLINCH);
     GIVEN {
         ASSUME(GetMoveEffect(MOVE_WATER_PLEDGE) == EFFECT_PLEDGE);
         ASSUME(GetMoveEffect(MOVE_FIRE_PLEDGE) == EFFECT_PLEDGE);

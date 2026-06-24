@@ -25,9 +25,10 @@ SINGLE_BATTLE_TEST("AdditionalEffect.chance controls the proportion of secondary
 {
     enum Move move;
     u32 chance;
-    PARAMETRIZE { move = MOVE_THUNDER_SHOCK; chance = 10; }
-    PARAMETRIZE { move = MOVE_DISCHARGE; chance = 30; }
-    PARAMETRIZE { move = MOVE_NUZZLE; chance = 100; }
+    // Attacking moves have double the chance to inflict a status condition.
+    PARAMETRIZE { move = MOVE_THUNDER_SHOCK; chance = 20; }  // 10% base -> 20%
+    PARAMETRIZE { move = MOVE_DISCHARGE; chance = 60; }      // 30% base -> 60%
+    PARAMETRIZE { move = MOVE_NUZZLE; chance = 100; }        // 100% base, still guaranteed
     ASSUME(MoveHasAdditionalEffect(move, MOVE_EFFECT_PARALYSIS) == TRUE);
     PASSES_RANDOMLY(chance, 100, RNG_SECONDARY_EFFECT);
     GIVEN {

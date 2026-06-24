@@ -6,9 +6,10 @@ ASSUMPTIONS
     ASSUME(MoveHasAdditionalEffect(MOVE_RELIC_SONG, MOVE_EFFECT_SLEEP) == TRUE);
 }
 
-SINGLE_BATTLE_TEST("Relic Song has a 10% chance to put the target to sleep")
+SINGLE_BATTLE_TEST("Relic Song has a 20% chance to put the target to sleep")
 {
-    PASSES_RANDOMLY(10, 100, RNG_SECONDARY_EFFECT);
+    // Attacking moves have double the chance to inflict a status condition (10% base -> 20%).
+    PASSES_RANDOMLY(20, 100, RNG_SECONDARY_EFFECT);
     GIVEN {
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WOBBUFFET);

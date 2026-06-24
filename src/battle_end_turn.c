@@ -3,6 +3,7 @@
 #include "battle_hold_effects.h"
 #include "battle_setup.h"
 #include "battle_util.h"
+#include "status_rail.h"
 #include "battle_controllers.h"
 #include "battle_ai_record.h"
 #include "battle_stat_change.h"
@@ -517,24 +518,38 @@ static bool32 HandleEndTurnLeechSeed(enum BattlerId battler)
 static bool32 HandleEndTurnPoison(enum BattlerId battler)
 {
     bool32 effect = FALSE;
-
     enum Ability ability = GetBattlerAbility(battler);
-    bool32 isToxicPoison = gBattleMons[battler].status1 & STATUS1_TOXIC_POISON;
+    u8 poisonLevel;
 
     gBattleStruct->eventState.endTurnBattler++;
 
-    if (IsBattlerPresent(battler) && (gBattleMons[battler].status1 & STATUS1_POISON || isToxicPoison))
+    if (!IsBattlerPresent(battler))
+        return FALSE;
+
+    // Fantasy Retold: Poison -> Toxic rail (design.md §6). Keep the rail in sync with anything that
+    // wrote status1 directly (Toxic Orb/Spikes, Synchronize, cures, a mon entering already poisoned),
+    // then drive the tick off the rail level.
+    ReconcileStatusRailsFromBridge(battler);
+    poisonLevel = GetStatusRailLevel(battler, RAIL_POISON);
+
+    if (poisonLevel == 0)
+        return FALSE;
+
+    if (poisonLevel >= 2)
     {
+        // Toxic (Lv2): escalating, and the damage is unhealable — it is logged as Trauma so a wall
+        // cannot Recuperate it back (Toxic is the hard-counter to pure stall, design.md §4/§6).
+        u8 counter = GetStatusRailCounter(battler, RAIL_POISON);
+        if (counter < TOXIC_TRAUMA_MAX_TURNS) // cap the escalation (design.md §6/§11)
+            SetStatusRailCounter(battler, RAIL_POISON, ++counter);
+        SyncStatusRailBridge(battler); // keep the legacy toxic-counter mirror in step
+
         if (IsAbilityAndRecord(battler, ability, ABILITY_MAGIC_GUARD))
         {
-            if (isToxicPoison && (gBattleMons[battler].status1 & STATUS1_TOXIC_COUNTER) != STATUS1_TOXIC_TURN(15)) // not 16 turns
-                gBattleMons[battler].status1 += STATUS1_TOXIC_TURN(1);
+            // Magic Guard blocks indirect damage: no HP loss and nothing logged as Trauma (the counter still climbs).
         }
         else if (ability == ABILITY_POISON_HEAL)
         {
-            if (isToxicPoison && (gBattleMons[battler].status1 & STATUS1_TOXIC_COUNTER) != STATUS1_TOXIC_TURN(15)) // not 16 turns
-                gBattleMons[battler].status1 += STATUS1_TOXIC_TURN(1);
-
             if (!IsBattlerAtMaxHp(battler) && !gBattleMons[battler].volatiles.healBlock)
             {
                 SetHealAmount(battler, GetNonDynamaxMaxHP(battler) / 8);
@@ -542,14 +557,32 @@ static bool32 HandleEndTurnPoison(enum BattlerId battler)
                 effect = TRUE;
             }
         }
-        else if (isToxicPoison)
+        else
         {
-            SetPassiveDamageAmount(battler, GetNonDynamaxMaxHP(battler) / 16);
-            if ((gBattleMons[battler].status1 & STATUS1_TOXIC_COUNTER) != STATUS1_TOXIC_TURN(15)) // not 16 turns
-                gBattleMons[battler].status1 += STATUS1_TOXIC_TURN(1);
-            gBattleStruct->passiveHpUpdate[battler] *= (gBattleMons[battler].status1 & STATUS1_TOXIC_COUNTER) >> 8;
+            u32 tick = (GetNonDynamaxMaxHP(battler) / 16) * counter;
+            if (tick == 0)
+                tick = 1;
+            SetPassiveDamageAmount(battler, tick); // ordinary animated HP loss ("hurt by poison")...
+            LogBattlerTrauma(battler, tick);       // ...but record it as unhealable (lowers effective max HP).
             BattleScriptCall(BattleScript_PoisonTurnDmg);
             effect = TRUE;
+        }
+    }
+    else
+    {
+        // Regular Poison (Lv1): ordinary, healable chip damage.
+        if (IsAbilityAndRecord(battler, ability, ABILITY_MAGIC_GUARD))
+        {
+            // no damage
+        }
+        else if (ability == ABILITY_POISON_HEAL)
+        {
+            if (!IsBattlerAtMaxHp(battler) && !gBattleMons[battler].volatiles.healBlock)
+            {
+                SetHealAmount(battler, GetNonDynamaxMaxHP(battler) / 8);
+                BattleScriptCall(BattleScript_PoisonHealActivates);
+                effect = TRUE;
+            }
         }
         else
         {

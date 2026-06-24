@@ -12,7 +12,7 @@ SINGLE_BATTLE_TEST("Triple Arrows may lower Defense by one stage")
     enum Ability ability;
     u32 chance;
     PARAMETRIZE { ability = ABILITY_HUSTLE; chance = 50; }
-    PARAMETRIZE { ability = ABILITY_SERENE_GRACE; chance = 100; }
+    PARAMETRIZE { ability = ABILITY_SERENE_GRACE; chance = 75; } // Serene Grace grants 1.5x (50% -> 75%)
     PASSES_RANDOMLY(chance, 100, RNG_SECONDARY_EFFECT);
     GIVEN {
         PLAYER(SPECIES_TOGEPI) { Ability(ability); }
@@ -31,7 +31,7 @@ SINGLE_BATTLE_TEST("Triple Arrows makes the foe flinch 30% of the time")
     enum Ability ability;
     u32 chance;
     PARAMETRIZE { ability = ABILITY_HUSTLE; chance = 30; }
-    PARAMETRIZE { ability = ABILITY_SERENE_GRACE; chance = 60; }
+    PARAMETRIZE { ability = ABILITY_SERENE_GRACE; chance = 45; } // Serene Grace grants 1.5x (30% -> 45%)
     PASSES_RANDOMLY(chance, 100, RNG_SECONDARY_EFFECT_2);
     GIVEN {
         PLAYER(SPECIES_TOGEPI) { Ability(ability); }

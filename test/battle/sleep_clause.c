@@ -412,7 +412,8 @@ DOUBLE_BATTLE_TEST("Sleep Clause: Sleep from Effect Spore will not activate slee
 
 SINGLE_BATTLE_TEST("Sleep Clause: Moves with sleep effect chance will activate sleep clause")
 {
-    PASSES_RANDOMLY(10, 100, RNG_SECONDARY_EFFECT);
+    // Relic Song is an attacking move, so its sleep chance is doubled (10% base -> 20%).
+    PASSES_RANDOMLY(20, 100, RNG_SECONDARY_EFFECT);
     GIVEN {
         FLAG_SET(B_FLAG_SLEEP_CLAUSE);
         ASSUME(MoveHasAdditionalEffect(MOVE_RELIC_SONG, MOVE_EFFECT_SLEEP));

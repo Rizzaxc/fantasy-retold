@@ -68,6 +68,7 @@
 #include "constants/trainers.h"
 #include "test/battle.h"
 #include "battle_util.h"
+#include "status_rail.h"
 #include "constants/pokemon.h"
 #include "config/battle.h"
 #include "data/battle_move_effects.h"
@@ -2237,7 +2238,7 @@ static void TrySynchronizeActivation(enum BattlerId battlerAtk, enum BattlerId e
     }
 }
 
-static void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattler, enum MoveEffect effect, const u8 *battleScript, enum StatusTrigger trigger)
+static void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattler, enum MoveEffect effect, const u8 *battleScript, enum StatusTrigger trigger, u8 railMinLevel)
 {
     gEffectBattler = effectBattler;
 
@@ -2259,8 +2260,16 @@ static void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effec
         gBattlescriptCurrInstr = BattleScript_MoveEffectSleep;
         break;
     case MOVE_EFFECT_POISON:
-        gBattleMons[effectBattler].status1 |= STATUS1_POISON;
-        gBattlescriptCurrInstr = BattleScript_MoveEffectPoison;
+    case MOVE_EFFECT_TOXIC:
+        // Fantasy Retold: Poison -> Toxic rail (design.md §6). A status-move/primary application
+        // (railMinLevel == 2) lands at Lv2 (Toxic); an attacking-move secondary / ability / protect
+        // effect (railMinLevel == 1) lands at Lv1 (regular Poison) and advances to Lv2 on reapplication.
+        // ApplyStatusRail mirrors the result back into status1 (the legacy bits used by UI/AI).
+        ApplyStatusRail(effectBattler, RAIL_POISON, railMinLevel);
+        if (GetStatusRailLevel(effectBattler, RAIL_POISON) >= 2)
+            gBattlescriptCurrInstr = BattleScript_MoveEffectToxic;
+        else
+            gBattlescriptCurrInstr = BattleScript_MoveEffectPoison;
         break;
     case MOVE_EFFECT_BURN:
         gBattleMons[effectBattler].status1 |= STATUS1_BURN;
@@ -2273,10 +2282,6 @@ static void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effec
     case MOVE_EFFECT_PARALYSIS:
         gBattleMons[effectBattler].status1 |= STATUS1_PARALYSIS;
         gBattlescriptCurrInstr = BattleScript_MoveEffectParalysis;
-        break;
-    case MOVE_EFFECT_TOXIC:
-        gBattleMons[effectBattler].status1 |= STATUS1_TOXIC_POISON;
-        gBattlescriptCurrInstr = BattleScript_MoveEffectToxic;
         break;
     case MOVE_EFFECT_FROSTBITE:
         gBattleMons[effectBattler].status1 |= STATUS1_FROSTBITE;
@@ -2423,7 +2428,8 @@ void SetMoveEffect(enum BattlerId battlerAtk, enum BattlerId effectBattler, enum
                     moveEffect,
                     CHECK_TRIGGER))
         {
-            SetNonVolatileStatus(battlerAtk, effectBattler, moveEffect, battleScript, TRIGGER_ON_MOVE);
+            // Fantasy Retold: a move's primary status lands at rail Lv2, an attacking-move secondary at Lv1.
+            SetNonVolatileStatus(battlerAtk, effectBattler, moveEffect, battleScript, TRIGGER_ON_MOVE, primary ? 2 : 1);
         }
         else
         {
@@ -5077,6 +5083,11 @@ static void Cmd_getswitchedmondata(void)
         u32 banked = gBattleStruct->battlerState[battler].currentStamina + STAMINA_SWITCH_RESTORE;
         GetBattlerPartyState(battler)->storedStamina = min(banked, baseSta);
     }
+
+    // Fantasy Retold: Level 1 status rails are volatile — they drop when the mon leaves the field
+    // (Lv2+ stays banked in PartyState and is restored on the mon's next switch-in). Done here while
+    // gBattlerPartyIndexes still resolves to the outgoing mon, before it is reassigned below.
+    ClearVolatileStatusRails(battler);
 
     gBattlerPartyIndexes[battler] = gBattleStruct->monToSwitchIntoId[battler];
 
@@ -10695,13 +10706,13 @@ static void Cmd_setnonvolatilestatus(void)
         if (gBattleScripting.moveEffect >= MOVE_EFFECT_CONFUSION)
             SetMoveEffect(gBattleScripting.battler, gEffectBattler, gBattleScripting.moveEffect, cmd->nextInstr, EFFECT_PRIMARY);
         else
-            SetNonVolatileStatus(gBattleScripting.battler, gEffectBattler, gBattleScripting.moveEffect, cmd->nextInstr, TRIGGER_ON_ABILITY);
+            SetNonVolatileStatus(gBattleScripting.battler, gEffectBattler, gBattleScripting.moveEffect, cmd->nextInstr, TRIGGER_ON_ABILITY, 1); // ability-inflicted -> rail Lv1
         break;
     case TRIGGER_ON_MOVE:
-        SetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, GetMoveNonVolatileStatus(gCurrentMove), cmd->nextInstr, TRIGGER_ON_MOVE);
+        SetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, GetMoveNonVolatileStatus(gCurrentMove), cmd->nextInstr, TRIGGER_ON_MOVE, 2); // primary status move -> rail Lv2
         break;
     case TRIGGER_ON_PROTECT:
-        SetNonVolatileStatus(gBattlerTarget, gBattlerAttacker, gBattleScripting.moveEffect, cmd->nextInstr, TRIGGER_ON_PROTECT);
+        SetNonVolatileStatus(gBattlerTarget, gBattlerAttacker, gBattleScripting.moveEffect, cmd->nextInstr, TRIGGER_ON_PROTECT, 1); // protect-inflicted -> rail Lv1
         break;
     }
 }
@@ -12233,7 +12244,7 @@ void BS_SwapStats(void)
 static void TrySetParalysis(const u8 *nextInstr, const u8 *failInstr)
 {
     if (CanBeParalyzed(gBattlerAttacker, gBattlerTarget, GetBattlerAbility(gBattlerTarget)))
-        SetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, MOVE_EFFECT_PARALYSIS, nextInstr, TRIGGER_ON_MOVE);
+        SetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, MOVE_EFFECT_PARALYSIS, nextInstr, TRIGGER_ON_MOVE, 2); // move-driven primary -> rail Lv2
     else
         gBattlescriptCurrInstr = failInstr;
 }
@@ -12241,7 +12252,7 @@ static void TrySetParalysis(const u8 *nextInstr, const u8 *failInstr)
 static void TrySetPoison(const u8 *nextInstr, const u8 *failInstr)
 {
     if (CanBePoisoned(gBattlerAttacker, gBattlerTarget, GetBattlerAbility(gBattlerAttacker), GetBattlerAbility(gBattlerTarget)))
-        SetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, MOVE_EFFECT_POISON, nextInstr, TRIGGER_ON_MOVE);
+        SetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, MOVE_EFFECT_POISON, nextInstr, TRIGGER_ON_MOVE, 2); // move-driven primary -> rail Lv2
     else
         gBattlescriptCurrInstr = failInstr;
 }
@@ -12249,7 +12260,7 @@ static void TrySetPoison(const u8 *nextInstr, const u8 *failInstr)
 static void TrySetSleep(const u8 *nextInstr, const u8 *failInstr)
 {
     if (CanBeSlept(gBattlerAttacker, gBattlerTarget, GetBattlerAbility(gBattlerTarget), BLOCKED_BY_SLEEP_CLAUSE))
-        SetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, MOVE_EFFECT_SLEEP, nextInstr, TRIGGER_ON_MOVE);
+        SetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, MOVE_EFFECT_SLEEP, nextInstr, TRIGGER_ON_MOVE, 2); // move-driven primary -> rail Lv2
     else
         gBattlescriptCurrInstr = failInstr;
 }

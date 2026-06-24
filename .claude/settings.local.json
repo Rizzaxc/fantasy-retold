@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cd \"D:/Work/fantasy-retold\" && ls -la && echo \"---PARENT---\" && ls -la .. 2>/dev/null | head -50)"
+      "Bash(cd \"D:/Work/fantasy-retold\" && ls -la && echo \"---PARENT---\" && ls -la .. 2>/dev/null | head -50)",
+      "Bash(grep \"\\\\.c$\")",
+      "Bash(xargs grep -l \"struct AdditionalEffect\")",
+      "Bash(cd /d/Work/fantasy-retold && echo \"=== parent expansion version ===\" && cat include/constants/expansion_version.h 2>/dev/null | grep -iE \"EXPANSION_VERSION|MAJOR|MINOR|PATCH\" | head ; echo \"\" && echo \"=== parent battle file list \\(key\\) ===\" && ls src/battle_*.c 2>/dev/null && echo \"\" && echo \"=== does parent have battle_move_resolution/end_turn/hold_effects? ===\" && ls -la src/battle_end_turn.c src/battle_hold_effects.c src/battle_move_resolution.c 2>/dev/null)"
     ]
   }
 }

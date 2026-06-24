@@ -198,6 +198,22 @@ enum BattleSide
 #define STATUS1_ICY_ANY          (STATUS1_FREEZE | STATUS1_FROSTBITE)
 #define STATUS1_DAMAGING         (STATUS1_PSN_ANY | STATUS1_BURN | STATUS1_FROSTBITE)
 
+// Fantasy Retold: multi-stage status "rails" (design.md §6). A condition advances Lv1 -> Lv2 (-> Lv3)
+// when reapplied. Level 1 is volatile (clears on switch-out); Level 2+ persists across switches for the
+// whole engagement. Rail state (level + a per-rail counter) lives in struct PartyState and is the source
+// of truth for mechanics; the legacy STATUS1_* bits above are kept only as a read-mirror so existing
+// status icons / animations / messages / AI keep working (see SyncStatusRailBridge in status_rail.c).
+enum StatusRail
+{
+    RAIL_POISON, // Poison (Lv1) -> Toxic (Lv2)
+    // Future lines: RAIL_SLEEP, RAIL_ELECTRIC, RAIL_CHILL, RAIL_BURN, RAIL_SOAK, RAIL_CONFUSION
+    NUM_STATUS_RAILS,
+};
+
+// Toxic (RAIL_POISON at Lv2) escalation cap: the per-turn unhealable (Trauma-logged) tick is
+// maxHP/16 * counter, with counter clamped here to prevent runaway lethality (design.md §6/§11).
+#define TOXIC_TRAUMA_MAX_TURNS 8
+
 enum VolatileFlags
 {
     V_BATON_PASSABLE = (1 << 0),

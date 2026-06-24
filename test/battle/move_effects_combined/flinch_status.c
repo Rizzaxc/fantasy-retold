@@ -11,7 +11,7 @@ ASSUMPTIONS
     ASSUME(MoveHasAdditionalEffect(MOVE_FIRE_FANG, MOVE_EFFECT_FLINCH) == TRUE);
 }
 
-SINGLE_BATTLE_TEST("Thunder, Ice and Fire Fang inflict status 10% of the time")
+SINGLE_BATTLE_TEST("Thunder, Ice and Fire Fang inflict status 20% of the time")
 {
     enum Move move;
 
@@ -19,7 +19,8 @@ SINGLE_BATTLE_TEST("Thunder, Ice and Fire Fang inflict status 10% of the time")
     PARAMETRIZE { move = MOVE_ICE_FANG; }
     PARAMETRIZE { move = MOVE_FIRE_FANG; }
 
-    PASSES_RANDOMLY(10, 100, RNG_SECONDARY_EFFECT);
+    // Attacking moves have double the chance to inflict a status condition (10% base -> 20%).
+    PASSES_RANDOMLY(20, 100, RNG_SECONDARY_EFFECT);
     GIVEN {
         PLAYER(SPECIES_WOBBUFFET);
         OPPONENT(SPECIES_WOBBUFFET);
