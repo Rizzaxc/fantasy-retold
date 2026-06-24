@@ -1042,6 +1042,7 @@ static void HandleEditingStatInput(u32 input)
                     break;
                 }
             }
+            break;
         case EDIT_INPUT_INCREASE_STATE:
             for (iterator = 0; iterator < INCREASE_DECREASE_AMOUNT; iterator++)
             {
