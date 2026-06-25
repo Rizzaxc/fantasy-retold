@@ -5,7 +5,13 @@
       "Bash(grep \"\\\\.c$\")",
       "Bash(xargs grep -l \"struct AdditionalEffect\")",
       "Bash(cd /d/Work/fantasy-retold && echo \"=== parent expansion version ===\" && cat include/constants/expansion_version.h 2>/dev/null | grep -iE \"EXPANSION_VERSION|MAJOR|MINOR|PATCH\" | head ; echo \"\" && echo \"=== parent battle file list \\(key\\) ===\" && ls src/battle_*.c 2>/dev/null && echo \"\" && echo \"=== does parent have battle_move_resolution/end_turn/hold_effects? ===\" && ls -la src/battle_end_turn.c src/battle_hold_effects.c src/battle_move_resolution.c 2>/dev/null)",
-      "Bash(xargs grep -l \"ability\\\\|nature\")"
+      "Bash(xargs grep -l \"ability\\\\|nature\")",
+      "Bash(grep -E \"\\\\.\\(c|h\\)$\")",
+      "Bash(xargs grep -l \"FIGHT\\\\|BAG\\\\|RUN\\\\|POKEMON\")",
+      "Bash(python3 -c \"from PIL import Image; img = Image.open\\('D:/Work/fantasy-retold/graphics/battle_interface/healthbox_singles_player.png'\\); print\\(f'Size: {img.size}, Mode: {img.mode}, Palette colors: {len\\(img.getpalette\\(\\)\\)//3 if img.mode==\\\\\"P\\\\\" else \\\\\"N/A\\\\\"}'\\)\")",
+      "Bash(python -c \"from PIL import Image; img = Image.open\\('D:/Work/fantasy-retold/graphics/battle_interface/healthbox_singles_player.png'\\); print\\(f'Size: {img.size}, Mode: {img.mode}, Palette colors: {len\\(img.getpalette\\(\\)\\)//3 if img.mode==\\\\\"P\\\\\" else \\\\\"N/A\\\\\"}'\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(ls \"C:/Users/Admin/.claude/plans/\" 2>/dev/null || echo \"Plans directory does not exist\")"
     ]
   }
 }

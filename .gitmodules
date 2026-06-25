@@ -1,0 +1,3 @@
+[submodule "Team-Aquas-Asset-Repo"]
+	path = Team-Aquas-Asset-Repo
+	url = git@github.com:TeamAquasHideout/Team-Aquas-Asset-Repo.git
