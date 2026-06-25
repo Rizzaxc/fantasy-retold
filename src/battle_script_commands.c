@@ -5086,14 +5086,14 @@ static void Cmd_getswitchedmondata(void)
         gBattleStruct->monToSwitchIntoId[battler] = GetArbitraryValidSwitchIn(trainer);
     }
 
-    // Fantasy Retold: bank the outgoing mon's Stamina (+STAMINA_SWITCH_RESTORE rest bonus, capped at
+    // Fantasy Retold: bank the outgoing mon's Stamina (+ rest bonus of 5 + Level / 2, capped at
     // BaseSta) before the slot index is reassigned to the incoming mon below. Restored on its next
     // switch-in. GetBattlerPartyState is keyed on gBattlerPartyIndexes[battler] (the per-mon identity, the
     // same storage as timesGotHit/Rage Fist), so this lands on the outgoing mon and persists per-mon — the
     // display-order reshuffle in SwitchPartyOrder rewrites only battlerPartyOrders, never this index.
     {
         u32 baseSta = GetBaseStamina(battler);
-        u32 banked = gBattleStruct->battlerState[battler].currentStamina + STAMINA_SWITCH_RESTORE;
+        u32 banked = gBattleStruct->battlerState[battler].currentStamina + (5 + gBattleMons[battler].level / 2);
         GetBattlerPartyState(battler)->storedStamina = min(banked, baseSta);
     }
 

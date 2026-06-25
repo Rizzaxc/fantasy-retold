@@ -2226,7 +2226,7 @@ const struct AbilityInfo gAbilitiesInfo[ABILITIES_COUNT] =
     [ABILITY_BEADS_OF_RUIN] =
     {
         .name = _("Beads of Ruin"),
-        .description = COMPOUND_STRING("Lowers foes' Sp. Defense."),
+        .description = COMPOUND_STRING("Lowers foes' Stamina."),
         .aiRating = 5,
         .breakable = TRUE,
     },
@@ -2356,7 +2356,7 @@ const struct AbilityInfo gAbilitiesInfo[ABILITIES_COUNT] =
     [ABILITY_EMBODY_ASPECT_WELLSPRING_MASK] =
     {
         .name = _("Embody Aspect"),
-        .description = COMPOUND_STRING("Raises Sp. Def."),
+        .description = COMPOUND_STRING("Raises Stamina."),
         .aiRating = 6,
         .cantBeCopied = TRUE,
         .cantBeSwapped = TRUE,

@@ -8,7 +8,7 @@ ASSUMPTIONS
     ASSUME(GetMoveEffect(MOVE_ROLE_PLAY) == EFFECT_ROLE_PLAY);
 }
 
-SINGLE_BATTLE_TEST("Beads of Ruin reduces Sp. Def if opposing mon's ability doesn't match")
+SINGLE_BATTLE_TEST("Beads of Ruin reduces Stamina if opposing mon's ability doesn't match")
 {
     s16 damage[2];
 
@@ -20,7 +20,7 @@ SINGLE_BATTLE_TEST("Beads of Ruin reduces Sp. Def if opposing mon's ability does
         TURN { MOVE(player, MOVE_WATER_GUN); }
     } SCENE {
         ABILITY_POPUP(player, ABILITY_BEADS_OF_RUIN);
-        MESSAGE("Chi-Yu's Beads of Ruin weakened the Sp. Def of all surrounding Pokémon!");
+        MESSAGE("Chi-Yu's Beads of Ruin weakened the Stamina of all surrounding Pokémon!");
         ANIMATION(ANIM_TYPE_MOVE, MOVE_WATER_GUN, player);
         HP_BAR(opponent, captureDamage: &damage[0]);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_ROLE_PLAY, opponent);
@@ -49,7 +49,7 @@ SINGLE_BATTLE_TEST("Beads of Ruin's message displays correctly after all battler
         MESSAGE("Go! Chi-Yu!");
         MESSAGE("2 sent out Wobbuffet!");
         ABILITY_POPUP(player, ABILITY_BEADS_OF_RUIN);
-        MESSAGE("Chi-Yu's Beads of Ruin weakened the Sp. Def of all surrounding Pokémon!");
+        MESSAGE("Chi-Yu's Beads of Ruin weakened the Stamina of all surrounding Pokémon!");
     }
 }
 
@@ -71,7 +71,7 @@ SINGLE_BATTLE_TEST("Beads of Ruin's message displays correctly after all battler
         SEND_IN_MESSAGE("Wobbuffet");
         MESSAGE("2 sent out Chi-Yu!");
         ABILITY_POPUP(opponent, ABILITY_BEADS_OF_RUIN);
-        MESSAGE("The opposing Chi-Yu's Beads of Ruin weakened the Sp. Def of all surrounding Pokémon!");
+        MESSAGE("The opposing Chi-Yu's Beads of Ruin weakened the Stamina of all surrounding Pokémon!");
     }
 }
 
@@ -100,7 +100,7 @@ DOUBLE_BATTLE_TEST("Beads of Ruin increases damage taken by physical moves in Wo
             TURN { MOVE(playerRight, move, target: opponentLeft); }
     } SCENE {
         ABILITY_POPUP(playerLeft, ABILITY_BEADS_OF_RUIN);
-        MESSAGE("Chi-Yu's Beads of Ruin weakened the Sp. Def of all surrounding Pokémon!");
+        MESSAGE("Chi-Yu's Beads of Ruin weakened the Stamina of all surrounding Pokémon!");
         ANIMATION(ANIM_TYPE_MOVE, move, playerRight);
         HP_BAR(opponentLeft, captureDamage: &results[i].damage);
     } FINALLY {
@@ -129,18 +129,18 @@ SINGLE_BATTLE_TEST("Beads of Ruin doesn't activate when dragged out by Mold Brea
         {
             NONE_OF {
                 ABILITY_POPUP(player, ABILITY_BEADS_OF_RUIN);
-                MESSAGE("Chi-Yu's Beads of Ruin weakened the Sp. Def of all surrounding Pokémon!");
+                MESSAGE("Chi-Yu's Beads of Ruin weakened the Stamina of all surrounding Pokémon!");
             }
         }
         else
         {
             ABILITY_POPUP(player, ABILITY_BEADS_OF_RUIN);
-            MESSAGE("Chi-Yu's Beads of Ruin weakened the Sp. Def of all surrounding Pokémon!");
+            MESSAGE("Chi-Yu's Beads of Ruin weakened the Stamina of all surrounding Pokémon!");
         }
     }
 }
 
-DOUBLE_BATTLE_TEST("Beads of Ruin's Sp. Def reduction is not ignored by Mold Breaker", s16 damage)
+DOUBLE_BATTLE_TEST("Beads of Ruin's Stamina reduction is not ignored by Mold Breaker", s16 damage)
 {
     enum Ability ability;
 
@@ -156,7 +156,7 @@ DOUBLE_BATTLE_TEST("Beads of Ruin's Sp. Def reduction is not ignored by Mold Bre
         TURN { MOVE(opponentLeft, MOVE_ROUND, target: playerRight); }
     } SCENE {
         ABILITY_POPUP(playerLeft, ABILITY_BEADS_OF_RUIN);
-        MESSAGE("Chi-Yu's Beads of Ruin weakened the Sp. Def of all surrounding Pokémon!");
+        MESSAGE("Chi-Yu's Beads of Ruin weakened the Stamina of all surrounding Pokémon!");
         ANIMATION(ANIM_TYPE_MOVE, MOVE_ROUND, opponentLeft);
         HP_BAR(playerRight, captureDamage: &results[i].damage);
     } FINALLY {
@@ -164,7 +164,7 @@ DOUBLE_BATTLE_TEST("Beads of Ruin's Sp. Def reduction is not ignored by Mold Bre
     }
 }
 
-DOUBLE_BATTLE_TEST("Beads of Ruin's Sp. Def reduction is ignored by Gastro Acid", s16 damage)
+DOUBLE_BATTLE_TEST("Beads of Ruin's Stamina reduction is ignored by Gastro Acid", s16 damage)
 {
     enum Move move;
 
@@ -181,7 +181,7 @@ DOUBLE_BATTLE_TEST("Beads of Ruin's Sp. Def reduction is ignored by Gastro Acid"
         TURN { MOVE(opponentRight, move, target: playerLeft); MOVE(opponentLeft, MOVE_ROUND, target: playerRight); }
     } SCENE {
         ABILITY_POPUP(playerLeft, ABILITY_BEADS_OF_RUIN);
-        MESSAGE("Chi-Yu's Beads of Ruin weakened the Sp. Def of all surrounding Pokémon!");
+        MESSAGE("Chi-Yu's Beads of Ruin weakened the Stamina of all surrounding Pokémon!");
         ANIMATION(ANIM_TYPE_MOVE, move, opponentRight);
         ANIMATION(ANIM_TYPE_MOVE, MOVE_ROUND, opponentLeft);
         HP_BAR(playerRight, captureDamage: &results[i].damage);
@@ -190,7 +190,7 @@ DOUBLE_BATTLE_TEST("Beads of Ruin's Sp. Def reduction is ignored by Gastro Acid"
     }
 }
 
-SINGLE_BATTLE_TEST("Beads of Ruin reduces Sp. Def if opposing mon's ability doesn't match (Neutralizing switches in and out)")
+SINGLE_BATTLE_TEST("Beads of Ruin reduces Stamina if opposing mon's ability doesn't match (Neutralizing switches in and out)")
 {
     s16 damage[2];
 

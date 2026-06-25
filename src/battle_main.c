@@ -3123,10 +3123,10 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
     enum BattleMoveEffects effect = GetMoveEffect(gCurrentMove);
 
     // Fantasy Retold: Stamina persists across switches. A mon that has already been on the field this
-    // battle returns with its banked Stamina (CurrentSta at switch-out + the STAMINA_SWITCH_RESTORE rest
-    // bonus, applied when it left), capped at BaseSta. Only a fresh first send-out enters at full.
+    // battle returns with its banked Stamina (CurrentSta at switch-out + the rest
+    // bonus of 5 + Level / 2, applied when it left), capped at BaseSta. Only a fresh first send-out enters at full.
     // storedStamina is non-zero only once a mon has banked at a prior switch-out (a banked value is always
-    // >= STAMINA_SWITCH_RESTORE), so zero unambiguously marks a first send-out.
+    // non-zero), so zero unambiguously marks a first send-out.
     {
         struct PartyState *partyState = GetBattlerPartyState(battler);
         u32 baseSta = GetBaseStamina(battler);
@@ -3134,6 +3134,7 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
             gBattleStruct->battlerState[battler].currentStamina = min(partyState->storedStamina, baseSta);
         else
             gBattleStruct->battlerState[battler].currentStamina = baseSta;
+        gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
 
         // Fantasy Retold: status rails (design.md §6). The rail in PartyState is authoritative and persists
         // across switches (Lv2+; Lv1 was dropped on switch-out). On a mon's first send-out (storedStamina
@@ -3297,6 +3298,7 @@ void FaintClearSetData(enum BattlerId battler)
 {
     for (enum Stat i = 0; i < NUM_BATTLE_STATS; i++)
         gBattleMons[battler].statStages[i] = DEFAULT_STAT_STAGE;
+    gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
 
     bool32 keepTransformed = gBattleMons[battler].volatiles.transformed;
     memset(&gBattleMons[battler].volatiles, 0, sizeof(struct Volatiles));
@@ -4464,6 +4466,7 @@ static void HandleTurnActionSelectionState(void)
                             {
                                 gBattleStruct->dynamax.baseMoves[battler] = GetBattlerChosenMove(battler);
                             }
+                            gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                             gBattleCommunication[battler]++;
 
                             if (gTestRunnerEnabled)
@@ -4487,6 +4490,7 @@ static void HandleTurnActionSelectionState(void)
                         gLastUsedItem = (gBattleResources->bufferB[battler][1] | (gBattleResources->bufferB[battler][2] << 8));
                         if (GetItemPocket(gLastUsedItem) == POCKET_POKE_BALLS)
                             gBattleStruct->throwingPokeBall = TRUE;
+                        gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                         gBattleCommunication[battler]++;
                     }
                     break;
@@ -4499,36 +4503,48 @@ static void HandleTurnActionSelectionState(void)
                     else
                     {
                         UpdateBattlerPartyOrdersOnSwitch(battler);
+                        gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                         gBattleCommunication[battler]++;
                     }
                     break;
                 case B_ACTION_RUN:
                     gHitMarker |= HITMARKER_RUN;
+                    gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                     gBattleCommunication[battler]++;
                     break;
                 case B_ACTION_SAFARI_WATCH_CAREFULLY:
+                    gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                     gBattleCommunication[battler]++;
                     break;
                 case B_ACTION_SAFARI_BALL:
+                    gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                     gBattleCommunication[battler]++;
                     break;
                 case B_ACTION_THROW_BALL:
                     gBattleStruct->throwingPokeBall = TRUE;
+                    gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                     gBattleCommunication[battler]++;
                     break;
                 case B_ACTION_DODGE:      // Fantasy Retold: L innate command — nothing extra to confirm.
+                    gBattleCommunication[battler]++;
+                    break;
                 case B_ACTION_RECUPERATE: // Fantasy Retold: R innate command.
+                    gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                     gBattleCommunication[battler]++;
                     break;
                 case B_ACTION_SAFARI_POKEBLOCK:
                     if (IS_FRLG)
                     {
+                        gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                         gBattleCommunication[battler]++;
                     }
                     else
                     {
                         if ((gBattleResources->bufferB[battler][1] | (gBattleResources->bufferB[battler][2] << 8)) != 0)
+                        {
+                            gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                             gBattleCommunication[battler]++;
+                        }
                         else
                             gBattleCommunication[battler] = STATE_BEFORE_ACTION_CHOSEN;
                     }
@@ -4731,6 +4747,12 @@ u32 GetBaseStamina(enum BattlerId battler)
     if (baseSta == 0)
         baseSta = 1;
     return baseSta;
+}
+
+u32 GetDodgeCost(enum BattlerId battler)
+{
+    u32 baseSta = GetBaseStamina(battler);
+    return 5 + (20 * gBattleStruct->battlerState[battler].dodgeConsecutiveUses) + (baseSta * 2) / 100;
 }
 
 u32 GetBattlerTotalSpeedStat(enum BattlerId battler, enum Ability ability, enum HoldEffect holdEffect)

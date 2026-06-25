@@ -75,7 +75,7 @@ SINGLE_BATTLE_TEST("X Sp. Atk sharply raises battler's Sp. Attack stat", s16 dam
     }
 }
 
-SINGLE_BATTLE_TEST("X Sp. Def sharply raises battler's Sp. Defense stat", s16 damage)
+SINGLE_BATTLE_TEST("X Stamina sharply raises battler's Stamina stat", s16 damage)
 {
     u16 useItem;
     PARAMETRIZE { useItem = FALSE; }
@@ -214,7 +214,7 @@ SINGLE_BATTLE_TEST("Max Mushrooms raises battler's Sp. Attack stat", s16 damage)
     }
 }
 
-SINGLE_BATTLE_TEST("Max Mushrooms battler's Sp. Defense stat", s16 damage)
+SINGLE_BATTLE_TEST("Max Mushrooms battler's Stamina stat", s16 damage)
 {
     u16 useItem;
     PARAMETRIZE { useItem = FALSE; }

@@ -545,14 +545,14 @@ struct BattlerState
     u16 notOnField:1;
     u16 redCardSwitched:1;
     u16 isFirstTurn:2; // Starts at 2 on switch in and counts down during end turn
-    u16 padding:11;
+    u16 dodgeConsecutiveUses:5; // Fantasy Retold: prior consecutive Dodge turns; drives the +20 escalation on the next Dodge.
+    u16 padding:6;
     // End of Word
 };
 
-// Fantasy Retold: flat Stamina granted on switch-out ("rest bonus"). Switching no longer refills to full;
+// Fantasy Retold: Stamina granted on switch-out ("rest bonus") is 5 + Level / 2. Switching no longer refills to full;
 // it banks CurrentSta + this amount (capped at BaseSta), so frail mons get a near-full reset while a big
 // BaseSta pool gains only a sliver — Recuperate stays the bulky mon's better in-place option.
-#define STAMINA_SWITCH_RESTORE 50
 
 // Fantasy Retold: per-rail status state (design.md §6). See enum StatusRail in constants/battle.h.
 struct StatusRailEntry
@@ -575,7 +575,7 @@ struct PartyState
     u32 isKnockedOff:1;
     u32 padding:8;
     u16 usedHeldItem;
-    u16 storedStamina; // Fantasy Retold: CurrentSta banked at switch-out (+STAMINA_SWITCH_RESTORE rest bonus), restored on the mon's next switch-in. Read only when sentOut is set.
+    u16 storedStamina; // Fantasy Retold: CurrentSta banked at switch-out (+ rest bonus), restored on the mon's next switch-in. Read only when sentOut is set.
     u16 trauma;        // Fantasy Retold: permanent Trauma. Reduces effective max HP; persists across switches for the whole battle.
     struct StatusRailEntry rails[NUM_STATUS_RAILS]; // Fantasy Retold: multi-stage status rails (design.md §6). Lv1 cleared on switch-out; Lv2+ persists.
 };

@@ -6,7 +6,7 @@ ASSUMPTIONS
     ASSUME(GetMoveEffect(MOVE_GUARD_SPLIT) == EFFECT_GUARD_SPLIT);
 }
 
-SINGLE_BATTLE_TEST("Guard Split averages users and targets Def and Sp. Def stats")
+SINGLE_BATTLE_TEST("Guard Split averages users and targets Def and Stamina stats")
 {
     GIVEN {
         PLAYER(SPECIES_BULBASAUR);

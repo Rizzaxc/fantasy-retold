@@ -6,7 +6,7 @@ ASSUMPTIONS
     ASSUME_STAT_CHANGE(MOVE_AMNESIA, spDef: +2);
 }
 
-SINGLE_BATTLE_TEST("Amnesia increases the user's Sp. Defense by 2 stages")
+SINGLE_BATTLE_TEST("Amnesia increases the user's Stamina by 2 stages")
 {
     GIVEN {
         PLAYER(SPECIES_WOBBUFFET);

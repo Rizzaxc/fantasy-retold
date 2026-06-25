@@ -128,7 +128,7 @@ SINGLE_BATTLE_TEST("Protosynthesis prioritizes stats in the case of a tie in the
                 MESSAGE("Great Tusk's Sp. Atk was heightened!");
                 break;
             case 3:
-                MESSAGE("Great Tusk's Sp. Def was heightened!");
+                MESSAGE("Great Tusk's Stamina was heightened!");
                 break;
         }
     }
@@ -147,7 +147,7 @@ SINGLE_BATTLE_TEST("Protosynthesis uses Wonder Room swapped defenses when choosi
         ANIMATION(ANIM_TYPE_MOVE, MOVE_SUNNY_DAY, opponent);
         ABILITY_POPUP(player, ABILITY_PROTOSYNTHESIS);
         MESSAGE("The harsh sunlight activated Roaring Moon's Protosynthesis!");
-        MESSAGE("Roaring Moon's Sp. Def was heightened!");
+        MESSAGE("Roaring Moon's Stamina was heightened!");
     }
 }
 

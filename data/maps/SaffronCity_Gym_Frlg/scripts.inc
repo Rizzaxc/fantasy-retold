@@ -134,7 +134,7 @@ SaffronCity_Gym_Text_ReceivedTM04FromSabrina::
 SaffronCity_Gym_Text_ExplainTM04::
 	.string "TM04 is CALM MIND.\p"
 	.string "It makes the POKéMON concentrate\n"
-	.string "to raise both SP. ATK and SP. DEF.$"
+	.string "to raise both SP. ATK and STAMINA.$"
 
 SaffronCity_Gym_Text_BagFullOfOtherItems::
 	.string "Your BAG is full of other items.$"

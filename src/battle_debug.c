@@ -338,7 +338,7 @@ static const struct ListMenuItem sStatsListItems[] =
     {COMPOUND_STRING("Defense"),    LIST_STAT_DEFENSE},
     {COMPOUND_STRING("Speed"),      LIST_STAT_SPEED},
     {COMPOUND_STRING("Sp. Atk"),    LIST_STAT_SP_ATK},
-    {COMPOUND_STRING("Sp. Def"),    LIST_STAT_SP_DEF},
+    {COMPOUND_STRING("Stamina"),    LIST_STAT_SP_DEF},
 };
 
 static const struct ListMenuItem sStatus1ListItems[] =
@@ -2179,7 +2179,7 @@ static const u8 *const sHoldEffectNames[HOLD_EFFECT_COUNT] =
     [HOLD_EFFECT_DEFENSE_UP]       = COMPOUND_STRING("Defense Up"),
     [HOLD_EFFECT_SPEED_UP]         = COMPOUND_STRING("Speed Up"),
     [HOLD_EFFECT_SP_ATTACK_UP]     = COMPOUND_STRING("Sp Attack Up"),
-    [HOLD_EFFECT_SP_DEFENSE_UP]    = COMPOUND_STRING("Sp Defense Up"),
+    [HOLD_EFFECT_SP_DEFENSE_UP]    = COMPOUND_STRING("Stamina Up"),
     [HOLD_EFFECT_CRITICAL_UP]      = COMPOUND_STRING("Critical Up"),
     [HOLD_EFFECT_RANDOM_STAT_UP]   = COMPOUND_STRING("Random Stat Up"),
     [HOLD_EFFECT_EVASION_UP]       = COMPOUND_STRING("Evasion Up"),

@@ -1,7 +1,7 @@
 #include "global.h"
 #include "test/battle.h"
 
-SINGLE_BATTLE_TEST("Moody randomly raises the user's Attack, Defense, Sp. Atk, Sp. Def, or Speed by two stages")
+SINGLE_BATTLE_TEST("Moody randomly raises the user's Attack, Defense, Sp. Atk, Stamina, or Speed by two stages")
 {
     u32 config, statsNum;
 
@@ -26,7 +26,7 @@ SINGLE_BATTLE_TEST("Moody randomly raises the user's Attack, Defense, Sp. Atk, S
     }
 }
 
-SINGLE_BATTLE_TEST("Moody randomly lowers the user's Attack, Defense, Sp. Atk, Sp. Def, or Speed by one stage")
+SINGLE_BATTLE_TEST("Moody randomly lowers the user's Attack, Defense, Sp. Atk, Stamina, or Speed by one stage")
 {
     u32 config, statsNum;
 
@@ -51,7 +51,7 @@ SINGLE_BATTLE_TEST("Moody randomly lowers the user's Attack, Defense, Sp. Atk, S
     }
 }
 
-SINGLE_BATTLE_TEST("Moody randomly raises the holder's Attack, Defense, Sp. Atk, Sp. Def, or Speed by two stages and lowers a different stat by one stage")
+SINGLE_BATTLE_TEST("Moody randomly raises the holder's Attack, Defense, Sp. Atk, Stamina, or Speed by two stages and lowers a different stat by one stage")
 {
     u32 config, statsNum;
 

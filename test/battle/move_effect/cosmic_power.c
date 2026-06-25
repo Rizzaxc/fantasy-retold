@@ -6,7 +6,7 @@ ASSUMPTIONS
     ASSUME_STAT_CHANGE(MOVE_COSMIC_POWER, defense: +1, spDef: +1);
 }
 
-SINGLE_BATTLE_TEST("Cosmic Power increases the user's Defense and Sp. Defense by 1 stage each")
+SINGLE_BATTLE_TEST("Cosmic Power increases the user's Defense and Stamina by 1 stage each")
 {
     GIVEN {
         PLAYER(SPECIES_WOBBUFFET);
@@ -16,6 +16,6 @@ SINGLE_BATTLE_TEST("Cosmic Power increases the user's Defense and Sp. Defense by
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_COSMIC_POWER, player);
         MESSAGE("Wobbuffet's Defense rose!");
-        MESSAGE("Wobbuffet's Sp. Def rose!");
+        MESSAGE("Wobbuffet's Stamina rose!");
     }
 }

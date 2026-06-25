@@ -1,7 +1,7 @@
 #include "global.h"
 #include "test/battle.h"
 
-SINGLE_BATTLE_TEST("Octolock decreases Defense and Sp. Def by at the end of the turn")
+SINGLE_BATTLE_TEST("Octolock decreases Defense and Stamina by at the end of the turn")
 {
     GIVEN {
         PLAYER(SPECIES_WOBBUFFET);
@@ -14,7 +14,7 @@ SINGLE_BATTLE_TEST("Octolock decreases Defense and Sp. Def by at the end of the 
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
         MESSAGE("The opposing Wobbuffet's Defense fell!");
         NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
-        MESSAGE("The opposing Wobbuffet's Sp. Def fell!");
+        MESSAGE("The opposing Wobbuffet's Stamina fell!");
     }
 }
 
@@ -42,7 +42,7 @@ SINGLE_BATTLE_TEST("Octolock reduction is prevented by Clear Body, White Smoke a
             MESSAGE("The opposing Beldum's stats were not lowered!");
             NONE_OF {
                 MESSAGE("The opposing Beldum's Defense fell!");
-                MESSAGE("The opposing Beldum's Sp. Def fell!");
+                MESSAGE("The opposing Beldum's Stamina fell!");
             }
         }
         else if (species == SPECIES_TORKOAL)
@@ -52,7 +52,7 @@ SINGLE_BATTLE_TEST("Octolock reduction is prevented by Clear Body, White Smoke a
             MESSAGE("The opposing Torkoal's stats were not lowered!");
             NONE_OF {
                 MESSAGE("The opposing Torkoal's Defense fell!");
-                MESSAGE("The opposing Torkoal's Sp. Def fell!");
+                MESSAGE("The opposing Torkoal's Stamina fell!");
             }
         }
         else if (species == SPECIES_SOLGALEO)
@@ -62,7 +62,7 @@ SINGLE_BATTLE_TEST("Octolock reduction is prevented by Clear Body, White Smoke a
             MESSAGE("The opposing Solgaleo's stats were not lowered!");
             NONE_OF {
                 MESSAGE("The opposing Solgaleo's Defense fell!");
-                MESSAGE("The opposing Solgaleo's Sp. Def fell!");
+                MESSAGE("The opposing Solgaleo's Stamina fell!");
             }
         }
     }
@@ -82,7 +82,7 @@ SINGLE_BATTLE_TEST("Octolock Defense reduction is prevented by Big Pecks")
         ABILITY_POPUP(opponent, ABILITY_BIG_PECKS);
         MESSAGE("The opposing Pidgey's Defense was not lowered!");
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
-        MESSAGE("The opposing Pidgey's Sp. Def fell!");
+        MESSAGE("The opposing Pidgey's Stamina fell!");
     }
 }
 
@@ -101,12 +101,12 @@ SINGLE_BATTLE_TEST("Octolock reduction is prevented by Clear Amulet")
         NONE_OF {
             ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
             MESSAGE("The opposing Wobbuffet's Defense fell!");
-            MESSAGE("The opposing Wobbuffet's Sp. Def fell!");
+            MESSAGE("The opposing Wobbuffet's Stamina fell!");
         }
     }
 }
 
-SINGLE_BATTLE_TEST("Octolock will not decrease Defense and Sp. Def further then minus six")
+SINGLE_BATTLE_TEST("Octolock will not decrease Defense and Stamina further then minus six")
 {
     u8 j;
 
@@ -121,13 +121,13 @@ SINGLE_BATTLE_TEST("Octolock will not decrease Defense and Sp. Def further then 
         ANIMATION(ANIM_TYPE_MOVE, MOVE_OCTOLOCK, player);
         for (j = 0; j < 5; j++) {
             MESSAGE("The opposing Wobbuffet's Defense fell!");
-            MESSAGE("The opposing Wobbuffet's Sp. Def fell!");
+            MESSAGE("The opposing Wobbuffet's Stamina fell!");
         }
         MESSAGE("The opposing Wobbuffet's Defense won't go any lower!");
-        MESSAGE("The opposing Wobbuffet's Sp. Def won't go any lower!");
+        MESSAGE("The opposing Wobbuffet's Stamina won't go any lower!");
         NONE_OF {
             MESSAGE("The opposing Wobbuffet's Defense fell!");
-            MESSAGE("The opposing Wobbuffet's Sp. Def fell!");
+            MESSAGE("The opposing Wobbuffet's Stamina fell!");
         }
     }
 }
@@ -147,11 +147,11 @@ SINGLE_BATTLE_TEST("Octolock ends after user that set the lock switches out")
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
         MESSAGE("The opposing Wobbuffet's Defense fell!");
         NOT ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
-        MESSAGE("The opposing Wobbuffet's Sp. Def fell!");
+        MESSAGE("The opposing Wobbuffet's Stamina fell!");
         NONE_OF {
             ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
             MESSAGE("The opposing Wobbuffet's Defense fell!");
-            MESSAGE("The opposing Wobbuffet's Sp. Def fell!");
+            MESSAGE("The opposing Wobbuffet's Stamina fell!");
         }
 
     }

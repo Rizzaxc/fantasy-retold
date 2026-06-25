@@ -6,7 +6,7 @@ ASSUMPTIONS
     ASSUME(gItemsInfo[ITEM_MARANGA_BERRY].holdEffect == HOLD_EFFECT_MARANGA_BERRY);
 }
 
-SINGLE_BATTLE_TEST("Maranga Berry raises the holder's Sp. Def by one stage when hit by a special move")
+SINGLE_BATTLE_TEST("Maranga Berry raises the holder's Stamina by one stage when hit by a special move")
 {
     enum Move move = MOVE_NONE;
     PARAMETRIZE { move = MOVE_SCRATCH; }
@@ -23,12 +23,12 @@ SINGLE_BATTLE_TEST("Maranga Berry raises the holder's Sp. Def by one stage when 
         HP_BAR(opponent);
         if (move == MOVE_SWIFT) {
             ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, opponent);
-            MESSAGE("The Maranga Berry boosted the opposing Wobbuffet's Sp. Def!");
+            MESSAGE("The Maranga Berry boosted the opposing Wobbuffet's Stamina!");
         }
         else {
             NONE_OF {
                 ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, opponent);
-                MESSAGE("The Maranga Berry boosted the opposing Wobbuffet's Sp. Def!");
+                MESSAGE("The Maranga Berry boosted the opposing Wobbuffet's Stamina!");
             }
         }
     } THEN {
@@ -37,7 +37,7 @@ SINGLE_BATTLE_TEST("Maranga Berry raises the holder's Sp. Def by one stage when 
     }
 }
 
-SINGLE_BATTLE_TEST("Maranga Berry raises the holder's Sp. Def by two stages with Ripen when hit by a special move")
+SINGLE_BATTLE_TEST("Maranga Berry raises the holder's Stamina by two stages with Ripen when hit by a special move")
 {
     GIVEN {
         ASSUME(GetMoveCategory(MOVE_SWIFT) == DAMAGE_CATEGORY_SPECIAL);
@@ -49,7 +49,7 @@ SINGLE_BATTLE_TEST("Maranga Berry raises the holder's Sp. Def by two stages with
         ANIMATION(ANIM_TYPE_MOVE, MOVE_SWIFT, player);
         HP_BAR(opponent);
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, opponent);
-        MESSAGE("The Maranga Berry sharply boosted the opposing Applin's Sp. Def!");
+        MESSAGE("The Maranga Berry sharply boosted the opposing Applin's Stamina!");
     } THEN {
         EXPECT_EQ(opponent->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE + 2);
     }
@@ -67,7 +67,7 @@ SINGLE_BATTLE_TEST("Maranga Berry doesn't trigger if the item hold user used a s
         HP_BAR(opponent);
         NONE_OF {
             ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, player);
-            MESSAGE("The Maranga Berry sharply boosted the opposing Applin's Sp. Def!");
+            MESSAGE("The Maranga Berry sharply boosted the opposing Applin's Stamina!");
         }
     } THEN {
         EXPECT_EQ(player->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE);

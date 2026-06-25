@@ -18,7 +18,7 @@ SINGLE_BATTLE_TEST("Clangorous Soul cuts the user's HP by 1/3")
     }
 }
 
-SINGLE_BATTLE_TEST("Clangorous Soul raises the user's Atk, Def, Sp. Atk. Sp. Def and Speed by 1 stage")
+SINGLE_BATTLE_TEST("Clangorous Soul raises the user's Atk, Def, Sp. Atk. Stamina and Speed by 1 stage")
 {
     GIVEN {
         PLAYER(SPECIES_WOBBUFFET) { HP(300); MaxHP(300); }
@@ -49,4 +49,4 @@ SINGLE_BATTLE_TEST("Clangorous Soul fails if the user's HP is less or equal than
     }
 }
 
-TO_DO_BATTLE_TEST("Clangorous Soul fails if Attack, Defense, Sp. Attack, Sp. Defense and Speed are all maxed out");
+TO_DO_BATTLE_TEST("Clangorous Soul fails if Attack, Defense, Sp. Attack, Stamina and Speed are all maxed out");

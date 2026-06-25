@@ -65,7 +65,7 @@ CeladonCity_DepartmentStore_5F_Text_ExplainStatEnhancers::
 	.string "POKéMON.\p"
 	.string "CALCIUM raises the base SP. ATK\n"
 	.string "stat of one POKéMON.\p"
-	.string "ZINC boosts the base SP. DEF stat\n"
+	.string "ZINC boosts the base STAMINA stat\n"
 	.string "of one POKéMON.\p"
 	.string "CARBOS enhances the base SPEED\n"
 	.string "stat.$"

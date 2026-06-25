@@ -6,7 +6,7 @@ ASSUMPTIONS
     ASSUME(GetMoveEffect(MOVE_MAGNETIC_FLUX) == EFFECT_STAT_CHANGE_MAGNETIC);
 }
 
-SINGLE_BATTLE_TEST("Magnetic Flux raises Defense and Sp. Defense of the user with Plus/Minus in singles")
+SINGLE_BATTLE_TEST("Magnetic Flux raises Defense and Stamina of the user with Plus/Minus in singles")
 {
     GIVEN {
         PLAYER(SPECIES_PLUSLE) { Ability(ABILITY_PLUS); }
@@ -23,7 +23,7 @@ SINGLE_BATTLE_TEST("Magnetic Flux raises Defense and Sp. Defense of the user wit
     }
 }
 
-DOUBLE_BATTLE_TEST("Magnetic Flux raises Defense and Sp. Defense of all Plus/Minus allies in doubles")
+DOUBLE_BATTLE_TEST("Magnetic Flux raises Defense and Stamina of all Plus/Minus allies in doubles")
 {
     GIVEN {
         PLAYER(SPECIES_PLUSLE) { Ability(ABILITY_PLUS); }

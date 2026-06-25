@@ -147,7 +147,7 @@ DOUBLE_BATTLE_TEST("Flower Gift increases the attack of Cherrim and its allies b
     }
 }
 
-DOUBLE_BATTLE_TEST("Flower Gift increases the Sp. Def of Cherrim and its allies by 1.5x", s16 damageL, s16 damageR)
+DOUBLE_BATTLE_TEST("Flower Gift increases the Stamina of Cherrim and its allies by 1.5x", s16 damageL, s16 damageR)
 {
     bool32 sunny;
     PARAMETRIZE { sunny = FALSE; }

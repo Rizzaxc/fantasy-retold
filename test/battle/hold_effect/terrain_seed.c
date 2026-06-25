@@ -78,7 +78,7 @@ SINGLE_BATTLE_TEST("Grassy Seed raises the holder's Defense on Grassy Terrain")
     }
 }
 
-SINGLE_BATTLE_TEST("Misty Seed raises the holder's Sp. Defense on Misty Terrain")
+SINGLE_BATTLE_TEST("Misty Seed raises the holder's Stamina on Misty Terrain")
 {
     enum Ability ability;
     enum Item item;
@@ -96,21 +96,21 @@ SINGLE_BATTLE_TEST("Misty Seed raises the holder's Sp. Defense on Misty Terrain"
         TURN { SWITCH(player, 1); }
     } SCENE {
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, player);
-        MESSAGE("The Misty Seed boosted Wobbuffet's Sp. Def!");
+        MESSAGE("The Misty Seed boosted Wobbuffet's Stamina!");
         if (item == ITEM_MISTY_SEED) {
             ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
-            MESSAGE("The Misty Seed boosted the opposing Tapu Fini's Sp. Def!");
+            MESSAGE("The Misty Seed boosted the opposing Tapu Fini's Stamina!");
         }
         SWITCH_OUT_MESSAGE("Wobbuffet");
         SEND_IN_MESSAGE("Wobbuffet");
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, player);
-        MESSAGE("The Misty Seed boosted Wobbuffet's Sp. Def!");
+        MESSAGE("The Misty Seed boosted Wobbuffet's Stamina!");
     } THEN {
         EXPECT_EQ(player->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE + 1);
     }
 }
 
-SINGLE_BATTLE_TEST("Psychic Seed raises the holder's Sp. Defense on Psychic Terrain")
+SINGLE_BATTLE_TEST("Psychic Seed raises the holder's Stamina on Psychic Terrain")
 {
     enum Ability ability;
     enum Item item;
@@ -128,15 +128,15 @@ SINGLE_BATTLE_TEST("Psychic Seed raises the holder's Sp. Defense on Psychic Terr
         TURN { SWITCH(player, 1); }
     } SCENE {
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, player);
-        MESSAGE("The Psychic Seed boosted Wobbuffet's Sp. Def!");
+        MESSAGE("The Psychic Seed boosted Wobbuffet's Stamina!");
         if (item == ITEM_PSYCHIC_SEED) {
             ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, opponent);
-            MESSAGE("The Psychic Seed boosted the opposing Tapu Lele's Sp. Def!");
+            MESSAGE("The Psychic Seed boosted the opposing Tapu Lele's Stamina!");
         }
         SWITCH_OUT_MESSAGE("Wobbuffet");
         SEND_IN_MESSAGE("Wobbuffet");
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, player);
-        MESSAGE("The Psychic Seed boosted Wobbuffet's Sp. Def!");
+        MESSAGE("The Psychic Seed boosted Wobbuffet's Stamina!");
     } THEN {
         EXPECT_EQ(player->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE + 1);
     }

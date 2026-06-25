@@ -135,7 +135,7 @@ CeruleanCity_House1_Text_ObeyLv70RockSmash::
 	.string "ROCK SMASH outside of battle.$"
 
 CeruleanCity_House1_Text_SpStatsWaterfall::
-	.string "The SP. ATK and SP. DEF stats of\n"
+	.string "The SP. ATK and STAMINA stats of\n"
 	.string "all your POKéMON rise a little bit.\p"
 	.string "It also lets you use the move\n"
 	.string "WATERFALL outside of battle.$"

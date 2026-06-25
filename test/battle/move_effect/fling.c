@@ -522,9 +522,9 @@ SINGLE_BATTLE_TEST("Fling - thrown berry's effect activates for the target even 
                 }
             } else if (statId == STAT_SPDEF) {
                 if (item == ITEM_APICOT_BERRY) {
-                    MESSAGE("The Apicot Berry boosted the opposing Wobbuffet's Sp. Def!");
+                    MESSAGE("The Apicot Berry boosted the opposing Wobbuffet's Stamina!");
                 } else {
-                    MESSAGE("The Maranga Berry boosted the opposing Wobbuffet's Sp. Def!");
+                    MESSAGE("The Maranga Berry boosted the opposing Wobbuffet's Stamina!");
                 }
             } else if (statId == STAT_SPEED) {
                 MESSAGE("The Salac Berry boosted the opposing Wobbuffet's Speed!");

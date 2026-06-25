@@ -195,7 +195,7 @@ SINGLE_BATTLE_TEST("Quark Drive prioritizes stats in the case of a tie in the fo
                 MESSAGE("Iron Treads's Sp. Atk was heightened!");
                 break;
             case 3:
-                MESSAGE("Iron Treads's Sp. Def was heightened!");
+                MESSAGE("Iron Treads's Stamina was heightened!");
                 break;
         }
     }
@@ -214,7 +214,7 @@ SINGLE_BATTLE_TEST("Quark Drive uses Wonder Room swapped defenses when choosing 
         ANIMATION(ANIM_TYPE_MOVE, MOVE_ELECTRIC_TERRAIN, opponent);
         ABILITY_POPUP(player, ABILITY_QUARK_DRIVE);
         MESSAGE("The Electric Terrain activated Iron Leaves's Quark Drive!");
-        MESSAGE("Iron Leaves's Sp. Def was heightened!");
+        MESSAGE("Iron Leaves's Stamina was heightened!");
     }
 }
 

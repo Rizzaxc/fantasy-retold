@@ -6,7 +6,7 @@ ASSUMPTIONS
     ASSUME_STAT_CHANGE(MOVE_CALM_MIND, spAtk: +1, spDef: +1);
 }
 
-SINGLE_BATTLE_TEST("Calm Mind increases the user's Sp. Attack and Sp. Defense by 1 stage each")
+SINGLE_BATTLE_TEST("Calm Mind increases the user's Sp. Attack and Stamina by 1 stage each")
 {
     GIVEN {
         PLAYER(SPECIES_WOBBUFFET);

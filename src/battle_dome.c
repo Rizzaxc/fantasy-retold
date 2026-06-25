@@ -921,44 +921,44 @@ static const u8 *const sBattleDomeOpponentStatsTexts[] =
     COMPOUND_STRING("Emphasizes HP and DEFENSE."),
     COMPOUND_STRING("Emphasizes HP and SPEED."),
     COMPOUND_STRING("Emphasizes HP and SP. ATTACK."),
-    COMPOUND_STRING("Emphasizes HP and SP. DEFENSE."),
+    COMPOUND_STRING("Emphasizes HP and STAMINA."),
     COMPOUND_STRING("Emphasizes ATTACK and DEFENSE."),         // DOME_TEXT_ATK starts here
     COMPOUND_STRING("Emphasizes ATTACK and SPEED."),
     COMPOUND_STRING("Emphasizes ATTACK and SP. ATTACK."),
-    COMPOUND_STRING("Emphasizes ATTACK and SP. DEFENSE."),
+    COMPOUND_STRING("Emphasizes ATTACK and STAMINA."),
     COMPOUND_STRING("Emphasizes DEFENSE and SPEED."),          // DOME_TEXT_DEF starts here
     COMPOUND_STRING("Emphasizes DEFENSE and SP. ATTACK."),
-    COMPOUND_STRING("Emphasizes DEFENSE and SP. DEFENSE."),
+    COMPOUND_STRING("Emphasizes DEFENSE and STAMINA."),
     COMPOUND_STRING("Emphasizes SPEED and SP. ATTACK."),       // DOME_TEXT_SPEED starts here
-    COMPOUND_STRING("Emphasizes SPEED and SP. DEFENSE."),
-    COMPOUND_STRING("Emphasizes SP. ATTACK and SP. DEFENSE."), // DOME_TEXT_SPATK starts here
+    COMPOUND_STRING("Emphasizes SPEED and STAMINA."),
+    COMPOUND_STRING("Emphasizes SP. ATTACK and STAMINA."), // DOME_TEXT_SPATK starts here
     COMPOUND_STRING("Emphasizes HP."),                         // DOME_TEXT_ONE_GOOD_STAT starts here
     COMPOUND_STRING("Emphasizes ATTACK."),
     COMPOUND_STRING("Emphasizes DEFENSE."),
     COMPOUND_STRING("Emphasizes SPEED."),
     COMPOUND_STRING("Emphasizes SP. ATTACK."),
-    COMPOUND_STRING("Emphasizes SP. DEFENSE."),
+    COMPOUND_STRING("Emphasizes STAMINA."),
     COMPOUND_STRING("Neglects HP and ATTACK."),                // DOME_TEXT_TWO_BAD_STATS starts here
     COMPOUND_STRING("Neglects HP and DEFENSE."),
     COMPOUND_STRING("Neglects HP and SPEED."),
     COMPOUND_STRING("Neglects HP and SP. ATTACK."),
-    COMPOUND_STRING("Neglects HP and SP. DEFENSE."),
+    COMPOUND_STRING("Neglects HP and STAMINA."),
     COMPOUND_STRING("Neglects ATTACK and DEFENSE."),
     COMPOUND_STRING("Neglects ATTACK and SPEED."),
     COMPOUND_STRING("Neglects ATTACK and SP. ATTACK."),
-    COMPOUND_STRING("Neglects ATTACK and SP. DEFENSE."),
+    COMPOUND_STRING("Neglects ATTACK and STAMINA."),
     COMPOUND_STRING("Neglects DEFENSE and SPEED."),
     COMPOUND_STRING("Neglects DEFENSE and SP. ATTACK."),
-    COMPOUND_STRING("Neglects DEFENSE and SP. DEFENSE."),
+    COMPOUND_STRING("Neglects DEFENSE and STAMINA."),
     COMPOUND_STRING("Neglects SPEED and SP. ATTACK."),
-    COMPOUND_STRING("Neglects SPEED and SP. DEFENSE."),
-    COMPOUND_STRING("Neglects SP. ATTACK and SP. DEFENSE."),
+    COMPOUND_STRING("Neglects SPEED and STAMINA."),
+    COMPOUND_STRING("Neglects SP. ATTACK and STAMINA."),
     COMPOUND_STRING("Neglects HP."),                           // DOME_TEXT_ONE_BAD_STAT starts here
     COMPOUND_STRING("Neglects ATTACK."),
     COMPOUND_STRING("Neglects DEFENSE."),
     COMPOUND_STRING("Neglects SPEED."),
     COMPOUND_STRING("Neglects SP. ATTACK."),
-    COMPOUND_STRING("Neglects SP. DEFENSE."),
+    COMPOUND_STRING("Neglects STAMINA."),
     [DOME_TEXT_WELL_BALANCED] = COMPOUND_STRING("Raises POKéMON in a well-balanced way."),
 };
 

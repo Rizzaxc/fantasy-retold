@@ -472,7 +472,7 @@ BattleFrontier_ExchangeServiceCorner_Text_IronDesc::
 	.string "POKéMON.$"
 
 BattleFrontier_ExchangeServiceCorner_Text_ZincDesc::
-	.string "Raises the stat SP. DEF of one\n"
+	.string "Raises the stat STAMINA of one\n"
 	.string "POKéMON.$"
 
 BattleFrontier_ExchangeServiceCorner_Text_CarbosDesc::

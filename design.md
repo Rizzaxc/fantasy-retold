@@ -26,15 +26,15 @@ Stamina serves as the primary operational currency governing action speed, move 
 ### The Stat Block (`BaseSta` & `CurrentSta`)
 
 * `BaseSta` is the repurposed Special Defense stat, used at its native scale (no rescaling — EV/IV expectations are preserved).
-* **Stamina persists across switches.** A Pokémon's first send-out of the battle enters fresh at `CurrentSta = BaseSta`. On every **switch-out**, it banks its current Stamina plus a flat **+50 rest bonus** (capped at `BaseSta`); it returns to the field at that banked value. Speed decay is a function of `CurrentSta/BaseSta`, so it carries across switches too — an exhausted mon that pivots out comes back slow *and* near-empty.
+* **Stamina persists across switches.** A Pokémon's first send-out of the battle enters fresh at `CurrentSta = BaseSta`. On every **switch-out**, it banks its current Stamina plus a level-scaled rest bonus of **5 + Level / 2** (capped at `BaseSta`); it returns to the field at that banked value. Speed decay is a function of `CurrentSta/BaseSta`, so it carries across switches too — an exhausted mon that pivots out comes back slow *and* near-empty.
 * **UI note:** The player healthbox shows exact Stamina (`CurrentSta/BaseSta`). The opponent healthbox shows a percentage for readability, rounded so any non-zero foe Stamina displays as at least **1%**. Exhaustion / auto-crit checks always use the exact live `CurrentSta`, not the displayed percentage.
 
-#### Why a flat +50 (frail pivots, bulk plants)
+#### Why a level-scaled rest bonus (frail pivots, bulk plants)
 
-The rest bonus is a flat amount, not a percentage, so it deliberately scales *against* pool size:
+The rest bonus is a flat formula ($5 + \text{Level}/2$), not a percentage, so it deliberately scales *against* pool size:
 
-* **Frail mon** (small `BaseSta`, e.g. 80): +50 is most of the tank — pivoting is a near-full reset, and a frail mon (which can't take hits) is *expected* to rotate out. Worth ~2 attacks + a Dodge on return.
-* **Bulky mon** (large `BaseSta`, e.g. 250): +50 is a sliver. **Recuperate** (+40% of `BaseSta` = +100, in place, but only once the user is at 40% max Stamina or lower) is the far better reset, so the wall has no resource reason to leave the field — it plants and grinds the attrition war, which is its job.
+* **Frail mon** (small `BaseSta`, e.g. 80): the rest bonus is most of the tank — pivoting is a near-full reset, and a frail mon (which can't take hits) is *expected* to rotate out. Worth ~2 attacks + a Dodge on return.
+* **Bulky mon** (large `BaseSta`, e.g. 250): the rest bonus is a sliver. **Recuperate** (+40% of `BaseSta` = +100, in place, but only once the user is at 40% max Stamina or lower) is the far better reset, so the wall has no resource reason to leave the field — it plants and grinds the attrition war, which is its job.
 
 This is the lever that lets switching stay frail-favorable without the old full-refresh bribing bulky mons off the field. It also kills resource-refresh cycling outright: nobody gets a free top-to-full by tapping the bench.
 
@@ -73,12 +73,12 @@ Every Pokémon possesses two innate mechanical actions mapped directly to the co
 
 An active maneuvering defense mechanism balanced by compounding resource taxes.
 
-* **Stamina Cost:** $5 + (20 \times \text{Consecutive Uses}) + (0.02 \times \text{BaseSta})$. The consecutive-use term resets only after a turn passes without clicking Dodge (alternating Dodge with other actions keeps it cheap).
+* **Stamina Cost & Legality:** $5 + (20 \times \text{Consecutive Uses}) + (0.02 \times \text{BaseSta})$. Here, `Consecutive Uses` means the count of immediately prior turns in which the user also clicked Dodge, so the first Dodge pays only the base `5 + 0.02×BaseSta`; the consecutive-use term resets only after a turn passes without clicking Dodge (alternating Dodge with other actions keeps it cheap). **Dodge selection is gated; it can only be selected/executed if the user's current Stamina is greater than or equal to this calculated cost.**
 * **Speed Tiers & Outcomes** (compared on **round-start Effective Speed order**):
   * **Attacker is Slower:** The move completely misses.
   * **Attacker is Faster, or Tie:** The move lands, but damage is mitigated by **50%** and cannot proc status effects.
   * **Repeated Move Trapping:** If the user is dodging an identical move executed by the opponent on the immediate prior turn, the move completely misses, regardless of speed tiers.
-* **Restrictions:** Status moves bypass Dodge checks entirely (but can still miss, via its Acc. check).
+* **Restrictions:** Status moves bypass Dodge checks entirely (but can still miss, via its Acc. check). Selection is blocked in the action selection UI if the Pokémon does not have enough Stamina to cover the cost.
 
 #### Dodge Layering vs. Traditional Accuracy/Evasion
 
@@ -337,8 +337,8 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 | Stamina    | Speed decay                     | BaseSpeed × (0.15 + CurrentSta/BaseSta)             |
 | Stamina    | Exhaustion (0 Sta)              | incoming damage auto-crits                          |
 | Stamina    | Persistence                     | carries across switches (not refilled to full)      |
-| Stamina    | Switch-out rest bonus           | +50 flat (capped at BaseSta); first send-out = full |
-| Dodge      | Cost                            | 5 + 20×consecutive + 0.02×BaseSta                   |
+| Stamina    | Switch-out rest bonus           | 5 + Level / 2 (capped at BaseSta); first send-out = full |
+| Dodge      | Cost                            | 5 + 20×consecutive + 0.02×BaseSta; gated behind CurrentSta >= cost |
 | Recuperate | Stamina restore / gate          | +40% BaseSta; usable only at ≤40% BaseSta          |
 | Trauma     | Special split (floor `a`)       | 0.25                                                |
 | Trauma     | Special split (drain bonus `b`) | 0.40                                                |
@@ -365,3 +365,19 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 * Nature ability magnitudes (Crusher +50%, Disruptor `a→0.50`, Resilient −25%) — validate vs the wall-breaking triangle.
 * Cap on Toxic Trauma escalation (§6).
 * Field Hazards and Held Item systems (§8, §9).
+
+---
+
+## 12. Development Tooling
+
+### clangd / Zed include-path fallback
+
+This repo now includes a root `.clangd` file so editor tooling can resolve the main game headers even though `bear`'s generated `compile_commands.json` only captures helper-tool builds under `tools/` and not the ROM `src/*.c` pipeline.
+
+The fallback flags mirror the minimum project assumptions needed for code navigation and diagnostics in the gameplay codebase:
+
+* language mode: `gnu17`
+* macros: `MODERN=1`, `TESTING=0`, `EMERALD`, `__INTELLISENSE__=1`
+* header roots: `include`, project root, and `tools/agbcc/include`
+
+Primary goal: make quoted project includes such as `#include "global.h"` resolve reliably in the editor without changing the actual build pipeline.

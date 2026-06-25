@@ -777,18 +777,21 @@ bool32 BattlerIsDodging(enum BattlerId battler)
 void HandleAction_Dodge(void)
 {
     enum BattlerId battler = gBattlerByTurnOrder[gCurrentTurnActionNumber];
-    u32 baseSta = GetBaseStamina(battler);
-    u32 cost = 5 + (baseSta * 2) / 100; // MVP: flat cost; consecutive-use escalation is TBD.
+    struct BattlerState *battlerState = &gBattleStruct->battlerState[battler];
+    u32 cost = GetDodgeCost(battler);
 
     gBattlerAttacker = battler;
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
 
-    if (gBattleStruct->battlerState[battler].currentStamina > cost)
-        gBattleStruct->battlerState[battler].currentStamina -= cost;
+    if (battlerState->currentStamina >= cost)
+        battlerState->currentStamina -= cost;
     else
-        gBattleStruct->battlerState[battler].currentStamina = 0;
+        battlerState->currentStamina = 0;
     UpdateStaminaTextOnHealthbox(battler);
+
+    if (battlerState->dodgeConsecutiveUses < 31)
+        battlerState->dodgeConsecutiveUses++;
 
     gBattlescriptCurrInstr = BattleScript_FRDodge;
     gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;

@@ -1,7 +1,7 @@
 #include "global.h"
 #include "test/battle.h"
 
-DOUBLE_BATTLE_TEST("Aromatic Mist raises Sp. Defense of a target ally by 1 stage")
+DOUBLE_BATTLE_TEST("Aromatic Mist raises Stamina of a target ally by 1 stage")
 {
     GIVEN {
         PLAYER(SPECIES_WEEZING_GALAR);

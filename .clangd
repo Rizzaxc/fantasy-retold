@@ -1,0 +1,31 @@
+If:
+  PathMatch: tools/.*
+CompileFlags:
+  CompilationDatabase: .
+---
+If:
+  PathExclude: tools/.*
+CompileFlags:
+  CompilationDatabase: None
+  Compiler: clang
+  Add:
+    - --target=arm-none-eabi
+    - -std=gnu17
+    - -DMODERN=1
+    - -DTESTING=0
+    - -DEMERALD
+    - -D__INTELLISENSE__=1
+    - -iquote
+    - include
+    - -I
+    - include
+    - -I
+    - .
+    - -Wno-everything
+  Remove:
+    - -m*
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None
+  ClangTidy:
+    Remove: ['*']

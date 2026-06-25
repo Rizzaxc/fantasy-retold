@@ -23,7 +23,7 @@ SINGLE_BATTLE_TEST("Geomancy does not boost stats on first turn")
     }
 }
 
-SINGLE_BATTLE_TEST("Geomancy takes 2 turns to increase Sp. Atk, Sp. Def and Speed by 2 stages")
+SINGLE_BATTLE_TEST("Geomancy takes 2 turns to increase Sp. Atk, Stamina and Speed by 2 stages")
 {
     GIVEN {
         PLAYER(SPECIES_WOBBUFFET);

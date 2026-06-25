@@ -165,7 +165,7 @@ SINGLE_BATTLE_TEST("Swallow heals HP depending on Stockpile's count", s16 hpHeal
     }
 }
 
-SINGLE_BATTLE_TEST("Stockpile temporarily raises Def and Sp. Def", s16 dmgPyhsical, s16 dmgSpecial)
+SINGLE_BATTLE_TEST("Stockpile temporarily raises Def and Stamina", s16 dmgPyhsical, s16 dmgSpecial)
 {
     enum Move move;
     PARAMETRIZE { move = MOVE_STOCKPILE; }
@@ -185,7 +185,7 @@ SINGLE_BATTLE_TEST("Stockpile temporarily raises Def and Sp. Def", s16 dmgPyhsic
             MESSAGE("Wobbuffet stockpiled 1!");
             ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_STATS_CHANGE, player);
             MESSAGE("Wobbuffet's Defense rose!");
-            MESSAGE("Wobbuffet's Sp. Def rose!");
+            MESSAGE("Wobbuffet's Stamina rose!");
         }
 
         ANIMATION(ANIM_TYPE_MOVE, MOVE_SCRATCH, opponent);
@@ -199,7 +199,7 @@ SINGLE_BATTLE_TEST("Stockpile temporarily raises Def and Sp. Def", s16 dmgPyhsic
     }
 }
 
-DOUBLE_BATTLE_TEST("Stockpile's Def and Sp. Def boost is lost after using Spit Up or Swallow", s16 dmgPyhsicalBefore, s16 dmgPhysicalAfter, s16 dmgSpecialBefore, s16 dmgSpecialAfter)
+DOUBLE_BATTLE_TEST("Stockpile's Def and Stamina boost is lost after using Spit Up or Swallow", s16 dmgPyhsicalBefore, s16 dmgPhysicalAfter, s16 dmgSpecialBefore, s16 dmgSpecialAfter)
 {
     u8 count;
     enum Move move;
@@ -250,13 +250,13 @@ DOUBLE_BATTLE_TEST("Stockpile's Def and Sp. Def boost is lost after using Spit U
         }
 
         if (count == 1) {
-            MESSAGE("Wobbuffet's Sp. Def fell!");
+            MESSAGE("Wobbuffet's Stamina fell!");
         }
         else if (count == 2) {
-            MESSAGE("Wobbuffet's Sp. Def harshly fell!");
+            MESSAGE("Wobbuffet's Stamina harshly fell!");
         }
         else {
-            MESSAGE("Wobbuffet's Sp. Def severely fell!");
+            MESSAGE("Wobbuffet's Stamina severely fell!");
         }
         MESSAGE("Wobbuffet's stockpiled effect wore off!");
 

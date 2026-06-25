@@ -1,0 +1,826 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c11",
+      "-O2",
+      "-o",
+      "bin2c",
+      "bin2c.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/bin2c",
+    "file": "/mnt/d/Work/fantasy-retold/tools/bin2c/bin2c.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/bin2c/bin2c"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-o",
+      "gbafix",
+      "gbafix.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbafix",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbafix/gbafix.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbafix/gbafix"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-sign-compare",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "gbagfx",
+      "main.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbagfx",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbagfx/main.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gbagfx"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-sign-compare",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "gbagfx",
+      "convert_png.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbagfx",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbagfx/convert_png.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gbagfx"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-sign-compare",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "gbagfx",
+      "gfx.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbagfx",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gfx.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gbagfx"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-sign-compare",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "gbagfx",
+      "jasc_pal.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbagfx",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbagfx/jasc_pal.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gbagfx"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-sign-compare",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "gbagfx",
+      "lz.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbagfx",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbagfx/lz.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gbagfx"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-sign-compare",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "gbagfx",
+      "rl.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbagfx",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbagfx/rl.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gbagfx"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-sign-compare",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "gbagfx",
+      "util.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbagfx",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbagfx/util.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gbagfx"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-sign-compare",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "gbagfx",
+      "font.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbagfx",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbagfx/font.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gbagfx"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Wno-sign-compare",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "gbagfx",
+      "huff.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/gbagfx",
+    "file": "/mnt/d/Work/fantasy-retold/tools/gbagfx/huff.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/gbagfx/gbagfx"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-std=c++17",
+      "-O2",
+      "-I",
+      ".",
+      "-o",
+      "jsonproc",
+      "jsonproc.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/jsonproc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/jsonproc/jsonproc.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/jsonproc/jsonproc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-std=c++17",
+      "-O2",
+      "-o",
+      "mapjson",
+      "json11.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/mapjson",
+    "file": "/mnt/d/Work/fantasy-retold/tools/mapjson/json11.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/mapjson/mapjson"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-std=c++17",
+      "-O2",
+      "-o",
+      "mapjson",
+      "mapjson.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/mapjson",
+    "file": "/mnt/d/Work/fantasy-retold/tools/mapjson/mapjson.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/mapjson/mapjson"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "mid2agb",
+      "agb.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/mid2agb",
+    "file": "/mnt/d/Work/fantasy-retold/tools/mid2agb/agb.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/mid2agb/mid2agb"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "mid2agb",
+      "error.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/mid2agb",
+    "file": "/mnt/d/Work/fantasy-retold/tools/mid2agb/error.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/mid2agb/mid2agb"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "mid2agb",
+      "main.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/mid2agb",
+    "file": "/mnt/d/Work/fantasy-retold/tools/mid2agb/main.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/mid2agb/mid2agb"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "mid2agb",
+      "midi.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/mid2agb",
+    "file": "/mnt/d/Work/fantasy-retold/tools/mid2agb/midi.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/mid2agb/mid2agb"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "mid2agb",
+      "tables.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/mid2agb",
+    "file": "/mnt/d/Work/fantasy-retold/tools/mid2agb/tables.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/mid2agb/mid2agb"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "preproc",
+      "asm_file.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/preproc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/preproc/asm_file.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/preproc/preproc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "preproc",
+      "c_file.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/preproc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/preproc/c_file.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/preproc/preproc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "preproc",
+      "charmap.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/preproc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/preproc/charmap.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/preproc/preproc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "preproc",
+      "preproc.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/preproc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/preproc/preproc.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/preproc/preproc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "preproc",
+      "string_parser.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/preproc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/preproc/string_parser.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/preproc/preproc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "preproc",
+      "utf8.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/preproc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/preproc/utf8.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/preproc/preproc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "preproc",
+      "io.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/preproc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/preproc/io.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/preproc/preproc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "ramscrgen",
+      "main.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/ramscrgen",
+    "file": "/mnt/d/Work/fantasy-retold/tools/ramscrgen/main.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/ramscrgen/ramscrgen"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "ramscrgen",
+      "sym_file.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/ramscrgen",
+    "file": "/mnt/d/Work/fantasy-retold/tools/ramscrgen/sym_file.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/ramscrgen/ramscrgen"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-std=c++11",
+      "-O2",
+      "-Wall",
+      "-Wno-switch",
+      "-Werror",
+      "-o",
+      "ramscrgen",
+      "elf.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/ramscrgen",
+    "file": "/mnt/d/Work/fantasy-retold/tools/ramscrgen/elf.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/ramscrgen/ramscrgen"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "rsfont",
+      "main.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/rsfont",
+    "file": "/mnt/d/Work/fantasy-retold/tools/rsfont/main.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/rsfont/rsfont"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "rsfont",
+      "convert_png.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/rsfont",
+    "file": "/mnt/d/Work/fantasy-retold/tools/rsfont/convert_png.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/rsfont/rsfont"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "rsfont",
+      "util.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/rsfont",
+    "file": "/mnt/d/Work/fantasy-retold/tools/rsfont/util.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/rsfont/rsfont"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-std=c11",
+      "-O2",
+      "-DPNG_SKIP_SETJMP_CHECK",
+      "-I/usr/include/libpng16",
+      "-o",
+      "rsfont",
+      "font.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/rsfont",
+    "file": "/mnt/d/Work/fantasy-retold/tools/rsfont/font.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/rsfont/rsfont"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-Werror",
+      "-std=c++11",
+      "-O2",
+      "-o",
+      "scaninc",
+      "scaninc.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/scaninc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/scaninc/scaninc.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/scaninc/scaninc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-Werror",
+      "-std=c++11",
+      "-O2",
+      "-o",
+      "scaninc",
+      "c_file.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/scaninc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/scaninc/c_file.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/scaninc/scaninc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-Werror",
+      "-std=c++11",
+      "-O2",
+      "-o",
+      "scaninc",
+      "asm_file.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/scaninc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/scaninc/asm_file.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/scaninc/scaninc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-Werror",
+      "-std=c++11",
+      "-O2",
+      "-o",
+      "scaninc",
+      "source_file.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/scaninc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/scaninc/source_file.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/scaninc/scaninc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-c",
+      "-Wall",
+      "-O2",
+      "-o",
+      "trainerproc",
+      "main.c"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/trainerproc",
+    "file": "/mnt/d/Work/fantasy-retold/tools/trainerproc/main.c",
+    "output": "/mnt/d/Work/fantasy-retold/tools/trainerproc/trainerproc"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-I",
+      ".",
+      "-o",
+      "compresSmol",
+      "compresSmol.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/compresSmol",
+    "file": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compresSmol.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compresSmol"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-I",
+      ".",
+      "-o",
+      "compresSmol",
+      "compressAlgo.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/compresSmol",
+    "file": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compressAlgo.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compresSmol"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-I",
+      ".",
+      "-o",
+      "compresSmol",
+      "tANS.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/compresSmol",
+    "file": "/mnt/d/Work/fantasy-retold/tools/compresSmol/tANS.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compresSmol"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-o",
+      "compresSmolTilemap",
+      "mainTiles.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/compresSmol",
+    "file": "/mnt/d/Work/fantasy-retold/tools/compresSmol/mainTiles.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compresSmolTilemap"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-o",
+      "compresSmolTilemap",
+      "compressSmolTiles.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/compresSmol",
+    "file": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compressSmolTiles.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compresSmolTilemap"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-o",
+      "compresSmolTilemap",
+      "tANS.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/compresSmol",
+    "file": "/mnt/d/Work/fantasy-retold/tools/compresSmol/tANS.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compresSmolTilemap"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-o",
+      "compresSmolTilemap",
+      "compressAlgo.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/compresSmol",
+    "file": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compressAlgo.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/compresSmol/compresSmolTilemap"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-o",
+      "wav2agb",
+      "converter.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/wav2agb",
+    "file": "/mnt/d/Work/fantasy-retold/tools/wav2agb/converter.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/wav2agb/wav2agb"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-o",
+      "wav2agb",
+      "wav2agb.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/wav2agb",
+    "file": "/mnt/d/Work/fantasy-retold/tools/wav2agb/wav2agb.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/wav2agb/wav2agb"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-Wall",
+      "-Werror",
+      "-std=c++17",
+      "-O2",
+      "-o",
+      "wav2agb",
+      "wav_file.cpp"
+    ],
+    "directory": "/mnt/d/Work/fantasy-retold/tools/wav2agb",
+    "file": "/mnt/d/Work/fantasy-retold/tools/wav2agb/wav_file.cpp",
+    "output": "/mnt/d/Work/fantasy-retold/tools/wav2agb/wav2agb"
+  }
+]

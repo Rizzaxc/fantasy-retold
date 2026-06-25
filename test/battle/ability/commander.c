@@ -33,7 +33,7 @@ DOUBLE_BATTLE_TEST("Commander increases all stats by 2 stages once it is trigger
         MESSAGE("Dondozo's Attack rose sharply!");
         MESSAGE("Dondozo's Defense rose sharply!");
         MESSAGE("Dondozo's Sp. Atk rose sharply!");
-        MESSAGE("Dondozo's Sp. Def rose sharply!");
+        MESSAGE("Dondozo's Stamina rose sharply!");
         MESSAGE("Dondozo's Speed rose sharply!");
     }
 }

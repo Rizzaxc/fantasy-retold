@@ -99,10 +99,15 @@ static u32 CheckTargetTypeEffectiveness(enum BattlerId battler);
 static void MoveSelectionDisplayMoveEffectiveness(u32 foeEffectiveness, enum BattlerId battler);
 static bool32 CanUseRecuperate(enum BattlerId battler);
 static void WaitForRecuperateSelectionMessage(enum BattlerId battler);
+static void WaitForDodgeSelectionMessage(enum BattlerId battler);
 
 static const u8 sText_RecuperateThreshold[] = _(
     "Recuperate can only be used\n"
     "at 40% Stamina or below!\p"
+);
+
+static const u8 sText_DodgeCostThreshold[] = _(
+    "Not enough Stamina to Dodge!\p"
 );
 
 static void (*const sPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(enum BattlerId battler) =
@@ -712,6 +717,12 @@ static void WaitForRecuperateSelectionMessage(enum BattlerId battler)
         gBattlerControllerFuncs[battler] = HandleInputChooseMove;
 }
 
+static void WaitForDodgeSelectionMessage(enum BattlerId battler)
+{
+    if (!IsTextPrinterActiveOnWindow(B_WIN_MSG))
+        gBattlerControllerFuncs[battler] = HandleInputChooseMove;
+}
+
 void HandleInputChooseMove(enum BattlerId battler)
 {
     u32 canSelectTarget = 0;
@@ -948,12 +959,23 @@ void HandleInputChooseMove(enum BattlerId battler)
     else if (JOY_NEW(L_BUTTON) &&
         !(gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A))
     {
-        PlaySE(SE_SELECT);
-        TryToHideMoveInfoWindow();
-        HideGimmickTriggerSprite();
-        TryHideLastUsedBall();
-        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_DODGE, 0);
-        BtlController_Complete(battler);
+        if (gBattleStruct->battlerState[battler].currentStamina >= GetDodgeCost(battler))
+        {
+            PlaySE(SE_SELECT);
+            TryToHideMoveInfoWindow();
+            HideGimmickTriggerSprite();
+            TryHideLastUsedBall();
+            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_DODGE, 0);
+            BtlController_Complete(battler);
+        }
+        else
+        {
+            PlaySE(SE_SELECT);
+            gBattle_BG0_X = 0;
+            gBattle_BG0_Y = 0;
+            BattlePutTextOnWindow(sText_DodgeCostThreshold, B_WIN_MSG);
+            gBattlerControllerFuncs[battler] = WaitForDodgeSelectionMessage;
+        }
     }
     else if (JOY_NEW(R_BUTTON))
     {

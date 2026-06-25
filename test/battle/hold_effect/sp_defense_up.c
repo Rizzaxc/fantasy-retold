@@ -8,7 +8,7 @@ ASSUMPTIONS
     ASSUME(GetMoveFixedHPDamage(MOVE_DRAGON_RAGE) == 40);
 }
 
-SINGLE_BATTLE_TEST("Apicot Berry raises the holder's Sp. Def by one stage when HP drops to 1/4 or below")
+SINGLE_BATTLE_TEST("Apicot Berry raises the holder's Stamina by one stage when HP drops to 1/4 or below")
 {
     enum Move move;
 
@@ -25,11 +25,11 @@ SINGLE_BATTLE_TEST("Apicot Berry raises the holder's Sp. Def by one stage when H
         if (move == MOVE_SCRATCH) {
             NONE_OF {
                 ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, player);
-                MESSAGE("The Apicot Berry boosted Wobbuffet's Sp. Def!");
+                MESSAGE("The Apicot Berry boosted Wobbuffet's Stamina!");
             }
         } else {
             ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, player);
-            MESSAGE("The Apicot Berry boosted Wobbuffet's Sp. Def!");
+            MESSAGE("The Apicot Berry boosted Wobbuffet's Stamina!");
         }
     } THEN {
         if (move == MOVE_DRAGON_RAGE)
@@ -37,7 +37,7 @@ SINGLE_BATTLE_TEST("Apicot Berry raises the holder's Sp. Def by one stage when H
     }
 }
 
-SINGLE_BATTLE_TEST("Apicot Berry raises Sp. Def by one stage when HP drops to 1/2 or below if holder has Gluttony")
+SINGLE_BATTLE_TEST("Apicot Berry raises Stamina by one stage when HP drops to 1/2 or below if holder has Gluttony")
 {
     GIVEN {
         PLAYER(SPECIES_BELLSPROUT) { MaxHP(80); HP(80); Ability(ABILITY_GLUTTONY); Item(ITEM_APICOT_BERRY); }
@@ -47,13 +47,13 @@ SINGLE_BATTLE_TEST("Apicot Berry raises Sp. Def by one stage when HP drops to 1/
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_DRAGON_RAGE, opponent);
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, player);
-        MESSAGE("The Apicot Berry boosted Bellsprout's Sp. Def!");
+        MESSAGE("The Apicot Berry boosted Bellsprout's Stamina!");
     } THEN {
         EXPECT_EQ(player->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE + 1);
     }
 }
 
-SINGLE_BATTLE_TEST("Apicot Berry raises Sp. Def by one stage when HP drops to 1/4 or below if holder has Ripen")
+SINGLE_BATTLE_TEST("Apicot Berry raises Stamina by one stage when HP drops to 1/4 or below if holder has Ripen")
 {
     GIVEN {
         PLAYER(SPECIES_APPLIN) { MaxHP(160); HP(80); Ability(ABILITY_RIPEN); Item(ITEM_APICOT_BERRY); }
@@ -63,7 +63,7 @@ SINGLE_BATTLE_TEST("Apicot Berry raises Sp. Def by one stage when HP drops to 1/
     } SCENE {
         ANIMATION(ANIM_TYPE_MOVE, MOVE_DRAGON_RAGE, opponent);
         ANIMATION(ANIM_TYPE_GENERAL, B_ANIM_HELD_ITEM_BERRY, player);
-        MESSAGE("The Apicot Berry sharply boosted Applin's Sp. Def!");
+        MESSAGE("The Apicot Berry sharply boosted Applin's Stamina!");
     } THEN {
         EXPECT_EQ(player->statStages[STAT_SPDEF], DEFAULT_STAT_STAGE + 2);
     }

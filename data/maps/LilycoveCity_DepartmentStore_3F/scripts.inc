@@ -64,7 +64,7 @@ LilycoveCity_DepartmentStore_3F_Text_WantMoreEndurance:
 	.string "I want my POKéMON to have more\n"
 	.string "endurance.\p"
 	.string "I'm trying to decide whether to raise\n"
-	.string "DEFENSE with IRON, or SP. DEF with ZINC.$"
+	.string "DEFENSE with IRON, or STAMINA with ZINC.$"
 
 LilycoveCity_DepartmentStore_3F_Text_GaveCarbosToSpeedUpMon:
 	.string "I gave a CARBOS to my POKéMON,\n"
