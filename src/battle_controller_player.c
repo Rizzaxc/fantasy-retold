@@ -110,6 +110,12 @@ static const u8 sText_DodgeCostThreshold[] = _(
     "Not enough Stamina to Dodge!\p"
 );
 
+static const u8 sText_InnateHintDodgeOn[] = _("L:Dodge  ");
+static const u8 sText_InnateHintDodgeOff[] = _("L:---    ");
+static const u8 sText_InnateHintRecupOn[] = _("R:Recup");
+static const u8 sText_InnateHintRecupOff[] = _("R:---");
+static const u8 sText_InnateHintNoL[] = _("         R:Recup");
+
 static void (*const sPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(enum BattlerId battler) =
 {
     [CONTROLLER_GETMONDATA]               = BtlController_HandleGetMonData,
@@ -2214,6 +2220,27 @@ void PlayerHandleChooseMove(enum BattlerId battler)
     }
 }
 
+// Fantasy Retold: show L/R innate command availability on the move selection screen.
+// Uses B_WIN_MOVE_DESCRIPTION (tilemapTop 47, visible in the move-select scroll position).
+static void MoveSelectionDisplayInnateHints(enum BattlerId battler)
+{
+    u32 dodgeCost = GetDodgeCost(battler);
+    bool32 canDodge = gBattleStruct->battlerState[battler].currentStamina >= dodgeCost;
+    bool32 canRecup = CanUseRecuperate(battler);
+    u8 *txtPtr;
+
+    if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
+        StringCopy(gDisplayedStringBattle, sText_InnateHintNoL);
+    else
+    {
+        txtPtr = StringCopy(gDisplayedStringBattle, canDodge ? sText_InnateHintDodgeOn : sText_InnateHintDodgeOff);
+        StringCopy(txtPtr, canRecup ? sText_InnateHintRecupOn : sText_InnateHintRecupOff);
+    }
+    FillWindowPixelBuffer(B_WIN_MOVE_DESCRIPTION, PIXEL_FILL(0));
+    BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MOVE_DESCRIPTION);
+    CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_GFX);
+}
+
 void InitMoveSelectionsVarsAndStrings(enum BattlerId battler)
 {
     LoadTypeIcons(battler);
@@ -2226,6 +2253,7 @@ void InitMoveSelectionsVarsAndStrings(enum BattlerId battler)
         MoveSelectionDisplayPpString(battler);
     MoveSelectionDisplayPpNumber(battler);
     MoveSelectionDisplayMoveType(battler);
+    MoveSelectionDisplayInnateHints(battler);
 }
 
 static void PlayerHandleChooseItem(enum BattlerId battler)

@@ -39,11 +39,8 @@
 
 #define HEALTHBOX_BG_INDEX 2
 
-// Fantasy Retold: the Trauma scar reuses the solid (8px-filled) red HP-bar tile on the right end of
-// the HP bar. It's a genuine bar tile, so its geometry matches the HP tiles exactly. A true purple
-// scar needs a dedicated bar-tile asset (the 16-colour healthbox palette has no spare purple slot);
-// runtime recolouring proved unreliable, so that's a follow-up. Offset 8*32 = the 8px-full tile.
-#define TRAUMA_SCAR_GFX_PTR (GetHealthboxElementGfxPtr(HEALTHBOX_GFX_HP_BAR_RED) + 8 * 32)
+// Fantasy Retold: Trauma scar uses a dedicated purple palette index (healthbar palette slot 7)
+// instead of reusing the red HP bar tile color.
 
 // Fantasy Retold: Stamina readout printed on the healthbox. Player shows "cur/base"; opponent shows a
 // percentage (no concrete number). These Y offsets are FIRST-GUESS positions on a cramped healthbox —
@@ -2203,23 +2200,8 @@ static void MoveBattleBarGraphically(enum BattlerId battler, u8 whichBar)
                 currValue = Q_24_8_TO_INT(currValue);
         }
 
-        switch (GetHPBarLevel(currValue, maxValue))
-        {
-        case HP_BAR_FULL:
-        case HP_BAR_GREEN:
-            barElementId = HEALTHBOX_GFX_HP_BAR_GREEN;
-            break;
-        case HP_BAR_YELLOW:
-            barElementId = HEALTHBOX_GFX_HP_BAR_YELLOW;
-            break;
-        default:
-        case HP_BAR_RED:
-            if (maxValue > 1) // handling for wonder guard
-                barElementId = HEALTHBOX_GFX_HP_BAR_RED;
-            else
-                barElementId = HEALTHBOX_GFX_HP_BAR_GREEN;
-            break;
-        }
+        // Fantasy Retold: single red HP fill — no green/yellow color switching.
+        barElementId = HEALTHBOX_GFX_HP_BAR_RED;
 
         for (i = 0; i < 6; i++)
         {
@@ -2232,20 +2214,15 @@ static void MoveBattleBarGraphically(enum BattlerId battler, u8 whichBar)
                           (void *)(OBJ_VRAM0 + 64 + (i + gSprites[healthbarSpriteId].oam.tileNum) * TILE_SIZE_4BPP), 32);
         }
 
-        // Fantasy Retold: overlay the Trauma scar on the right end of the HP bar. The bar spans
-        // B_HEALTHBAR_PIXELS px (6 tiles) representing the ORIGINAL max HP; Trauma is permanently-lost
-        // capacity, so the rightmost traumaPixels are repainted red. Pixel-accurate (8 sub-steps per
-        // tile), matching the HP fill: the boundary tile keeps the HP fill on its left and goes red only
-        // on the exact scarred pixels, so the bar reads green (current HP) -> black (recoverable loss) ->
-        // red (Trauma). Current HP is capped at maxHP - trauma, so green never reaches under the scar.
+        // Fantasy Retold: overlay the Trauma scar on the right end of the HP bar.
+        // Bar reads: red (current HP) -> grey (recoverable) -> purple (permanent Trauma).
         {
             u32 trauma = GetBattlerPartyState(battler)->trauma;
             s32 barMaxHP = gBattleSpritesDataPtr->battleBars[battler].maxValue;
             if (trauma != 0 && barMaxHP > 0)
             {
                 u8 healthbarSpriteId = gSprites[gBattleSpritesDataPtr->battleBars[battler].healthboxSpriteId].hMain_HealthBarSpriteId;
-                const u8 *redTile = TRAUMA_SCAR_GFX_PTR;
-                u8 redIdx = redTile[0] & 0x0F; // colour index of the solid scar tile
+                u8 redIdx = 7; // Trauma Purple bright in healthbar palette
                 // Scar occupies the rightmost traumaPixels of the bar; >=1px so a single hit registers.
                 u32 traumaPixels = (trauma * B_HEALTHBAR_PIXELS) / barMaxHP;
                 s32 scarStartPx;
@@ -2266,18 +2243,12 @@ static void MoveBattleBarGraphically(enum BattlerId battler, u8 whichBar)
 
                     if (tileLeftPx + 8 <= scarStartPx)
                     {
-                        continue; // wholly left of the scar — leave the HP fill as drawn
-                    }
-                    else if (tileLeftPx >= scarStartPx)
-                    {
-                        CpuCopy32(redTile, dst, 32); // wholly scarred
+                        continue;
                     }
                     else
                     {
-                        // Boundary tile: keep the HP fill, paint red from localStart..8 (4bpp: low nibble
-                        // = even/left pixel, high nibble = odd/right pixel).
-                        ALIGNED(4) u8 tile[32]; // CpuCopy32 copies 32-bit words; the buffer must be word-aligned
-                        u32 localStart = scarStartPx - tileLeftPx;
+                        ALIGNED(4) u8 tile[32];
+                        u32 localStart = (tileLeftPx >= scarStartPx) ? 0 : scarStartPx - tileLeftPx;
                         u32 row, x, b;
                         CpuCopy32(GetHealthboxElementGfxPtr(barElementId) + array[i] * 32, tile, 32);
                         for (row = 0; row < 8; row++)
@@ -2550,8 +2521,8 @@ enum
     TAG_LAST_BALL_WINDOW,
 };
 
-static const u32 sAbilityPopUpGfx[] = INCGFX_U32("graphics/battle_interface/ability_pop_up.png", ".4bpp", "-mwidth 8 -mheight 4");
-static const u16 sAbilityPopUpPalette[] = INCGFX_U16("graphics/battle_interface/ability_pop_up.pal", ".gbapal");
+static const u32 sAbilityPopUpGfx[] = INCGFX_U32("graphics/battle_interface_fantasy_retold/ability_pop_up.png", ".4bpp", "-mwidth 8 -mheight 4");
+static const u16 sAbilityPopUpPalette[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/ability_pop_up.pal", ".gbapal");
 
 static const struct SpriteSheet sSpriteSheet_AbilityPopUp =
 {
@@ -2939,13 +2910,13 @@ static const struct SpriteTemplate sSpriteTemplate_MoveInfoWindow =
 };
 
 #if B_LAST_USED_BALL_BUTTON == R_BUTTON && B_LAST_USED_BALL_CYCLE == TRUE
-    static const u8 ALIGNED(4) sLastUsedBallWindowGfx[] = INCGFX_U8("graphics/battle_interface/last_used_ball_r_cycle.png", ".4bpp");
+    static const u8 ALIGNED(4) sLastUsedBallWindowGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/last_used_ball_r_cycle.png", ".4bpp");
 #elif B_LAST_USED_BALL_CYCLE == TRUE
-    static const u8 ALIGNED(4) sLastUsedBallWindowGfx[] = INCGFX_U8("graphics/battle_interface/last_used_ball_l_cycle.png", ".4bpp");
+    static const u8 ALIGNED(4) sLastUsedBallWindowGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/last_used_ball_l_cycle.png", ".4bpp");
 #elif B_LAST_USED_BALL_BUTTON == R_BUTTON
-    static const u8 ALIGNED(4) sLastUsedBallWindowGfx[] = INCGFX_U8("graphics/battle_interface/last_used_ball_r.png", ".4bpp");
+    static const u8 ALIGNED(4) sLastUsedBallWindowGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/last_used_ball_r.png", ".4bpp");
 #else
-    static const u8 ALIGNED(4) sLastUsedBallWindowGfx[] = INCGFX_U8("graphics/battle_interface/last_used_ball_l.png", ".4bpp");
+    static const u8 ALIGNED(4) sLastUsedBallWindowGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/last_used_ball_l.png", ".4bpp");
 #endif
 static const struct SpriteSheet sSpriteSheet_LastUsedBallWindow =
 {
@@ -2953,9 +2924,9 @@ static const struct SpriteSheet sSpriteSheet_LastUsedBallWindow =
 };
 
 #if B_MOVE_DESCRIPTION_BUTTON == R_BUTTON
-static const u8 sMoveInfoWindowGfx[] = INCGFX_U8("graphics/battle_interface/move_info_window_r.png", ".4bpp");
+static const u8 sMoveInfoWindowGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/move_info_window_r.png", ".4bpp");
 #else
-static const u8 sMoveInfoWindowGfx[] = INCGFX_U8("graphics/battle_interface/move_info_window_l.png", ".4bpp");
+static const u8 sMoveInfoWindowGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/move_info_window_l.png", ".4bpp");
 #endif
 
 static const struct SpriteSheet sSpriteSheet_MoveInfoWindow =

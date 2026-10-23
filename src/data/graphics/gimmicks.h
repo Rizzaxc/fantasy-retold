@@ -1,15 +1,15 @@
 // trigger data
-static const u8 ALIGNED(4) sMegaTriggerGfx[] = INCGFX_U8("graphics/battle_interface/mega_trigger.png", ".4bpp");
-static const u8 ALIGNED(4) sZMoveTriggerGfx[] = INCGFX_U8("graphics/battle_interface/z_move_trigger.png", ".4bpp");
-static const u8 ALIGNED(4) sBurstTriggerGfx[] = INCGFX_U8("graphics/battle_interface/burst_trigger.png", ".4bpp");
-static const u8 ALIGNED(4) sDynamaxTriggerGfx[] = INCGFX_U8("graphics/battle_interface/dynamax_trigger.png", ".4bpp");
-static const u8 ALIGNED(4) sTeraTriggerGfx[] = INCGFX_U8("graphics/battle_interface/tera_trigger.png", ".4bpp");
+static const u8 ALIGNED(4) sMegaTriggerGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/mega_trigger.png", ".4bpp");
+static const u8 ALIGNED(4) sZMoveTriggerGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/z_move_trigger.png", ".4bpp");
+static const u8 ALIGNED(4) sBurstTriggerGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/burst_trigger.png", ".4bpp");
+static const u8 ALIGNED(4) sDynamaxTriggerGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/dynamax_trigger.png", ".4bpp");
+static const u8 ALIGNED(4) sTeraTriggerGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/tera_trigger.png", ".4bpp");
 
-static const u16 sMegaTriggerPal[] = INCGFX_U16("graphics/battle_interface/mega_trigger.png", ".gbapal");
-static const u16 sZMoveTriggerPal[] = INCGFX_U16("graphics/battle_interface/z_move_trigger.png", ".gbapal");
-static const u16 sBurstTriggerPal[] = INCGFX_U16("graphics/battle_interface/burst_trigger.png", ".gbapal");
-static const u16 sDynamaxTriggerPal[] = INCGFX_U16("graphics/battle_interface/dynamax_trigger.png", ".gbapal");
-static const u16 sTeraTriggerPal[] = INCGFX_U16("graphics/battle_interface/tera_trigger.png", ".gbapal");
+static const u16 sMegaTriggerPal[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/mega_trigger.png", ".gbapal");
+static const u16 sZMoveTriggerPal[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/z_move_trigger.png", ".gbapal");
+static const u16 sBurstTriggerPal[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/burst_trigger.png", ".gbapal");
+static const u16 sDynamaxTriggerPal[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/dynamax_trigger.png", ".gbapal");
+static const u16 sTeraTriggerPal[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/tera_trigger.png", ".gbapal");
 
 static const struct SpriteSheet sSpriteSheet_MegaTrigger = {sMegaTriggerGfx, sizeof(sMegaTriggerGfx), TAG_GIMMICK_TRIGGER_TILE};
 static const struct SpriteSheet sSpriteSheet_ZMoveTrigger = {sZMoveTriggerGfx, sizeof(sZMoveTriggerGfx), TAG_GIMMICK_TRIGGER_TILE};
@@ -69,33 +69,33 @@ static const struct SpriteTemplate sSpriteTemplate_GimmickTrigger =
 };
 
 // indicator data
-static const u8 ALIGNED(4) sMegaIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/mega_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sAlphaIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/alpha_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sOmegaIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/omega_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sDynamaxIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/dynamax_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sNormalIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/normal_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sFightingIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/fighting_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sFlyingIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/flying_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sPoisonIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/poison_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sGroundIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/ground_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sRockIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/rock_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sBugIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/bug_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sGhostIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/ghost_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sSteelIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/steel_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sFireIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/fire_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sWaterIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/water_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sGrassIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/grass_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sElectricIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/electric_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sPsychicIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/psychic_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sIceIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/ice_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sDragonIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/dragon_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sDarkIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/dark_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sFairyIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/fairy_indicator.png", ".4bpp");
-static const u8 ALIGNED(4) sStellarIndicatorGfx[] = INCGFX_U8("graphics/battle_interface/stellar_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sMegaIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/mega_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sAlphaIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/alpha_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sOmegaIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/omega_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sDynamaxIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/dynamax_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sNormalIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/normal_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sFightingIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/fighting_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sFlyingIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/flying_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sPoisonIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/poison_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sGroundIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/ground_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sRockIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/rock_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sBugIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/bug_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sGhostIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/ghost_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sSteelIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/steel_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sFireIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/fire_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sWaterIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/water_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sGrassIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/grass_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sElectricIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/electric_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sPsychicIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/psychic_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sIceIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/ice_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sDragonIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/dragon_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sDarkIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/dark_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sFairyIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/fairy_indicator.png", ".4bpp");
+static const u8 ALIGNED(4) sStellarIndicatorGfx[] = INCGFX_U8("graphics/battle_interface_fantasy_retold/stellar_indicator.png", ".4bpp");
 
-static const u16 sMiscIndicatorPal[] = INCGFX_U16("graphics/battle_interface/misc_indicator.pal", ".gbapal"); // has room for more colors
-static const u16 sMegaIndicatorPal[] = INCGFX_U16("graphics/battle_interface/mega_indicator.png", ".gbapal");
-static const u16 sTeraIndicatorPal[] = INCGFX_U16("graphics/battle_interface/tera_indicator.pal", ".gbapal");
+static const u16 sMiscIndicatorPal[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/misc_indicator.pal", ".gbapal"); // has room for more colors
+static const u16 sMegaIndicatorPal[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/mega_indicator.png", ".gbapal");
+static const u16 sTeraIndicatorPal[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/tera_indicator.pal", ".gbapal");
 
 static const u8 *const sTeraIndicatorDataPtrs[] =
 {
