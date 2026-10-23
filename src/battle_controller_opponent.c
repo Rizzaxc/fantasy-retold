@@ -435,7 +435,7 @@ static void OpponentHandleChooseMove(enum BattlerId battler)
         else
         {
             u8 chosenAction = gAiBattleData->chosenAction[battler];
-            if (chosenAction == B_ACTION_DODGE || chosenAction == B_ACTION_RECUPERATE || chosenAction == B_ACTION_SWITCH)
+            if (chosenAction == B_ACTION_DODGE || chosenAction == B_ACTION_RECUPERATE)
                 BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, chosenAction, 0);
             else
                 SetFinalChosenTarget(battler, FALSE);

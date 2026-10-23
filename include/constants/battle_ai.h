@@ -44,10 +44,10 @@
 #define AI_FLAG_ABILITY_OMNISCIENCE AI_FLAG(34)        // AI knows the player's ability
 #define AI_FLAG_ITEM_OMNISCIENCE AI_FLAG(35)           // AI knows the player's item
 #define AI_FLAG_MOVE_OMNISCIENCE AI_FLAG(36)           // AI knows the player's moves
-#define AI_FLAG_STAMINA_MANAGEMENT AI_FLAG(37)         // AI weighs Stamina costs, attrition, Recuperate, and Dodge.
+#define AI_FLAG_STAMINA_MANAGEMENT AI_FLAG(37)         // AI weighs Stamina costs, attrition, Recuperate, and Dodge
 
 // The following options are enough to have a basic/smart trainer. Any other addtion could make the trainer worse/better depending on the flag
-#define AI_FLAG_BASIC_TRAINER (AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_TRY_TO_FAINT | AI_FLAG_CHECK_VIABILITY)
+#define AI_FLAG_BASIC_TRAINER (AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_TRY_TO_FAINT | AI_FLAG_CHECK_VIABILITY | AI_FLAG_STAMINA_MANAGEMENT)
 #define AI_FLAG_SMART_TRAINER (AI_FLAG_BASIC_TRAINER | AI_FLAG_OMNISCIENT | AI_FLAG_SMART_SWITCHING | AI_FLAG_SMART_MON_CHOICES | AI_FLAG_PP_STALL_PREVENTION | AI_FLAG_SMART_TERA | AI_FLAG_RANDOMIZE_SWITCHIN)
 #define AI_FLAG_PREDICTION (AI_FLAG_PREDICT_SWITCH | AI_FLAG_PREDICT_INCOMING_MON | AI_FLAG_PREDICT_MOVE)
 #define AI_FLAG_ASSUMPTIONS (AI_FLAG_ASSUME_STAB | AI_FLAG_ASSUME_STATUS_MOVES | AI_FLAG_WEIGH_ABILITY_PREDICTION)

@@ -4736,6 +4736,16 @@ s32 GetWhichBattlerFaster(struct BattleCalcValues *calcValues, bool32 ignoreChos
     return strikesFirst;
 }
 
+// Fantasy Retold: actions resolved in the item window, ahead of all moves. Recuperate only gets that priority
+// while the user still has Stamina; an exhausted (0 Stamina) user Recuperates in its normal speed slot.
+// Dodge always keeps its speed slot, since its outcome is decided by turn order (see DoesMoveMissTarget).
+static bool32 IsActionBeforeMoves(enum BattlerId battler, enum BattleAction action)
+{
+    if (action == B_ACTION_USE_ITEM || action == B_ACTION_SWITCH || action == B_ACTION_THROW_BALL)
+        return TRUE;
+    return action == B_ACTION_RECUPERATE && gBattleStruct->battlerState[battler].currentStamina != 0;
+}
+
 static void SetActionsAndBattlersTurnOrder(void)
 {
     s32 turnOrderId = 0;
@@ -4799,9 +4809,7 @@ static void SetActionsAndBattlersTurnOrder(void)
 
             for (battler = 0; battler < gBattlersCount; battler++)
             {
-                if (gChosenActionByBattler[battler] == B_ACTION_USE_ITEM
-                  || gChosenActionByBattler[battler] == B_ACTION_SWITCH
-                  || gChosenActionByBattler[battler] == B_ACTION_THROW_BALL)
+                if (IsActionBeforeMoves(battler, gChosenActionByBattler[battler]))
                 {
                     gActionsByTurnOrder[turnOrderId] = gChosenActionByBattler[battler];
                     gBattlerByTurnOrder[turnOrderId] = battler;
@@ -4810,9 +4818,7 @@ static void SetActionsAndBattlersTurnOrder(void)
             }
             for (battler = 0; battler < gBattlersCount; battler++)
             {
-                if (gChosenActionByBattler[battler] != B_ACTION_USE_ITEM
-                  && gChosenActionByBattler[battler] != B_ACTION_SWITCH
-                  && gChosenActionByBattler[battler] != B_ACTION_THROW_BALL)
+                if (!IsActionBeforeMoves(battler, gChosenActionByBattler[battler]))
                 {
                     gActionsByTurnOrder[turnOrderId] = gChosenActionByBattler[battler];
                     gBattlerByTurnOrder[turnOrderId] = battler;
@@ -4834,12 +4840,8 @@ static void SetActionsAndBattlersTurnOrder(void)
                     calcValues.battlerAtk = gBattlerByTurnOrder[battler];
                     calcValues.battlerDef = gBattlerByTurnOrder[battler2];
                     TryChangingTurnOrderEffects(&calcValues, quickClawRandom, quickDrawRandom);
-                    if (gActionsByTurnOrder[battler] != B_ACTION_USE_ITEM
-                        && gActionsByTurnOrder[battler2] != B_ACTION_USE_ITEM
-                        && gActionsByTurnOrder[battler] != B_ACTION_SWITCH
-                        && gActionsByTurnOrder[battler2] != B_ACTION_SWITCH
-                        && gActionsByTurnOrder[battler] != B_ACTION_THROW_BALL
-                        && gActionsByTurnOrder[battler2] != B_ACTION_THROW_BALL)
+                    if (!IsActionBeforeMoves(gBattlerByTurnOrder[battler], gActionsByTurnOrder[battler])
+                     && !IsActionBeforeMoves(gBattlerByTurnOrder[battler2], gActionsByTurnOrder[battler2]))
                     {
                         if (GetWhichBattlerFaster(&calcValues, FALSE) == -1)
                             SwapTurnOrder(battler, battler2);

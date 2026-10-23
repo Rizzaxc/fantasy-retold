@@ -938,7 +938,9 @@ void HandleAction_Recuperate(void)
     r = (newSta * 100) / baseSta;
     if (r > 100)
         r = 100;
-    healAmount = (GetNonDynamaxMaxHP(battler) / 4) * r / 100;
+    healAmount = (GetNonDynamaxMaxHP(battler) * RECUPERATE_HP_HEAL_PERCENT / 100) * r / 100;
+    if (healAmount == 0)
+        healAmount = 1;
     SetHealAmount(battler, healAmount);
 
     // Fantasy Retold: purge 1 random Level 1 status condition (design.md §6). Level 2+ is immune — that

@@ -25,6 +25,7 @@
 #include "recorded_battle.h"
 #include "util.h"
 #include "script.h"
+#include "test_runner.h"
 #include "constants/abilities.h"
 #include "constants/battle_ai.h"
 #include "constants/battle_move_effects.h"
@@ -283,6 +284,11 @@ static u64 GetAiFlags(u16 trainerId, enum BattlerId battler)
             flags = AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_CHECK_VIABILITY | AI_FLAG_TRY_TO_FAINT;
         else
             flags = GetTrainerAIFlagsFromId(trainerId);
+
+        // Fantasy Retold: every scoring trainer knows how to Dodge and Recuperate, whatever its
+        // trainers.party flags say (most only list Check Bad Move). Tests opt in explicitly.
+        if ((flags & AI_FLAG_CHECK_BAD_MOVE) && !gTestRunnerEnabled)
+            flags |= AI_FLAG_STAMINA_MANAGEMENT;
     }
 
     if (IsDoubleBattle() && flags != 0)
@@ -513,22 +519,57 @@ static u32 GetAIMoveStaminaCost(enum BattlerId battler, enum Move move)
     return GetMovePower(move) / 10 + (baseSta * 2) / 100;
 }
 
-static u32 GetPredictedStaminaAttrition(enum BattlerId battlerAtk, enum BattlerId battlerDef)
+// The move the AI braces for: the predicted move when AI_FLAG_PREDICT_MOVE rolled a prediction this turn,
+// otherwise the strongest damaging move the AI knows the target has (GetMovesArray respects move knowledge).
+static u32 GetAIStaminaThreatMoveIndex(enum BattlerId battlerAtk, enum BattlerId battlerDef)
 {
     enum Move predictedMove = GetPredictedMove(battlerDef, battlerAtk, gAiLogicData);
-    u32 moveIndex;
+    enum Move *moves = GetMovesArray(battlerDef);
+    u32 moveLimitations = gAiLogicData->moveLimitations[battlerDef];
+    u32 bestMoveIndex = MAX_MON_MOVES;
+    u32 bestDmg = 0;
+
+    if (predictedMove != MOVE_NONE)
+    {
+        u32 predictedIndex = GetMoveIndex(battlerDef, predictedMove);
+        if (predictedIndex < MAX_MON_MOVES && GetMovePower(predictedMove) != 0)
+            return predictedIndex;
+        return MAX_MON_MOVES;
+    }
+
+    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    {
+        u32 damage;
+
+        if (IsMoveUnusable(moveIndex, moves[moveIndex], moveLimitations) || GetMovePower(moves[moveIndex]) == 0)
+            continue;
+
+        damage = AI_GetDamage(battlerDef, battlerAtk, moveIndex, AI_DEFENDING, gAiLogicData);
+        if (damage > bestDmg)
+        {
+            bestDmg = damage;
+            bestMoveIndex = moveIndex;
+        }
+    }
+
+    return bestMoveIndex;
+}
+
+static u32 GetPredictedStaminaAttrition(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 threatIndex)
+{
+    enum Move threatMove;
     u32 attrition;
     uq4_12_t effectiveness;
 
-    if (predictedMove == MOVE_NONE || (!IsBattleMovePhysical(predictedMove) && GetMoveEffect(predictedMove) != EFFECT_PSYSHOCK))
+    if (threatIndex >= MAX_MON_MOVES)
         return 0;
 
-    moveIndex = GetMoveIndex(battlerDef, predictedMove);
-    if (moveIndex >= MAX_MON_MOVES)
+    threatMove = GetMovesArray(battlerDef)[threatIndex];
+    if (!IsBattleMovePhysical(threatMove) && GetMoveEffect(threatMove) != EFFECT_PSYSHOCK)
         return 0;
 
-    attrition = GetMovePower(predictedMove) / 10;
-    effectiveness = gAiLogicData->effectiveness[battlerDef][battlerAtk][moveIndex];
+    attrition = GetMovePower(threatMove) / 10;
+    effectiveness = gAiLogicData->effectiveness[battlerDef][battlerAtk][threatIndex];
     if (effectiveness >= UQ_4_12(2.0))
         attrition *= 2;
     else if (effectiveness <= UQ_4_12(0.5))
@@ -585,11 +626,32 @@ static bool32 AIIsFrailComparedToTarget(enum BattlerId battler, enum BattlerId t
     return gBattleMons[battler].maxHP < gBattleMons[target].maxHP && GetBaseStamina(battler) < GetBaseStamina(target);
 }
 
-static bool32 AIIsCritImmune(enum BattlerId battler)
+// Dodge (design.md §3): a full miss if the dodger acts first, otherwise half damage. Never chains Dodges (the consecutive-use tax makes the second one a waste).
+static bool32 AIShouldDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 threatIndex, u32 currentStamina, u32 attrition)
 {
-    enum Ability ability = gAiLogicData->abilities[battler];
+    enum Move threatMove;
+    u32 threatDmg;
+    bool32 fullEvade;
 
-    return ability == ABILITY_BATTLE_ARMOR || ability == ABILITY_SHELL_ARMOR || BattlerHasInnate(battler, INNATE_BATTLE_ARMOR);
+    if (threatIndex >= MAX_MON_MOVES || gBattleStruct->battlerState[battlerAtk].dodgeConsecutiveUses != 0)
+        return FALSE;
+    if (currentStamina < GetDodgeCost(battlerAtk))
+        return FALSE;
+
+    threatMove = GetMovesArray(battlerDef)[threatIndex];
+    threatDmg = AI_GetDamage(battlerDef, battlerAtk, threatIndex, AI_DEFENDING, gAiLogicData);
+    fullEvade = AI_WhoStrikesFirst(battlerAtk, battlerDef, MOVE_NONE, threatMove, CONSIDER_PRIORITY) == AI_IS_FASTER;
+
+    // The threat would KO: Dodge if that saves the battler (a miss, or half damage it survives).
+    if (threatDmg >= gBattleMons[battlerAtk].hp)
+        return fullEvade || threatDmg / 2 < gBattleMons[battlerAtk].hp;
+
+    // A guaranteed miss on a hit that would drain Stamina or chunk a third of current HP is worth the turn
+    // some of the time; the roll keeps the AI from Dodging on a fixed pattern.
+    if (fullEvade && (attrition != 0 || threatDmg * 3 >= gBattleMons[battlerAtk].hp))
+        return RandomPercentage(RNG_AI_STAMINA_DODGE, 50);
+
+    return FALSE;
 }
 
 static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId battlerAtk, enum BattlerId battlerDef)
@@ -597,7 +659,8 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     u32 currentStamina = gBattleStruct->battlerState[battlerAtk].currentStamina;
     u32 baseStamina = GetBaseStamina(battlerAtk);
     u32 targetStamina = gBattleStruct->battlerState[battlerDef].currentStamina;
-    u32 attrition = GetPredictedStaminaAttrition(battlerAtk, battlerDef);
+    u32 threatIndex;
+    u32 attrition;
     u32 chosenCost;
     u32 bestMoveIndex;
     enum Move chosenMove;
@@ -609,6 +672,31 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
 
     if (IsTargetingPartner(battlerAtk, battlerDef))
         return;
+
+    threatIndex = GetAIStaminaThreatMoveIndex(battlerAtk, battlerDef);
+    attrition = GetPredictedStaminaAttrition(battlerAtk, battlerDef, threatIndex);
+
+    canRecuperate = AICanUseRecuperate(battlerAtk);
+
+    // At 0 Stamina every hit taken auto-crits, and Recuperate loses its priority (it resolves in speed
+    // order), so leaving the Exhaustion Zone comes first: refill unless a KO lands before the target acts.
+    if (currentStamina == 0 && canRecuperate)
+    {
+        for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+        {
+            enum Move move = gBattleMons[battlerAtk].moves[moveIndex];
+            if (gAiThinkingStruct->score[moveIndex] > 0 && GetMovePower(move) != 0
+             && CanIndexMoveFaintTarget(battlerAtk, battlerDef, moveIndex, AI_ATTACKING)
+             && AI_WhoStrikesFirst(battlerAtk, battlerDef, move, GetPredictedMove(battlerDef, battlerAtk, gAiLogicData), CONSIDER_PRIORITY) == AI_IS_FASTER)
+            {
+                chosen->moveIndex = moveIndex;
+                chosen->action = B_ACTION_USE_MOVE;
+                return;
+            }
+        }
+        chosen->action = B_ACTION_RECUPERATE;
+        return;
+    }
 
     bestMoveIndex = FindBestAIDamagingMove(battlerAtk, battlerDef, FALSE, currentStamina, attrition, MAX_MON_MOVES);
     if (bestMoveIndex == MAX_MON_MOVES)
@@ -631,8 +719,6 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     if (chosenMoveKOs)
         return;
 
-    canRecuperate = AICanUseRecuperate(battlerAtk);
-
     // Exhausted targets are vulnerable to critical hits; attack them without exhausting yourself.
     if (targetStamina == 0)
     {
@@ -645,7 +731,16 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
         }
     }
 
-    if (canRecuperate && AIIsTankierThanTarget(battlerAtk, battlerDef))
+    if (AIShouldDodge(battlerAtk, battlerDef, threatIndex, currentStamina, attrition))
+    {
+        chosen->action = B_ACTION_DODGE;
+        return;
+    }
+
+    // At the threshold, anything but a frail battler refills when the target can't KO it this turn.
+    // A tankier battler refills regardless: Recuperate is its wincon (design.md §3).
+    if (canRecuperate && (AIIsTankierThanTarget(battlerAtk, battlerDef)
+                       || (!AIIsFrailComparedToTarget(battlerAtk, battlerDef) && !CanTargetFaintAi(battlerDef, battlerAtk))))
     {
         chosen->action = B_ACTION_RECUPERATE;
         return;
@@ -677,15 +772,6 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
             return;
         }
 
-        enum Move predictedMove = GetPredictedMove(battlerDef, battlerAtk, gAiLogicData);
-        u32 dodgeCost = GetDodgeCost(battlerAtk);
-
-        if (AIIsCritImmune(battlerAtk) && predictedMove != MOVE_NONE && (IsBattleMovePhysical(predictedMove) || GetMoveEffect(predictedMove) == EFFECT_PSYSHOCK) && currentStamina > dodgeCost + attrition && (Random() & 1))
-        {
-            chosen->action = B_ACTION_DODGE;
-            return;
-        }
-
         chosen->action = B_ACTION_USE_MOVE;
         return;
     }
@@ -693,7 +779,7 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     bestMoveIndex = FindBestAIDamagingMove(battlerAtk, battlerDef, TRUE, currentStamina, attrition, chosen->moveIndex);
     if (bestMoveIndex != MAX_MON_MOVES)
     {
-        if (canRecuperate && gAiLogicData->lastUsedMove[battlerAtk] == chosenMove && (Random() & 1))
+        if (canRecuperate && gAiLogicData->lastUsedMove[battlerAtk] == chosenMove && RandomPercentage(RNG_AI_STAMINA_RECUPERATE, 50))
             chosen->action = B_ACTION_RECUPERATE;
         else
         {
@@ -730,7 +816,9 @@ void AI_TrySwitchOrUseItem(enum BattlerId battler)
 
     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
     {
-        if (gAiLogicData->shouldSwitch & (1u << battler) && IsSwitchinValid(battler))
+        // Fantasy Retold: a Stamina-management switch is decided during move scoring but must be
+        // emitted here, in the action phase (the move-select reply can't carry a switch).
+        if ((gAiLogicData->shouldSwitch & (1u << battler) || gAiBattleData->chosenAction[battler] == B_ACTION_SWITCH) && IsSwitchinValid(battler))
         {
             BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_SWITCH, 0);
             SetAIUsingGimmick(battler, NO_GIMMICK);

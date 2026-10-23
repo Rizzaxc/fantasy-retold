@@ -55,7 +55,16 @@ $$\text{Effective Speed} = \text{Base Speed} \times \left(0.15 + \frac{\text{Cur
 
 ### AI Stamina Management
 
-Trainer AI can opt into `AI_FLAG_STAMINA_MANAGEMENT`. It prefers attacking a target already at 0 Stamina and takes an available KO before considering resource conservation. Against a non-exhausted target, it weighs the selected attack's Stamina cost together with predicted incoming physical attrition; it prefers a safe alternate attack, Recuperate, or an available switch over ending the exchange at 0 Stamina. At or below the Recuperate threshold, a bulkier battler favors Recuperate, while a frailer battler keeps attacking. When a repeated move would exhaust it, it can split its choice between a different safe attack and Recuperate. A crit-immune battler with enough Stamina may Dodge a predicted physical hit; a slower battler at full Stamina attacks when the predicted exchange does not exhaust it.
+`AI_FLAG_STAMINA_MANAGEMENT` is part of `AI_FLAG_BASIC_TRAINER`, and `GetAiFlags` also adds it to every trainer whose flags include Check Bad Move (most of `trainers.party` lists only that), so every scoring trainer manages Stamina. Battle tests opt in explicitly. It decides after normal move scoring, in this order:
+
+0. **Exhausted (0 Stamina): Recuperate**, unless a scored attack KOs the target before the target acts. An exhausted Recuperate has no priority, so a faster target's hit still auto-crits that turn, but staying at 0 means every later hit does too.
+1. **Take the KO** if any scored attack faints the target.
+2. **Punish exhaustion:** a target at 0 Stamina is attacked with the best attack that won't exhaust the AI.
+3. **Dodge** (never twice in a row) when it has the Stamina for it and either: the incoming hit would KO it and Dodging saves it (a full miss, or half damage it survives); or Dodge is a guaranteed miss (it acts before the target) on a physical hit or one taking ≥ 1/3 of its HP — the latter only half the time, so it isn't a fixed pattern.
+4. **Recuperate** at or below the threshold if it is bulkier than the target (more max HP *and* BaseSta), or if it isn't frailer (less of both) and the target can't KO it this turn. A frailer battler keeps attacking instead.
+5. **Avoid self-exhaustion:** if the chosen attack plus the incoming physical attrition would empty it, it switches to a safe alternate attack (half the time Recuperating instead when it is repeating the same move), else Recuperates, else switches out (the switch is sent in the action phase).
+
+A slower battler at full Stamina against a full-Stamina target just attacks when the exchange doesn't exhaust it. The "incoming hit" is the predicted move when `AI_FLAG_PREDICT_MOVE` rolls a prediction; otherwise it is the target's strongest damaging move the AI knows about (revealed moves, or all with move omniscience), so the flag works without prediction flags.
 
 ### Pacing Targets (the Physical Clock)
 
@@ -71,7 +80,7 @@ These bands assume physical pressure. Against a **special** attacker, Stamina dr
 
 ## 3. Innate System Commands (L/R Shoulder Buttons)
 
-Every Pokémon possesses two innate mechanical actions, reached from the **innate menu**. On the move selection screen, **L** (R in the L=A button mode, where L acts as A) swaps the four move slots for **Dodge**, **Recuperate** and the mon's **Signature Move** (if it has one); L or B swaps back. An entry that can't be used this turn is drawn faded (not enough Stamina for Dodge, above the 40% gate for Recuperate) and picking it shows why. The right-hand panel shows the highlighted entry's Stamina cost (`STA -n`) or gain (`STA +n`), or the Signature Move's Stamina cost and type (it has no PP). The `L / MOVE INFO` tab above the menu is relabelled `L / INNATE` (upstream's move-description viewer is no longer reachable). These commands execute with high-priority sequencing, functioning identically to item usage windows. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
+Every Pokémon possesses two innate mechanical actions, reached from the **innate menu**. On the move selection screen, **L** (R in the L=A button mode, where L acts as A) swaps the four move slots for **Dodge**, **Recuperate** and the mon's **Signature Move** (if it has one); L or B swaps back. An entry that can't be used this turn is drawn faded (not enough Stamina for Dodge, above the 40% gate for Recuperate) and picking it shows why. The right-hand panel shows the highlighted entry's Stamina cost (`STA -n`) or gain (`STA +n`), or the Signature Move's Stamina cost and type (it has no PP). The `L / MOVE INFO` tab above the menu is relabelled `L / INNATE` (upstream's move-description viewer is no longer reachable). Recuperate executes with high-priority sequencing, in the item usage window ahead of all moves, **unless the user is at 0 Stamina**: an exhausted Recuperate loses that priority and resolves in normal speed order (an exhausted mon is also slow, so a fast attacker gets its auto-crit in first). Dodge keeps its normal speed slot in the turn order, because its outcome (below) is decided by who acts first. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
 
 ### Dodge
 
@@ -81,7 +90,7 @@ An active maneuvering defense mechanism balanced by compounding resource taxes.
 * **Speed Tiers & Outcomes** (compared on **round-start Effective Speed order**):
   * **Attacker is Slower:** The move completely misses.
   * **Attacker is Faster, or Tie:** The move lands, but damage is mitigated by **50%** and cannot proc status effects.
-  * **Repeated Move Trapping:** If the user is dodging an identical move executed by the opponent on the immediate prior turn, the move completely misses, regardless of speed tiers.
+  * **Repeated Move Trapping:** If the user is dodging an identical move executed by the opponent on the immediate prior turn, the move completely misses, regardless of speed tiers. *(Not implemented yet; the AI does not count on it.)*
 * **Restrictions:** Status moves bypass Dodge checks entirely (but can still miss, via its Acc. check). Selection is blocked in the action selection UI if the Pokémon does not have enough Stamina to cover the cost.
 
 #### Dodge Layering vs. Traditional Accuracy/Evasion
@@ -96,7 +105,7 @@ Dodge is a mechanical command completely distinct from standard accuracy and eva
 The primary sustain mechanism used to stabilize an active Pokémon's resource depth. **It is the wincon engine for bulky mons** — its purpose is to let a tank out-sustain chip damage, with the Trauma pool (§4) acting as the inescapable counter-clock.
 
 * **Mechanical Resolution:** Can only be selected if the user is at **40% of `BaseSta` or lower**. When legal, it instantly restores `CurrentSta` by exactly $40\%$ of `BaseSta`. Exempt from the Body Tax.
-* **Sustain Properties:** Grants a minor HP heal and purges **1 random Level 1 status condition** from the user's status rail. (It cannot touch Level 2+ statuses — persistent conditions and Trauma are how walls are beaten.)
+* **Sustain Properties:** Grants a minor HP heal of `RECUPERATE_HP_HEAL_PERCENT` (12%) of max HP × `CurrentSta/BaseSta` after the refill — about 5% from empty, about 10% from the 40% gate — and purges **1 random Level 1 status condition** from the user's status rail. (It cannot touch Level 2+ statuses — persistent conditions and Trauma are how walls are beaten.)
 * **Scaling Ceiling:** Any operational HP healing function in the engine scales dynamically using `CurrentSta` as its primary scaling vector ($\propto r = \frac{\text{CurrentSta}}{\text{BaseSta}}$), capping healing efficiency when exhausted.
 
 ---
@@ -353,6 +362,8 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 | Stamina    | Switch-out rest bonus           | 5 + Level / 2 (capped at BaseSta); first send-out = full           |
 | Dodge      | Cost                            | 5 + 20×consecutive + 0.02×BaseSta; gated behind CurrentSta >= cost |
 | Recuperate | Stamina restore / gate          | +40% BaseSta; usable only at ≤40% BaseSta                          |
+| Recuperate | HP heal                         | 12% maxHP × CurrentSta/BaseSta after refill (~5–10%)               |
+| Recuperate | Priority                        | item window (before moves); none at 0 Stamina                      |
 | Trauma     | Special split (floor `a`)       | 0.25                                                               |
 | Trauma     | Special split (drain bonus `b`) | 0.40                                                               |
 | Trauma     | SpD stage resistance            | ×0.85 per +1 stage (Trauma channel only)                           |
