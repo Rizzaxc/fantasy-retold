@@ -2,6 +2,7 @@ INTERFACEGFXDIR := graphics/interface
 BTLANMSPRGFXDIR := graphics/battle_anims/sprites
 UNUSEDGFXDIR := graphics/unused
 BATINTGFXDIR := graphics/battle_interface
+FRBATINTGFXDIR := graphics/battle_interface_fantasy_retold
 BATTRANSGFXDIR := graphics/battle_transitions
 TYPESGFXDIR := graphics/types
 TYPESBWGFXDIR := graphics/types_bw
@@ -23,6 +24,10 @@ $(TITLESCREENGFXDIR)/pokemon_logo.gbapal: %.gbapal: %.pal
 
 $(BATINTGFXDIR)/textbox.gbapal: $(BATINTGFXDIR)/textbox_0.gbapal \
                                 $(BATINTGFXDIR)/textbox_1.gbapal
+	@cat $^ >$@
+
+$(FRBATINTGFXDIR)/textbox.gbapal: $(FRBATINTGFXDIR)/textbox_0.gbapal \
+                                  $(FRBATINTGFXDIR)/textbox_1.gbapal
 	@cat $^ >$@
 
 $(BTLANMSPRGFXDIR)/ice_cube.4bpp: $(BTLANMSPRGFXDIR)/ice_cube_0.4bpp \
@@ -54,6 +59,11 @@ $(UNUSEDGFXDIR)/obi2.4bpp: $(UNUSEDGFXDIR)/old_bulbasaur2.4bpp \
 $(BATINTGFXDIR)/battle_bar.4bpp: $(BATINTGFXDIR)/hpbar_anim_unused.4bpp \
                                  $(BATINTGFXDIR)/numbers1.4bpp \
                                  $(BATINTGFXDIR)/numbers2.4bpp
+	@cat $^ >$@
+
+$(FRBATINTGFXDIR)/battle_bar.4bpp: $(FRBATINTGFXDIR)/hpbar_anim_unused.4bpp \
+                                   $(FRBATINTGFXDIR)/numbers1.4bpp \
+                                   $(FRBATINTGFXDIR)/numbers2.4bpp
 	@cat $^ >$@
 
 $(UNUSEDGFXDIR)/redyellowgreen_frame.bin: $(UNUSEDGFXDIR)/red_frame.bin \
