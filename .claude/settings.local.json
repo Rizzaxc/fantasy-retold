@@ -11,7 +11,8 @@
       "Bash(python3 -c \"from PIL import Image; img = Image.open\\('D:/Work/fantasy-retold/graphics/battle_interface/healthbox_singles_player.png'\\); print\\(f'Size: {img.size}, Mode: {img.mode}, Palette colors: {len\\(img.getpalette\\(\\)\\)//3 if img.mode==\\\\\"P\\\\\" else \\\\\"N/A\\\\\"}'\\)\")",
       "Bash(python -c \"from PIL import Image; img = Image.open\\('D:/Work/fantasy-retold/graphics/battle_interface/healthbox_singles_player.png'\\); print\\(f'Size: {img.size}, Mode: {img.mode}, Palette colors: {len\\(img.getpalette\\(\\)\\)//3 if img.mode==\\\\\"P\\\\\" else \\\\\"N/A\\\\\"}'\\)\")",
       "Bash(python -c ' *)",
-      "Bash(ls \"C:/Users/Admin/.claude/plans/\" 2>/dev/null || echo \"Plans directory does not exist\")"
+      "Bash(ls \"C:/Users/Admin/.claude/plans/\" 2>/dev/null || echo \"Plans directory does not exist\")",
+      "mcp__visualize__show_widget"
     ]
   }
 }
