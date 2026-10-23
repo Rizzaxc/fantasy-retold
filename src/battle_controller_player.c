@@ -699,7 +699,7 @@ static bool32 CanUseRecuperate(enum BattlerId battler)
     u32 baseSta = GetBaseStamina(battler);
     u32 currentSta = gBattleStruct->battlerState[battler].currentStamina;
 
-    return currentSta * 100 <= baseSta * 40;
+    return currentSta * 100 <= baseSta * RECUPERATE_STAMINA_PERCENT;
 }
 
 static void WaitForRecuperateSelectionMessage(enum BattlerId battler)

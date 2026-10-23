@@ -895,7 +895,7 @@ void HandleAction_Dodge(void)
         battlerState->currentStamina -= cost;
     else
         battlerState->currentStamina = 0;
-    UpdateStaminaTextOnHealthbox(battler);
+    UpdateStaminaGaugeOnHealthbox(battler);
 
     if (battlerState->dodgeConsecutiveUses < 31)
         battlerState->dodgeConsecutiveUses++;
@@ -919,7 +919,7 @@ void HandleAction_Recuperate(void)
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
 
-    if (currentSta * 100 > baseSta * 40)
+    if (currentSta * 100 > baseSta * RECUPERATE_STAMINA_PERCENT)
     {
         gBattlescriptCurrInstr = BattleScript_ButItFailed;
         gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
@@ -930,7 +930,7 @@ void HandleAction_Recuperate(void)
     if (newSta > baseSta)
         newSta = baseSta;
     gBattleStruct->battlerState[battler].currentStamina = newSta;
-    UpdateStaminaTextOnHealthbox(battler);
+    UpdateStaminaGaugeOnHealthbox(battler);
 
     // Minor HP heal, scaling with the restored Stamina ratio (more fuel = more recovery). Queued as a
     // passive heal; Cmd_datahpupdate caps it at the Trauma effective max (maxHP - trauma) and animates.

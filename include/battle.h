@@ -573,6 +573,10 @@ struct BattlerState
 // it banks CurrentSta + this amount (capped at BaseSta), so frail mons get a near-full reset while a big
 // BaseSta pool gains only a sliver — Recuperate stays the bulky mon's better in-place option.
 
+// Fantasy Retold: Recuperate (R) is only selectable at or below this % of BaseSta. The healthbox Stamina gauge
+// turns yellow at the same threshold so the player can see when R is live.
+#define RECUPERATE_STAMINA_PERCENT 40
+
 // Fantasy Retold: per-rail status state (design.md §6). See enum StatusRail in constants/battle.h.
 struct StatusRailEntry
 {

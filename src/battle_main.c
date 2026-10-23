@@ -3549,7 +3549,7 @@ static void TryDoEventsBeforeFirstTurn(void)
             ApplyNatureSwitchInInnates(battler); // Fantasy Retold: Quick Start / Resilient on the opening send-out
             // Fantasy Retold: the healthbox was first drawn before Stamina existed (showing 0); refresh
             // it now that the real value is set, so the readout is correct from the opening turn.
-            UpdateStaminaTextOnHealthbox(battler);
+            UpdateStaminaGaugeOnHealthbox(battler);
         }
         BattleScriptPushCursorAndCallback(BattleScript_FirstTurnSwitchInEvents);
         gBattleStruct->eventState.beforeFirstTurn++;

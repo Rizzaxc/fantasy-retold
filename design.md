@@ -27,7 +27,7 @@ Stamina serves as the primary operational currency governing action speed, move 
 
 * `BaseSta` is the repurposed Special Defense stat, used at its native scale (no rescaling — EV/IV expectations are preserved).
 * **Stamina persists across switches.** A Pokémon's first send-out of the battle enters fresh at `CurrentSta = BaseSta`. On every **switch-out**, it banks its current Stamina plus a level-scaled rest bonus of **5 + Level / 2** (capped at `BaseSta`); it returns to the field at that banked value. Speed decay is a function of `CurrentSta/BaseSta`, so it carries across switches too — an exhausted mon that pivots out comes back slow *and* near-empty.
-* **UI note:** The player healthbox shows exact Stamina (`CurrentSta/BaseSta`). The opponent healthbox shows a percentage for readability, rounded so any non-zero foe Stamina displays as at least **1%**. Exhaustion / auto-crit checks always use the exact live `CurrentSta`, not the displayed percentage.
+* **UI note:** Both healthboxes show Stamina as a **vertical gauge on the right edge** of the box (no number; the left side of the box is reserved for the status rail). It fills bottom-up as `CurrentSta/BaseSta`: **green** normally, **yellow** at or below the Recuperate threshold (`RECUPERATE_STAMINA_PERCENT`, 40%) so the player can see when R is live, and **empty with a red frame** at 0 Stamina (Exhaustion Zone). Any non-zero Stamina draws at least 1px. Exhaustion / auto-crit checks always use the exact live `CurrentSta`, not the drawn gauge.
 
 #### Why a level-scaled rest bonus (frail pivots, bulk plants)
 
@@ -107,6 +107,7 @@ To prevent eternal recovery stalling in a format where damage is halved, the **s
 * **Trauma is a running tally of *unhealable* damage.** A portion of certain hits (the Special fraction, and crit bonuses) is added to a per-Pokémon `Trauma` counter. This does **not** reduce the hit's HP damage — it only records how much of the bar can never be restored.
 * **Heals are capped at `maxHP − Trauma`.** Any HP recovery (items, abilities, Recuperate, end-of-turn, drain) may not raise current HP above this **effective max**. So Trauma is felt only when the target tries to recover.
 * **Persistence & death.** Trauma persists across switches for the whole engagement (only Level 1 statuses clear on switch). When Trauma reaches the original max HP, the effective max is 0 and the Pokémon can hold no HP — it faints.
+* **Display.** The HP numbers show `current / (maxHP − Trauma)` — the effective max, since the rest can never come back. The HP bar still spans the original max HP and reads, left to right: **purple** (Trauma, permanently lost) → **red** (current HP) → **grey** (recoverable loss). Because current HP is capped at the effective max, the red fill always starts where the purple ends. Any non-zero Trauma draws at least 1px.
 
 #### Special Move Translation (the Trauma fraction)
 
@@ -396,5 +397,6 @@ The branch tracks `rh-hideout/pokeemerald-expansion` **`master`** (not `upcoming
 
 Fantasy Retold battle-interface art lives in `graphics/battle_interface_fantasy_retold/` (a fork of upstream's `graphics/battle_interface/`); `src/graphics.c`, `gimmicks.h`, `battle_interface.c` and the level-up banner point there. Concatenated outputs (`textbox.gbapal`, `battle_bar.4bpp`) have their own rules in `graphics_file_rules.mk` under `FRBATINTGFXDIR`.
 
-* Upstream split the doubles frame-end into **player** / **opponent** variants and added `healthbox_singles_opponent_large.png` (used only when `B_HP_PERCENTAGE_DISPLAY` is TRUE). The opponent frame-end pair and the large box are still **vanilla copies** — they need the Fantasy Retold palette pass.
-* Keep `B_HP_PERCENTAGE_DISPLAY` **FALSE**: the opponent healthbox already prints the Stamina percentage on that row.
+* **Widened healthboxes.** The four singles/doubles boxes are stretched to the right (player **+12px**, opponent **+14px**) to fit the Stamina gauge inside the border. The stretch is inserted per row *after* the HP bar's end cap (the `)` drawn in the box art at x 96–97 player / 88–89 opponent), so the cap stays on the bar and the right border, corners and shadow move as one piece. Gauge position/colours are the `STAMINA_GAUGE_*` constants in `battle_interface.c` (local to the box's right sprite).
+* **Frame-end tiles** (`healthbox_doubles_{player,opponent}_frameend[_bar].png`) are the 8×8 box tile at the HP bar's end, with / without the cap, copied in when a doubles box toggles between bar and HP numbers. They are regenerated from the widened art (Fantasy Retold palette), and the gauge is redrawn after each copy because the tile overlaps its left 2 columns.
+* `healthbox_singles_opponent_large.png` (used only when `B_HP_PERCENTAGE_DISPLAY` is TRUE) is still a **vanilla copy** and is not widened — keep `B_HP_PERCENTAGE_DISPLAY` **FALSE**.

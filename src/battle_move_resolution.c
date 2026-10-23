@@ -1052,7 +1052,7 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
         else
             gBattleStruct->battlerState[cv->battlerAtk].currentStamina = 0;
 
-        UpdateStaminaTextOnHealthbox(cv->battlerAtk); // Fantasy Retold: reflect action cost immediately.
+        UpdateStaminaGaugeOnHealthbox(cv->battlerAtk); // Fantasy Retold: reflect action cost immediately.
     }
 
     // Fantasy Retold: track move usage for signature move determination.
@@ -3149,7 +3149,7 @@ static bool32 TryMoveDamageUpdate(struct BattleCalcValues *cv)
         else
             gBattleStruct->battlerState[cv->battlerDef].currentStamina = 0;
 
-        UpdateStaminaTextOnHealthbox(cv->battlerDef); // Fantasy Retold: reflect attrition immediately.
+        UpdateStaminaGaugeOnHealthbox(cv->battlerDef); // Fantasy Retold: reflect attrition immediately.
     }
 
     GetBattlerPartyState(cv->battlerDef)->timesGotHit++;
