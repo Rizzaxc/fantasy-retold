@@ -236,8 +236,6 @@ Walls get the same breadth as attackers: four abilities, each answering one of a
 
 - Lasts 3 turns if not reapplied. Each stack preserves the current count (ie turn 1 Confused, turn 2 Stupefied --> the chain still has 2 turns)
 
-
-
 ---
 
 ## 7. Archetype Balance & Setup
@@ -320,7 +318,7 @@ Every Pokémon features an integrated Signature Move that sits outside the tradi
 
 * **Earning it.** A fully evolved mon's most-used move (≥ `SIGNATURE_MOVE_USE_THRESHOLD` = 100 uses, tracked per party slot) becomes its Signature Move. The move then **leaves the four-slot moveset**, freeing that slot (later moves, their PP, PP Ups and use counts shift up). This is settled **after battle** (and after evolution / Rare Candy), never mid-battle, so a battler's moveset can't change under it. Saves from before the slot was freed are fixed up the same way.
 * **Knowing it.** The Signature Move counts as known: level-up learning, TMs and tutors treat it as already learned, so it can't be re-added to a slot.
-* **Using it.** It is picked from the innate menu (L on the move screen). It has **no PP** — it only pays the normal Stamina action cost (BP/10 + Body Tax), shown in the menu as `STA -n` with its type. Disable, Taunt, Encore, Choice lock etc. still apply through the engine's normal checks. In doubles it currently uses the move's default target (no manual target pick yet).
+* **Using it.** It is picked from the innate menu (L on the move screen). It has **exactly 8 PP** — it only pays the normal Stamina action cost (BP/10 + Body Tax), shown in the menu as `STA -n` with its type. Disable, Taunt, Encore, Choice lock etc. still apply through the engine's normal checks. In doubles it currently uses the move's default target (no manual target pick yet).
 * **Engine.** It is chosen with an extra move position, `SIGNATURE_MOVE_POSITION` (= `MAX_MON_MOVES`); `GetBattlerMoveAtPosition` resolves it. It is never stored in `gBattleMons[].moves / .pp`, so code that indexes those by a chosen/current position checks `position < MAX_MON_MOVES` (PP checks and deduction, Grudge, Last Resort's used-move bits, Mimic and Sketch fail when used as the signature).
 * **Summary screen.** The BW summary's moves page shows it in the row under the four moves (where a move being learned or "Cancel" appears): type icon, name, and `Signature` in place of PP. That row goes back to "Cancel" / the new move while it's needed (move details, forget-a-move) and the signature returns afterwards. It isn't selectable for details yet.
 * **Not yet:** the anti-Dodge property above.
@@ -337,36 +335,36 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 
 ## 11. Tuning Constants (Quick Reference)
 
-| System     | Constant                        | Value                                               |
-| ---------- | ------------------------------- | --------------------------------------------------- |
-| Damage     | Output multiplier               | ×0.5 (in damage formula; BP stays vanilla)          |
-| Type chart | Effectiveness cap               | 2x max (weakness and resistance)                    |
-| Stamina    | Action cost                     | BP/10                                               |
-| Stamina    | Status move cost                | 10 (flat)                                           |
-| Stamina    | Body Tax (attacks + Dodge)      | +0.02 × BaseSta                                     |
-| Stamina    | Physical attrition              | incoming BP/10 (×2 if SE, x0.5 if NE)               |
-| Stamina    | Speed decay                     | BaseSpeed × (0.15 + CurrentSta/BaseSta)             |
-| Stamina    | Exhaustion (0 Sta)              | incoming damage auto-crits                          |
-| Stamina    | Persistence                     | carries across switches (not refilled to full)      |
-| Stamina    | Switch-out rest bonus           | 5 + Level / 2 (capped at BaseSta); first send-out = full |
+| System     | Constant                        | Value                                                              |
+| ---------- | ------------------------------- | ------------------------------------------------------------------ |
+| Damage     | Output multiplier               | ×0.5 (in damage formula; BP stays vanilla)                         |
+| Type chart | Effectiveness cap               | 2x max (weakness and resistance)                                   |
+| Stamina    | Action cost                     | BP/10                                                              |
+| Stamina    | Status move cost                | 10 (flat)                                                          |
+| Stamina    | Body Tax (attacks + Dodge)      | +0.02 × BaseSta                                                    |
+| Stamina    | Physical attrition              | incoming BP/10 (×2 if SE, x0.5 if NE)                              |
+| Stamina    | Speed decay                     | BaseSpeed × (0.15 + CurrentSta/BaseSta)                            |
+| Stamina    | Exhaustion (0 Sta)              | incoming damage auto-crits                                         |
+| Stamina    | Persistence                     | carries across switches (not refilled to full)                     |
+| Stamina    | Switch-out rest bonus           | 5 + Level / 2 (capped at BaseSta); first send-out = full           |
 | Dodge      | Cost                            | 5 + 20×consecutive + 0.02×BaseSta; gated behind CurrentSta >= cost |
-| Recuperate | Stamina restore / gate          | +40% BaseSta; usable only at ≤40% BaseSta          |
-| Trauma     | Special split (floor `a`)       | 0.25                                                |
-| Trauma     | Special split (drain bonus `b`) | 0.40                                                |
-| Trauma     | SpD stage resistance            | ×0.85 per +1 stage (Trauma channel only)            |
-| Status     | Proc rate                       | ×2 baseline                                         |
-| Status     | Sleep base duration             | 3 turns (−1 per damaging hit)                       |
-| Setup      | Speed-boosting setup cost       | 0 Stamina                                           |
-| Nature     | Neutral                         | Advantage (guaranteed hit if faster)                |
-| Nature     | Reckless (under-used offense)   | Super Luck (+1 crit stage)                          |
-| Nature     | Adamant / Modest                | Sheer Force (+30% dmg, no Lv1 status)               |
-| Nature     | Jolly / Timid                   | Quick Start (+1 Speed on entry)                     |
-| Nature     | Bold / Impish                   | Battle Armor (crit immune)                          |
-| Nature     | Calm / Careful                  | Resilient (+1 Sp.Def / Trauma-resist stage on entry) |
-| Nature     | Relaxed / Lax                   | Regenerator (HP on switch-out)                      |
-| Nature     | Sassy / Gentle                  | Natural Cure (status cleared on switch)             |
-| Pacing     | Time-to-death (physical)        | frail 5–7 / mid 7–10 / giga 10+ turns               |
-| Sweep      | Optimal-case trade              | 1 for 2–2.5                                         |
+| Recuperate | Stamina restore / gate          | +40% BaseSta; usable only at ≤40% BaseSta                          |
+| Trauma     | Special split (floor `a`)       | 0.25                                                               |
+| Trauma     | Special split (drain bonus `b`) | 0.40                                                               |
+| Trauma     | SpD stage resistance            | ×0.85 per +1 stage (Trauma channel only)                           |
+| Status     | Proc rate                       | ×2 baseline                                                        |
+| Status     | Sleep base duration             | 3 turns (−1 per damaging hit)                                      |
+| Setup      | Speed-boosting setup cost       | 0 Stamina                                                          |
+| Nature     | Neutral                         | Advantage (guaranteed hit if faster)                               |
+| Nature     | Reckless (under-used offense)   | Super Luck (+1 crit stage)                                         |
+| Nature     | Adamant / Modest                | Sheer Force (+30% dmg, no Lv1 status)                              |
+| Nature     | Jolly / Timid                   | Quick Start (+1 Speed on entry)                                    |
+| Nature     | Bold / Impish                   | Battle Armor (crit immune)                                         |
+| Nature     | Calm / Careful                  | Resilient (+1 Sp.Def / Trauma-resist stage on entry)               |
+| Nature     | Relaxed / Lax                   | Regenerator (HP on switch-out)                                     |
+| Nature     | Sassy / Gentle                  | Natural Cure (status cleared on switch)                            |
+| Pacing     | Time-to-death (physical)        | frail 5–7 / mid 7–10 / giga 10+ turns                              |
+| Sweep      | Optimal-case trade              | 1 for 2–2.5                                                        |
 
 ### Open Items
 
@@ -397,11 +395,11 @@ Primary goal: make quoted project includes such as `#include "global.h"` resolve
 
 The branch tracks `rh-hideout/pokeemerald-expansion` **`master`** (not `upcoming`). Last merged: **expansion 1.17.1 + 20** (`origin/master` @ 2026-10-22). Where upstream relocated code that carries Fantasy Retold hooks, the hooks moved with it:
 
-| Hook | Lives in |
-| ---- | -------- |
-| Trauma tally per hit (`TrackTraumaFromHit`), Trauma heal cap on move-damage HP gain, Physical/Psyshock Stamina attrition | `battle_move_resolution.c` — `CancelerHealthBarUpdate` / `TryMoveDamageUpdate` |
-| Status-rail level on move-applied status (`SetNonVolatileStatus(..., railMinLevel)`), innate Sheer Force secondary suppression | `battle_set_effect.c` (upstream's `SetMoveEffect` handler table) |
-| Crit-blocked messages, innate Natural Cure / Regenerator, EV-gain disable, Stamina banking on switch-out | `battle_script_commands.c` |
+| Hook                                                                                                                           | Lives in                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| Trauma tally per hit (`TrackTraumaFromHit`), Trauma heal cap on move-damage HP gain, Physical/Psyshock Stamina attrition       | `battle_move_resolution.c` — `CancelerHealthBarUpdate` / `TryMoveDamageUpdate` |
+| Status-rail level on move-applied status (`SetNonVolatileStatus(..., railMinLevel)`), innate Sheer Force secondary suppression | `battle_set_effect.c` (upstream's `SetMoveEffect` handler table)               |
+| Crit-blocked messages, innate Natural Cure / Regenerator, EV-gain disable, Stamina banking on switch-out                       | `battle_script_commands.c`                                                     |
 
 ### Battle UI graphics folder
 

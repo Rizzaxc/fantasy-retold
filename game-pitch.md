@@ -4,22 +4,31 @@ What if pokemon battle mechanics resembles the anime's? **Fantasy Retold** is a 
 
 ## Core System Highlights
 
+- **Reworked Battle Pacing**: effective damage is halved to allow each pokemon to maneuver and shine individually. This is countered by the fact that unhealable trauma damage is very present, so plan your moves carefully.
+
 - **Unified Defense & Repurposed Stamina:** The traditional Defense stat handles mitigation for both Physical and Special attacks. Special Defense is stripped of its mitigation role and rebuilt as **Stamina** (`BaseSta`), governing action speed, execution costs, and defensive thresholds.
 
-- **The Stamina Economy & Speed Decay:** Pokemon speed is now dynamic. A fast but exhasted mon will move slower than a slow but fresher opponent. Exhausting your Stamina also drops you into the *Exhaustion Zone*, where incoming hits trigger automatic critical hits.
+- **The Stamina Economy & Speed Decay:** Pokemon speed is now dynamic. A fast but exhausted mon will move slower than a slow but fresher opponent. Exhausting your Stamina also drops you into the *Exhaustion Zone*, where incoming hits trigger automatic critical hits.
 
 - **Damage Modality (Health vs. Trauma):** A single HP bar tracks two metrics: current HP and accumulated **Trauma** (unhealable permanent damage). Special attacks and critical hits channel a percentage of damage straight into Trauma, bypassing standard recovery and acting as an inescapable clock against defensive walls.
 
-- **Innate System Commands (L/R Buttons):** Access high-priority tactical options directly from the move menu:
-  
-  - **Dodge:** An active mitigation maneuver tied to speed tiers and consecutive-use compounding costs.
-  
-  - **Recuperate:** A sustain engine usable at $\le 40\%$ Stamina that restores fuel, heals HP, and purges a Level 1 status condition.
-  
-  - **Signature Moves:** Fully evolved Pokémon integrate their most-used moves into independent signature slots.
+- **Reworked Statuses**: now statuses are not just hax, but fair and visible chance you can build your strategy around. Original statuses are split into stackable stages, and a pokemon can be affected by multiple statues. 
 
-- **Reworked Natures & Systemic Status Rails:** Natures grant bespoke innate abilities (such as *Sheer Force*, *Battle Armor*, *Resilient*, and *Regenerator*). Non-volatile status effects operate on multi-stage rails where secondary effects stack up from volatility to persistent conditions.
+- **Innate System Commands:** Access high-priority tactical options directly from the move menu:
+  
+  - **Dodge:** An active mitigation maneuver. See a big hit coming? Just dodge it!
+  
+  - **Recuperate:** Your pokemon will need to take a breather lest it risks unhealable Trauma!
+  
+  - **Signature Moves:** Now your most trusted pokemons can have a Signature Move that do not take up a moveslot, allowing you to train your favorites the way you want. Beware, a signature is not without its limits!
+
+- **Rebalanced Natures:** now all natures have a place in your team. An offensive pokemon with a defensive nature is now a viable strategy.
+  
+  
+  The game is based on `pokeemerald-expansion`, so it has all the QoLs you expect from a modern hack. EV training is also taken out; you can freely allocate EV points every time your pokemon levels up.
 
 ## Development & Engine Architecture
 
 Built on top of upstream `pokeemerald-expansion`, Fantasy Retold accelerates overworld logic simulation (`4x`) while maintaining stable VBlank timing for music and save clocks, alongside battle presentation optimizations to ensure fluid combat pacing without menu hangs.
+
+
