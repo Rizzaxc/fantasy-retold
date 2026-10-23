@@ -1232,9 +1232,22 @@ static inline bool32 IsSpreadMove(enum MoveTarget moveTarget)
     return moveTarget == TARGET_BOTH || moveTarget == TARGET_FOES_AND_ALLY;
 }
 
+// Fantasy Retold: the Signature Move lives outside the four move slots (design.md §10). It is chosen with
+// this extra move position; it has no PP and is never stored in gBattleMons[].moves / .pp, so anything that
+// indexes those arrays by a chosen/current move position must check `position < MAX_MON_MOVES` first.
+#define SIGNATURE_MOVE_POSITION MAX_MON_MOVES
+enum Move GetBattlerSignatureMove(enum BattlerId battler);
+
+static inline enum Move GetBattlerMoveAtPosition(enum BattlerId battler, u32 position)
+{
+    if (position >= MAX_MON_MOVES)
+        return GetBattlerSignatureMove(battler);
+    return gBattleMons[battler].moves[position];
+}
+
 static inline enum Move GetBattlerChosenMove(enum BattlerId battler)
 {
-    return gBattleMons[battler].moves[gBattleStruct->chosenMovePositions[battler]];
+    return GetBattlerMoveAtPosition(battler, gBattleStruct->chosenMovePositions[battler]);
 }
 
 static inline void SetPassiveDamageAmount(enum BattlerId battler, s32 value)

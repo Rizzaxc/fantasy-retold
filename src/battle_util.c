@@ -36,6 +36,7 @@
 #include "battle_message.h"
 #include "battle_ai_record.h"
 #include "battle_ai_util.h"
+#include "signature_move.h"
 #include "event_data.h"
 #include "link.h"
 #include "malloc.h"
@@ -520,14 +521,14 @@ void HandleAction_UseMove(void)
         gBattleMons[gBattlerAttacker].volatiles.encoreTimer = 0;
         gBattleStruct->moveTarget[gBattlerAttacker] = GetBattleMoveTarget(gCurrentMove, TARGET_NONE);
     }
-    else if (gBattleMons[gBattlerAttacker].moves[gCurrMovePos] != gChosenMoveByBattler[gBattlerAttacker])
+    else if (GetBattlerMoveAtPosition(gBattlerAttacker, gCurrMovePos) != gChosenMoveByBattler[gBattlerAttacker])
     {
-        gCurrentMove = gChosenMove = gBattleMons[gBattlerAttacker].moves[gCurrMovePos];
+        gCurrentMove = gChosenMove = GetBattlerMoveAtPosition(gBattlerAttacker, gCurrMovePos);
         gBattleStruct->moveTarget[gBattlerAttacker] = GetBattleMoveTarget(gCurrentMove, TARGET_NONE);
     }
     else
     {
-        gCurrentMove = gChosenMove = gBattleMons[gBattlerAttacker].moves[gCurrMovePos];
+        gCurrentMove = gChosenMove = GetBattlerMoveAtPosition(gBattlerAttacker, gCurrMovePos);
     }
 
     if (IsBattlerAlive(gBattlerAttacker))
@@ -1505,11 +1506,17 @@ static bool32 IsGimmickChosenForAction(enum BattlerId battler, enum Gimmick gimm
          && gBattleStruct->gimmick.usableGimmick[battler] == gimmick;
 }
 
+// Fantasy Retold: the battler's Signature Move (outside the four slots), or MOVE_NONE.
+enum Move GetBattlerSignatureMove(enum BattlerId battler)
+{
+    return GetSignatureMove(GetBattlerMon(battler));
+}
+
 u32 TrySetCantSelectMoveBattleScript(enum BattlerId battler)
 {
     u32 limitations = 0;
     u8 moveId = gBattleResources->bufferB[battler][2] & ~RET_GIMMICK;
-    enum Move move = gBattleMons[battler].moves[moveId];
+    enum Move move = GetBattlerMoveAtPosition(battler, moveId); // Fantasy Retold: moveId may be SIGNATURE_MOVE_POSITION
     enum HoldEffect holdEffect = GetBattlerHoldEffect(battler);
     u16 *choicedMove = &gBattleStruct->choicedMove[battler];
     enum BattleMoveEffects moveEffect = GetMoveEffect(move);
@@ -1668,7 +1675,7 @@ u32 TrySetCantSelectMoveBattleScript(enum BattlerId battler)
             limitations++;
     }
 
-    if (gBattleMons[battler].pp[moveId] == 0)
+    if (moveId < MAX_MON_MOVES && gBattleMons[battler].pp[moveId] == 0) // the Signature Move has no PP
     {
         if (gBattleTypeFlags & BATTLE_TYPE_PALACE)
         {

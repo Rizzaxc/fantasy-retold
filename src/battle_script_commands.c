@@ -2411,7 +2411,6 @@ static void Cmd_getexp(void)
                         SWAP(gBattleMons[battler].attack, gBattleMons[battler].defense, temp);
                 }
 
-                TryDetermineSignatureMove(&gParties[B_TRAINER_PLAYER][*expMonId], *expMonId);
                 gBattleScripting.getexpState = 5;
             }
             else
@@ -6071,6 +6070,7 @@ static void Cmd_mimicattackcopy(void)
     if (gLastMoves[gBattlerTarget] == MOVE_UNAVAILABLE
      || gLastMoves[gBattlerTarget] == MOVE_NONE
      || gBattleMons[gBattlerAttacker].volatiles.transformed
+     || gCurrMovePos >= MAX_MON_MOVES // Fantasy Retold: used as the Signature Move, there is no slot to copy into
      || IsMoveMimicBanned(gLastMoves[gBattlerTarget]))
     {
         gBattlescriptCurrInstr = cmd->failInstr;
@@ -6330,6 +6330,7 @@ static void Cmd_copymovepermanently(void)
     gChosenMove = MOVE_UNAVAILABLE;
 
     if (!(gBattleMons[gBattlerAttacker].volatiles.transformed)
+        && gCurrMovePos < MAX_MON_MOVES // Fantasy Retold: used as the Signature Move, there is no slot to overwrite
         && gLastPrintedMoves[gBattlerTarget] != MOVE_UNAVAILABLE
         && !IsMoveSketchBanned(gLastPrintedMoves[gBattlerTarget]))
     {

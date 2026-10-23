@@ -254,7 +254,8 @@ static enum CancelerResult CancelerObedience(struct BattleCalcValues *cv)
 
 static enum CancelerResult CancelerPowerPoints(struct BattleCalcValues *cv)
 {
-    if (gBattleMons[cv->battlerAtk].pp[gCurrMovePos] == 0
+    if (gCurrMovePos < MAX_MON_MOVES // Fantasy Retold: the Signature Move has no PP
+     && gBattleMons[cv->battlerAtk].pp[gCurrMovePos] == 0
      && cv->move != MOVE_STRUGGLE
      && !gSpecialStatuses[cv->battlerAtk].dancerUsedMove
      && !gBattleMons[cv->battlerAtk].volatiles.multipleTurns)
@@ -651,7 +652,8 @@ static enum CancelerResult CancelerAttackstring(struct BattleCalcValues *cv)
     BattleScriptCall(BattleScript_Attackstring);
     if (!gSpecialStatuses[gBattlerAttacker].dancerUsedMove)
     {
-        gBattleMons[gBattlerAttacker].volatiles.usedMoves |= 1u << gCurrMovePos;
+        if (gCurrMovePos < MAX_MON_MOVES) // Fantasy Retold: not for the Signature Move (outside the slots)
+            gBattleMons[gBattlerAttacker].volatiles.usedMoves |= 1u << gCurrMovePos;
         gBattleStruct->battlerState[gBattlerAttacker].lastMoveTarget = gBattlerTarget;
         gLastPrintedMoves[gBattlerAttacker] = gChosenMove;
         RecordKnownMove(gBattlerAttacker, gChosenMove);
@@ -1034,10 +1036,14 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
     if (cv->move != gLastResultingMoves[cv->battlerAtk] || gBattleStruct->unableToUseMove)
         gBattleMons[cv->battlerAtk].volatiles.metronomeItemCounter = 0;
 
-    if (gBattleMons[cv->battlerAtk].pp[movePosition] > ppToDeduct)
-        gBattleMons[cv->battlerAtk].pp[movePosition] -= ppToDeduct;
-    else
-        gBattleMons[cv->battlerAtk].pp[movePosition] = 0;
+    // Fantasy Retold: the Signature Move has no PP (it only pays the Stamina cost below).
+    if (movePosition < MAX_MON_MOVES)
+    {
+        if (gBattleMons[cv->battlerAtk].pp[movePosition] > ppToDeduct)
+            gBattleMons[cv->battlerAtk].pp[movePosition] -= ppToDeduct;
+        else
+            gBattleMons[cv->battlerAtk].pp[movePosition] = 0;
+    }
 
     // Fantasy Retold: Stamina action cost. Damaging: BP/10 + 2% BaseSta body tax. Status: flat 10.
     {
@@ -1056,12 +1062,12 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
     }
 
     // Fantasy Retold: track move usage for signature move determination.
-    if (IsOnPlayerSide(cv->battlerAtk))
+    if (IsOnPlayerSide(cv->battlerAtk) && movePosition < MAX_MON_MOVES)
         IncrementMoveUseCount(gBattlerPartyIndexes[cv->battlerAtk], movePosition);
 
     gLastMoves[cv->battlerAtk] = gChosenMove;
 
-    if (MOVE_IS_PERMANENT(cv->battlerAtk, movePosition))
+    if (movePosition < MAX_MON_MOVES && MOVE_IS_PERMANENT(cv->battlerAtk, movePosition))
     {
         BtlController_EmitSetMonData(
             cv->battlerAtk,
@@ -3797,7 +3803,8 @@ static enum MoveEndResult MoveEndFaintBlock(struct BattleCalcValues *cv)
              && !IsBattlerAlly(cv->battlerAtk, cv->battlerDef)
              && !IsZMove(cv->move)
              && cv->move != MOVE_STRUGGLE
-             && cv->moveEffect != EFFECT_FUTURE_SIGHT)
+             && cv->moveEffect != EFFECT_FUTURE_SIGHT
+             && gBattleStruct->chosenMovePositions[cv->battlerAtk] < MAX_MON_MOVES) // Fantasy Retold: Signature Move has no PP to take
             {
                 u32 moveIndex = gBattleStruct->chosenMovePositions[cv->battlerAtk];
 
@@ -6171,7 +6178,8 @@ static enum Move GetSleepTalkMove(void)
         return move;
 
     // Set Sleep Talk as used move, so it works with Last Resort.
-    gBattleMons[gBattlerAttacker].volatiles.usedMoves |= 1u << gCurrMovePos;
+    if (gCurrMovePos < MAX_MON_MOVES) // Fantasy Retold: not for the Signature Move
+        gBattleMons[gBattlerAttacker].volatiles.usedMoves |= 1u << gCurrMovePos;
     do
     {
         movePosition = MOD(Random(), MAX_MON_MOVES);

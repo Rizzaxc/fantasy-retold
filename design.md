@@ -67,7 +67,7 @@ These bands assume physical pressure. Against a **special** attacker, Stamina dr
 
 ## 3. Innate System Commands (L/R Shoulder Buttons)
 
-Every Pokémon possesses two innate mechanical actions, reached from the **innate menu**. On the move selection screen, **L** (R in the L=A button mode, where L acts as A) swaps the four move slots for **Dodge**, **Recuperate** and the mon's **Signature Move** (if it has one); L or B swaps back. An entry that can't be used this turn is drawn faded (not enough Stamina for Dodge, above the 40% gate for Recuperate, no PP left for the Signature Move) and picking it shows why. The right-hand panel shows the highlighted entry's Stamina cost (`STA -n`) or gain (`STA +n`), or the Signature Move's PP and type. The `L / MOVE INFO` tab above the menu is relabelled `L / INNATE` (upstream's move-description viewer is no longer reachable). These commands execute with high-priority sequencing, functioning identically to item usage windows. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
+Every Pokémon possesses two innate mechanical actions, reached from the **innate menu**. On the move selection screen, **L** (R in the L=A button mode, where L acts as A) swaps the four move slots for **Dodge**, **Recuperate** and the mon's **Signature Move** (if it has one); L or B swaps back. An entry that can't be used this turn is drawn faded (not enough Stamina for Dodge, above the 40% gate for Recuperate) and picking it shows why. The right-hand panel shows the highlighted entry's Stamina cost (`STA -n`) or gain (`STA +n`), or the Signature Move's Stamina cost and type (it has no PP). The `L / MOVE INFO` tab above the menu is relabelled `L / INNATE` (upstream's move-description viewer is no longer reachable). These commands execute with high-priority sequencing, functioning identically to item usage windows. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
 
 ### Dodge
 
@@ -315,7 +315,13 @@ Items whose only job was boosting the (now-removed) Sp. Def mitigation stat are 
 
 Every Pokémon features an integrated Signature Move that sits outside the traditional 4-slot move framework. These actions are structurally impossible to dodge completely; at worst, they will always connect at a minimum of 50% damage against a faster dodging target. *(Signature moves are damaging attacks and pay the standard action cost + Body Tax; per-move BP/type TBD.)*
 
-*Current implementation:* the Signature Move is chosen from the mon's own four moves (a move used ≥100 times once fully evolved becomes its signature and can no longer be replaced), so it still occupies a move slot. The innate menu's Signature entry selects that slot (same PP and targeting); the anti-Dodge property is not implemented yet.
+*Current implementation:*
+
+* **Earning it.** A fully evolved mon's most-used move (≥ `SIGNATURE_MOVE_USE_THRESHOLD` = 100 uses, tracked per party slot) becomes its Signature Move. The move then **leaves the four-slot moveset**, freeing that slot (later moves, their PP, PP Ups and use counts shift up). This is settled **after battle** (and after evolution / Rare Candy), never mid-battle, so a battler's moveset can't change under it. Saves from before the slot was freed are fixed up the same way.
+* **Knowing it.** The Signature Move counts as known: level-up learning, TMs and tutors treat it as already learned, so it can't be re-added to a slot.
+* **Using it.** It is picked from the innate menu (L on the move screen). It has **no PP** — it only pays the normal Stamina action cost (BP/10 + Body Tax), shown in the menu as `STA -n` with its type. Disable, Taunt, Encore, Choice lock etc. still apply through the engine's normal checks. In doubles it currently uses the move's default target (no manual target pick yet).
+* **Engine.** It is chosen with an extra move position, `SIGNATURE_MOVE_POSITION` (= `MAX_MON_MOVES`); `GetBattlerMoveAtPosition` resolves it. It is never stored in `gBattleMons[].moves / .pp`, so code that indexes those by a chosen/current position checks `position < MAX_MON_MOVES` (PP checks and deduction, Grudge, Last Resort's used-move bits, Mimic and Sketch fail when used as the signature).
+* **Not yet:** the anti-Dodge property above, and showing the Signature Move on the summary screen.
 
 ### Itemized Moves
 

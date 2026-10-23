@@ -5683,6 +5683,9 @@ bool8 MonKnowsMove(struct Pokemon *mon, enum Move move)
 {
     u8 i;
 
+    if (IsSignatureMove(mon, move)) // Fantasy Retold: known, though outside the four slots
+        return TRUE;
+
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
         if (GetMonData(mon, MON_DATA_MOVE1 + i) == move)
@@ -5694,6 +5697,9 @@ bool8 MonKnowsMove(struct Pokemon *mon, enum Move move)
 bool8 BoxMonKnowsMove(struct BoxPokemon *boxMon, enum Move move)
 {
     u8 i;
+
+    if (move != MOVE_NONE && GetBoxMonData(boxMon, MON_DATA_SIGNATURE_MOVE) == move) // Fantasy Retold
+        return TRUE;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {

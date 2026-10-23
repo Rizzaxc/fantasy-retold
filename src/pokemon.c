@@ -1504,6 +1504,9 @@ u16 GiveMoveToMon(struct Pokemon *mon, enum Move move)
 u16 GiveMoveToBoxMon(struct BoxPokemon *boxMon, enum Move move)
 {
     s32 i;
+    // Fantasy Retold: the Signature Move sits outside the four slots but still counts as known.
+    if (GetBoxMonData(boxMon, MON_DATA_SIGNATURE_MOVE) == move)
+        return MON_ALREADY_KNOWS_MOVE;
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
         enum Move existingMove = GetBoxMonData(boxMon, MON_DATA_MOVE1 + i);
