@@ -364,12 +364,13 @@ void UpdateIndicatorLevelData(u32 healthboxId, u32 level)
     gSprites[GetIndicatorSpriteId(healthboxId)].tLevelXDelta = xDelta;
 }
 
+// Fantasy Retold: just left of the right-aligned level digits on the healthbox plate (battle_interface.c).
 static const s8 sIndicatorPositions[][2] =
 {
-    [B_POSITION_PLAYER_LEFT] = {49, -9},
-    [B_POSITION_OPPONENT_LEFT] = {40, -9},
-    [B_POSITION_PLAYER_RIGHT] = {48, -9},
-    [B_POSITION_OPPONENT_RIGHT] = {40, -9},
+    [B_POSITION_PLAYER_LEFT] = {52, -12},
+    [B_POSITION_OPPONENT_LEFT] = {47, -12},
+    [B_POSITION_PLAYER_RIGHT] = {52, -12},
+    [B_POSITION_OPPONENT_RIGHT] = {47, -12},
 };
 
 void CreateIndicatorSprite(enum BattlerId battler)

@@ -47,7 +47,7 @@ healthbox_palette = [
     '#6070D0',  # 12 Status Cool
     '#F0D850',  # 13 Highlight/PAR
     '#3890D8',  # 14 Status Water
-    '#383848',  # 15 HP Empty Grey
+    '#E070B0',  # 15 Status Pink (Confusion line in the healthbox status column)
 ]
 
 # --- Healthbar palette (from ball_display.png) ---

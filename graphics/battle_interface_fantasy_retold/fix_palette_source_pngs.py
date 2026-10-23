@@ -18,7 +18,7 @@ def make_indexed_palette(hex_colors):
 healthbox_palette = [
     '#FF00FF', '#1A1A2E', '#2D2D44', '#0F0F1A', '#4A4A5E', '#E8E8F0',
     '#8888A0', '#D03040', '#70C040', '#8848A0', '#40B8C8', '#D87830',
-    '#6070D0', '#F0D850', '#3890D8', '#383848',
+    '#6070D0', '#F0D850', '#3890D8', '#E070B0',
 ]
 
 healthbar_palette = [
