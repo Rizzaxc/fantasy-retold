@@ -108,8 +108,8 @@ BattleScript_FRDodge::
 BattleScript_FRRecuperate::
 	playmoveanimation MOVE_RECOVER
 	waitanimation
-	healthbarupdate BS_ATTACKER, PASSIVE_HP_UPDATE
-	datahpupdate BS_ATTACKER, PASSIVE_HP_UPDATE
+	healthbarupdate BS_ATTACKER
+	datahpupdate BS_ATTACKER, ASSURANCE_IGNORE
 	finishaction
 
 BattleScript_PlayMoveAnimAndChangeHP::
