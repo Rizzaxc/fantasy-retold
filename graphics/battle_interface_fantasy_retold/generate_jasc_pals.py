@@ -28,6 +28,12 @@ textbox_palette_0 = [
     '#D87830', '#383848', '#505068', '#C0C0D0',
 ]
 
+textbox_palette_1 = [
+    '#000000', '#E8E8F0', '#8888A0', '#4A4A5E', '#D03040', '#70C040',
+    '#3890D8', '#F0D850', '#D87830', '#8848A0', '#40B8C8', '#1A1A2E',
+    '#2D2D44', '#0F0F1A', '#383848', '#C0C0D0',
+]
+
 ability_pop_up_palette = [
     '#FF00FF', '#1A1A2E', '#2D2D44', '#0F0F1A', '#4A4A5E', '#E8E8F0',
     '#8888A0', '#D03040', '#70C040', '#8848A0', '#40B8C8', '#D87830',
@@ -48,7 +54,7 @@ def main():
     write_jasc_pal('text.pal', text_palette)
     write_jasc_pal('text_pp.pal', text_palette)
     write_jasc_pal('textbox_0.pal', textbox_palette_0)
-    write_jasc_pal('textbox_1.pal', textbox_palette_0)
+    write_jasc_pal('textbox_1.pal', textbox_palette_1)
     write_jasc_pal('ability_pop_up.pal', ability_pop_up_palette)
     write_jasc_pal('misc_indicator.pal', misc_indicator_palette)
     print("Done!")

@@ -67,7 +67,7 @@ These bands assume physical pressure. Against a **special** attacker, Stamina dr
 
 ## 3. Innate System Commands (L/R Shoulder Buttons)
 
-Every Pokémon possesses two innate mechanical actions mapped directly to the controller shoulder buttons. These commands execute with high-priority sequencing, functioning identically to item usage windows. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
+Every Pokémon possesses two innate mechanical actions mapped directly to the controller shoulder buttons. They are pressed on the **move selection screen**, where a one-line hint above the move menu reads `L:Dodge  R:Recup` — white when the command is usable this turn, grey when it isn't (not enough Stamina for Dodge; above the 40% gate for Recuperate). In the L=A button mode only `R:Recup` is shown. These commands execute with high-priority sequencing, functioning identically to item usage windows. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
 
 ### Dodge (L Button)
 
@@ -396,6 +396,9 @@ The branch tracks `rh-hideout/pokeemerald-expansion` **`master`** (not `upcoming
 ### Battle UI graphics folder
 
 Fantasy Retold battle-interface art lives in `graphics/battle_interface_fantasy_retold/` (a fork of upstream's `graphics/battle_interface/`); `src/graphics.c`, `gimmicks.h`, `battle_interface.c` and the level-up banner point there. Concatenated outputs (`textbox.gbapal`, `battle_bar.4bpp`) have their own rules in `graphics_file_rules.mk` under `FRBATINTGFXDIR`.
+
+* **Palettes.** `textbox.gbapal` is built as `textbox_0.gbapal` + `textbox_1.gbapal`, which come from the JASC `textbox_0.pal` / `textbox_1.pal`. Those `.pal` files are written by `generate_jasc_pals.py`; `generate_dark_palettes.py` holds the same colour lists for the raw `.gbapal` outputs. Edit a palette in **both** scripts and rerun `generate_jasc_pals.py` — the build only reads the `.pal` files.
+* **Healthbox text** is cleared with `HEALTHBOX_BG_INDEX` = slot **5** (the box interior in the healthbox palette); vanilla used slot 2, which is a dark navy in the Fantasy Retold palette.
 
 * **Widened healthboxes.** The four singles/doubles boxes are stretched to the right (player **+12px**, opponent **+14px**) to fit the Stamina gauge inside the border. The stretch is inserted per row *after* the HP bar's end cap (the `)` drawn in the box art at x 96–97 player / 88–89 opponent), so the cap stays on the bar and the right border, corners and shadow move as one piece. Gauge position/colours are the `STAMINA_GAUGE_*` constants in `battle_interface.c` (local to the box's right sprite).
 * **Frame-end tiles** (`healthbox_doubles_{player,opponent}_frameend[_bar].png`) are the 8×8 box tile at the HP bar's end, with / without the cap, copied in when a doubles box toggles between bar and HP numbers. They are regenerated from the widened art (Fantasy Retold palette), and the gauge is redrawn after each copy because the tile overlaps its left 2 columns.

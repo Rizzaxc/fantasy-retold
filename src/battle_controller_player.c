@@ -110,11 +110,8 @@ static const u8 sText_DodgeCostThreshold[] = _(
     "Not enough Stamina to Dodge!\p"
 );
 
-static const u8 sText_InnateHintDodgeOn[] = _("L:Dodge  ");
-static const u8 sText_InnateHintDodgeOff[] = _("L:---    ");
-static const u8 sText_InnateHintRecupOn[] = _("R:Recup");
-static const u8 sText_InnateHintRecupOff[] = _("R:---");
-static const u8 sText_InnateHintNoL[] = _("         R:Recup");
+static const u8 sText_InnateHintDodge[] = _("L:Dodge");
+static const u8 sText_InnateHintRecup[] = _("R:Recup");
 
 static void (*const sPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(enum BattlerId battler) =
 {
@@ -2206,25 +2203,31 @@ void PlayerHandleChooseMove(enum BattlerId battler)
     }
 }
 
-// Fantasy Retold: show L/R innate command availability on the move selection screen.
-// Uses B_WIN_MOVE_DESCRIPTION (tilemapTop 47, visible in the move-select scroll position).
+// Fantasy Retold: show L/R innate command availability on the move selection screen, as a single line of
+// outlined text just above the move menu. Uses B_WIN_MOVE_DESCRIPTION (bg0 rows 47-52, only on screen in the
+// move-select scroll position) with a transparent background so the battle scene shows through; an
+// unavailable command is greyed out rather than hidden. Colours are text palette (text.pal) slots.
+#define INNATE_HINT_Y   32  // bottom text line of the 6-tile-tall window
+#define INNATE_HINT_GAP 8
 static void MoveSelectionDisplayInnateHints(enum BattlerId battler)
 {
-    u32 dodgeCost = GetDodgeCost(battler);
-    bool32 canDodge = gBattleStruct->battlerState[battler].currentStamina >= dodgeCost;
+    static const u8 sColorsOn[3] = {TEXT_COLOR_TRANSPARENT, 1, 3};  // white, dark shadow
+    static const u8 sColorsOff[3] = {TEXT_COLOR_TRANSPARENT, 2, 3}; // grey, dark shadow
+    bool32 canDodge = gBattleStruct->battlerState[battler].currentStamina >= GetDodgeCost(battler);
     bool32 canRecup = CanUseRecuperate(battler);
-    u8 *txtPtr;
+    u32 x = 0;
 
-    if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
-        StringCopy(gDisplayedStringBattle, sText_InnateHintNoL);
-    else
+    FillWindowPixelBuffer(B_WIN_MOVE_DESCRIPTION, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
+    if (gSaveBlock2Ptr->optionsButtonMode != OPTIONS_BUTTON_MODE_L_EQUALS_A) // L acts as A in that mode
     {
-        txtPtr = StringCopy(gDisplayedStringBattle, canDodge ? sText_InnateHintDodgeOn : sText_InnateHintDodgeOff);
-        StringCopy(txtPtr, canRecup ? sText_InnateHintRecupOn : sText_InnateHintRecupOff);
+        AddTextPrinterParameterized4(B_WIN_MOVE_DESCRIPTION, FONT_NARROW, x, INNATE_HINT_Y, 0, 0,
+                                     canDodge ? sColorsOn : sColorsOff, TEXT_SKIP_DRAW, sText_InnateHintDodge);
+        x += GetStringWidth(FONT_NARROW, sText_InnateHintDodge, 0) + INNATE_HINT_GAP;
     }
-    FillWindowPixelBuffer(B_WIN_MOVE_DESCRIPTION, PIXEL_FILL(0));
-    BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MOVE_DESCRIPTION);
-    CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_GFX);
+    AddTextPrinterParameterized4(B_WIN_MOVE_DESCRIPTION, FONT_NARROW, x, INNATE_HINT_Y, 0, 0,
+                                 canRecup ? sColorsOn : sColorsOff, TEXT_SKIP_DRAW, sText_InnateHintRecup);
+    PutWindowTilemap(B_WIN_MOVE_DESCRIPTION);
+    CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_FULL);
 }
 
 void InitMoveSelectionsVarsAndStrings(enum BattlerId battler)

@@ -37,7 +37,7 @@
 #include "constants/items.h"
 #include "caps.h"
 
-#define HEALTHBOX_BG_INDEX 2
+#define HEALTHBOX_BG_INDEX 5 // Fantasy Retold: the box interior is slot 5 in the healthbox palette (vanilla's cream was slot 2)
 
 // Fantasy Retold: Trauma scar colours in the healthbar palette (slots 7/8 = purple bright/dark), painted
 // over the two fill rows of the HP bar tiles.
