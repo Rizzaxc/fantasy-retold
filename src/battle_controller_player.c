@@ -6,6 +6,7 @@
 #include "battle_dome.h"
 #include "battle_interface.h"
 #include "battle_main.h"
+#include "signature_move.h"
 #include "battle_message.h"
 #include "battle_setup.h"
 #include "battle_tv.h"
@@ -110,8 +111,30 @@ static const u8 sText_DodgeCostThreshold[] = _(
     "Not enough Stamina to Dodge!\p"
 );
 
-static const u8 sText_InnateHintDodge[] = _("L:Dodge");
-static const u8 sText_InnateHintRecup[] = _("R:Recup");
+// Fantasy Retold: innate command menu (design.md §3). L (R in L=A mode) swaps the four move slots for
+// Dodge / Recuperate / the Signature Move; L or B swaps back.
+enum InnateMenuEntry
+{
+    INNATE_ENTRY_DODGE,
+    INNATE_ENTRY_RECUPERATE,
+    INNATE_ENTRY_SIGNATURE,
+};
+
+static const u8 sText_InnateDodge[] = _("Dodge");
+static const u8 sText_InnateRecuperate[] = _("Recuperate");
+static const u8 sText_InnateStamina[] = _("STA");
+static const u8 sText_InnateDodgeInfo[] = _("Evade");
+static const u8 sText_InnateRecuperateInfo[] = _("Rest");
+// Unavailable entries: dark grey with no outline (text palette slots 3 / 14), so they read as faded.
+static const u8 sText_InnateDisabledColor[] = _("{COLOR 3}{SHADOW 14}");
+
+static bool8 sInnateMenuActive[MAX_BATTLERS_COUNT];
+static u8 sInnateMenuCursor[MAX_BATTLERS_COUNT];
+static u8 sInnateMenuSavedMoveCursor[MAX_BATTLERS_COUNT];
+
+static bool32 HandleInputChooseInnate(enum BattlerId battler);
+static void OpenInnateMenu(enum BattlerId battler);
+static void CloseInnateMenu(enum BattlerId battler, u32 moveCursor);
 
 static void (*const sPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(enum BattlerId battler) =
 {
@@ -702,26 +725,249 @@ static bool32 CanUseRecuperate(enum BattlerId battler)
 static void WaitForRecuperateSelectionMessage(enum BattlerId battler)
 {
     if (!IsTextPrinterActiveOnWindow(B_WIN_MSG))
+    {
+        gBattle_BG0_X = 0;
+        gBattle_BG0_Y = DISPLAY_HEIGHT * 2; // back to the move-select scroll position
         gBattlerControllerFuncs[battler] = HandleInputChooseMove;
+    }
 }
 
 static void WaitForDodgeSelectionMessage(enum BattlerId battler)
 {
     if (!IsTextPrinterActiveOnWindow(B_WIN_MSG))
+    {
+        gBattle_BG0_X = 0;
+        gBattle_BG0_Y = DISPLAY_HEIGHT * 2; // back to the move-select scroll position
         gBattlerControllerFuncs[battler] = HandleInputChooseMove;
+    }
+}
+
+// Fantasy Retold: the Signature Move is one of the mon's four moves (design.md §10), so the innate menu
+// entry maps onto that move slot (same PP, same targeting). -1 if the mon has none / it isn't in the moveset.
+static s32 GetInnateSignatureSlot(enum BattlerId battler)
+{
+    struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
+    enum Move signature = GetSignatureMove(GetBattlerMon(battler));
+    u32 i;
+
+    if (signature == MOVE_NONE)
+        return -1;
+    for (i = 0; i < MAX_MON_MOVES; i++)
+    {
+        if (moveInfo->moves[i] == signature)
+            return i;
+    }
+    return -1;
+}
+
+static u32 GetInnateMenuEntryCount(enum BattlerId battler)
+{
+    return GetInnateSignatureSlot(battler) >= 0 ? INNATE_ENTRY_SIGNATURE + 1 : INNATE_ENTRY_SIGNATURE;
+}
+
+static bool32 IsInnateMenuEntryUsable(enum BattlerId battler, u32 entry)
+{
+    struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
+
+    switch (entry)
+    {
+    case INNATE_ENTRY_DODGE:
+        return gBattleStruct->battlerState[battler].currentStamina >= GetDodgeCost(battler);
+    case INNATE_ENTRY_RECUPERATE:
+        return CanUseRecuperate(battler);
+    case INNATE_ENTRY_SIGNATURE:
+        return moveInfo->currentPP[GetInnateSignatureSlot(battler)] != 0;
+    }
+    return FALSE;
+}
+
+static void PrintInnateMenuEntry(enum BattlerId battler, u32 entry)
+{
+    struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
+    u8 *txtPtr = gDisplayedStringBattle;
+
+    *txtPtr = EOS;
+    if (entry < GetInnateMenuEntryCount(battler))
+    {
+        if (!IsInnateMenuEntryUsable(battler, entry))
+            txtPtr = StringCopy(txtPtr, sText_InnateDisabledColor);
+        if (entry == INNATE_ENTRY_DODGE)
+            StringCopy(txtPtr, sText_InnateDodge);
+        else if (entry == INNATE_ENTRY_RECUPERATE)
+            StringCopy(txtPtr, sText_InnateRecuperate);
+        else
+            StringCopy(txtPtr, GetMoveName(moveInfo->moves[GetInnateSignatureSlot(battler)]));
+    }
+    // Prints on windows B_WIN_MOVE_NAME_1..4, in the same 2x2 grid as the moves.
+    BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MOVE_NAME_1 + entry);
+}
+
+// Right-hand panel for the highlighted entry: Stamina cost / gain for Dodge and Recuperate, the usual PP and
+// type for the Signature Move.
+static void DisplayInnateMenuEntryInfo(enum BattlerId battler)
+{
+    u32 entry = sInnateMenuCursor[battler];
+    u8 *txtPtr;
+
+    if (entry == INNATE_ENTRY_SIGNATURE)
+    {
+        u8 savedCursor = gMoveSelectionCursor[battler];
+        gMoveSelectionCursor[battler] = GetInnateSignatureSlot(battler);
+        MoveSelectionDisplayPPString(battler);
+        MoveSelectionDisplayPPNumber(battler);
+        MoveSelectionDisplayMoveType(battler);
+        gMoveSelectionCursor[battler] = savedCursor;
+        return;
+    }
+
+    BattlePutTextOnWindow(sText_InnateStamina, B_WIN_PP);
+    txtPtr = gDisplayedStringBattle;
+    if (entry == INNATE_ENTRY_DODGE)
+    {
+        *txtPtr++ = CHAR_HYPHEN;
+        ConvertIntToDecimalStringN(txtPtr, GetDodgeCost(battler), STR_CONV_MODE_LEFT_ALIGN, 3);
+        BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_PP_REMAINING);
+        BattlePutTextOnWindow(sText_InnateDodgeInfo, B_WIN_MOVE_TYPE);
+    }
+    else
+    {
+        *txtPtr++ = CHAR_PLUS;
+        ConvertIntToDecimalStringN(txtPtr, (GetBaseStamina(battler) * RECUPERATE_STAMINA_PERCENT) / 100, STR_CONV_MODE_LEFT_ALIGN, 3);
+        BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_PP_REMAINING);
+        BattlePutTextOnWindow(sText_InnateRecuperateInfo, B_WIN_MOVE_TYPE);
+    }
+}
+
+static void OpenInnateMenu(enum BattlerId battler)
+{
+    u32 i;
+
+    sInnateMenuActive[battler] = TRUE;
+    sInnateMenuSavedMoveCursor[battler] = gMoveSelectionCursor[battler];
+    sInnateMenuCursor[battler] = INNATE_ENTRY_DODGE;
+    for (i = 0; i < MAX_MON_MOVES; i++)
+    {
+        MoveSelectionDestroyCursorAt(i);
+        PrintInnateMenuEntry(battler, i);
+    }
+    MoveSelectionCreateCursorAt(sInnateMenuCursor[battler], 0);
+    DisplayInnateMenuEntryInfo(battler);
+}
+
+// Back to the four moves, with the move cursor on moveCursor.
+static void CloseInnateMenu(enum BattlerId battler, u32 moveCursor)
+{
+    sInnateMenuActive[battler] = FALSE;
+    gMoveSelectionCursor[battler] = moveCursor;
+    MoveSelectionDisplayMoveNames(battler); // also clears every cursor
+    MoveSelectionCreateCursorAt(gMoveSelectionCursor[battler], 0);
+    if (B_SHOW_EFFECTIVENESS)
+        MoveSelectionDisplayMoveEffectiveness(CheckTargetTypeEffectiveness(battler), battler);
+    MoveSelectionDisplayPPString(battler);
+    MoveSelectionDisplayPPNumber(battler);
+    MoveSelectionDisplayMoveType(battler);
+}
+
+static void ShowInnateMenuMessage(enum BattlerId battler, const u8 *text, void (*waitFunc)(enum BattlerId))
+{
+    gBattle_BG0_X = 0;
+    gBattle_BG0_Y = 0;
+    BattlePutTextOnWindow(text, B_WIN_MSG);
+    gBattlerControllerFuncs[battler] = waitFunc;
+}
+
+static void ConfirmInnateAction(enum BattlerId battler, u32 action)
+{
+    sInnateMenuActive[battler] = FALSE;
+    TryToHideMoveInfoWindow();
+    HideGimmickTriggerSprite();
+    TryHideLastUsedBall();
+    BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, action, 0);
+    BtlController_Complete(battler);
+}
+
+// Returns TRUE when the Signature Move was picked: the menu is closed with the move cursor on its slot and
+// the caller confirms it through the normal move path (targeting, gimmicks, PP checks).
+static bool32 HandleInputChooseInnate(enum BattlerId battler)
+{
+    u32 cursor = sInnateMenuCursor[battler];
+    u32 target = cursor;
+    u32 toggleButton = (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A) ? R_BUTTON : L_BUTTON;
+
+    if (JOY_NEW(A_BUTTON))
+    {
+        switch (cursor)
+        {
+        case INNATE_ENTRY_DODGE:
+            PlaySE(SE_SELECT);
+            if (IsInnateMenuEntryUsable(battler, INNATE_ENTRY_DODGE))
+                ConfirmInnateAction(battler, B_ACTION_DODGE);
+            else
+                ShowInnateMenuMessage(battler, sText_DodgeCostThreshold, WaitForDodgeSelectionMessage);
+            return FALSE;
+        case INNATE_ENTRY_RECUPERATE:
+            PlaySE(SE_SELECT);
+            if (IsInnateMenuEntryUsable(battler, INNATE_ENTRY_RECUPERATE))
+                ConfirmInnateAction(battler, B_ACTION_RECUPERATE);
+            else
+                ShowInnateMenuMessage(battler, sText_RecuperateThreshold, WaitForRecuperateSelectionMessage);
+            return FALSE;
+        case INNATE_ENTRY_SIGNATURE:
+            CloseInnateMenu(battler, GetInnateSignatureSlot(battler)); // the move path plays the select SE
+            return TRUE;
+        }
+        return FALSE;
+    }
+
+    if (JOY_NEW(B_BUTTON) || JOY_NEW(toggleButton))
+    {
+        PlaySE(SE_SELECT);
+        CloseInnateMenu(battler, sInnateMenuSavedMoveCursor[battler]);
+        return FALSE;
+    }
+
+    // Same 2x2 grid as the moves: bit 0 = column, bit 1 = row.
+    if (JOY_NEW(DPAD_LEFT) && (cursor & 1))
+        target = cursor ^ 1;
+    else if (JOY_NEW(DPAD_RIGHT) && !(cursor & 1))
+        target = cursor ^ 1;
+    else if (JOY_NEW(DPAD_UP) && (cursor & 2))
+        target = cursor ^ 2;
+    else if (JOY_NEW(DPAD_DOWN) && !(cursor & 2))
+        target = cursor ^ 2;
+
+    if (target != cursor && target < GetInnateMenuEntryCount(battler))
+    {
+        PlaySE(SE_SELECT);
+        MoveSelectionDestroyCursorAt(cursor);
+        sInnateMenuCursor[battler] = target;
+        MoveSelectionCreateCursorAt(target, 0);
+        DisplayInnateMenuEntryInfo(battler);
+    }
+    return FALSE;
 }
 
 void HandleInputChooseMove(enum BattlerId battler)
 {
     u32 canSelectTarget = 0;
     struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
+    bool32 confirmMove = JOY_NEW(A_BUTTON);
+
+    // Fantasy Retold: while the innate menu is up it owns the input. Picking the Signature Move there
+    // returns TRUE with the move cursor already on its slot, and is then confirmed like an A press.
+    if (sInnateMenuActive[battler])
+    {
+        if (!HandleInputChooseInnate(battler))
+            return;
+        confirmMove = TRUE;
+    }
 
     if (JOY_HELD(DPAD_ANY) && gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
         gPlayerDpadHoldFrames++;
     else
         gPlayerDpadHoldFrames = 0;
 
-    if (JOY_NEW(A_BUTTON) && !gBattleStruct->descriptionSubmenu)
+    if (confirmMove && !gBattleStruct->descriptionSubmenu)
     {
         TryToHideMoveInfoWindow();
         PlaySE(SE_SELECT);
@@ -936,51 +1182,12 @@ void HandleInputChooseMove(enum BattlerId battler)
             MoveSelectionDisplayMoveType(battler);
         }
     }
-    // Fantasy Retold: innate commands live on the move screen, alongside the moves. L (where "Move Info"
-    // was) = Dodge, R = Recuperate. Valid uses consume the turn. Recuperate is blocked in the chooser if the
-    // user is above its 40% Stamina threshold, so the player can pick a different action instead. The engine
-    // remaps valid innate selections from the move screen in STATE_WAIT_ACTION_CASE_CHOSEN (see battle_main.c).
-    // L is skipped in L=A button mode (L acts as A there).
-    else if (JOY_NEW(L_BUTTON) &&
-        !(gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A))
+    // Fantasy Retold: L opens the innate command menu (R in L=A mode, where L acts as A).
+    else if (JOY_NEW(gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A ? R_BUTTON : L_BUTTON)
+          && !gBattleStruct->zmove.viewing)
     {
-        if (gBattleStruct->battlerState[battler].currentStamina >= GetDodgeCost(battler))
-        {
-            PlaySE(SE_SELECT);
-            TryToHideMoveInfoWindow();
-            HideGimmickTriggerSprite();
-            TryHideLastUsedBall();
-            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_DODGE, 0);
-            BtlController_Complete(battler);
-        }
-        else
-        {
-            PlaySE(SE_SELECT);
-            gBattle_BG0_X = 0;
-            gBattle_BG0_Y = 0;
-            BattlePutTextOnWindow(sText_DodgeCostThreshold, B_WIN_MSG);
-            gBattlerControllerFuncs[battler] = WaitForDodgeSelectionMessage;
-        }
-    }
-    else if (JOY_NEW(R_BUTTON))
-    {
-        if (CanUseRecuperate(battler))
-        {
-            PlaySE(SE_SELECT);
-            TryToHideMoveInfoWindow();
-            HideGimmickTriggerSprite();
-            TryHideLastUsedBall();
-            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_RECUPERATE, 0);
-            BtlController_Complete(battler);
-        }
-        else
-        {
-            PlaySE(SE_SELECT);
-            gBattle_BG0_X = 0;
-            gBattle_BG0_Y = 0;
-            BattlePutTextOnWindow(sText_RecuperateThreshold, B_WIN_MSG);
-            gBattlerControllerFuncs[battler] = WaitForRecuperateSelectionMessage;
-        }
+        PlaySE(SE_SELECT);
+        OpenInnateMenu(battler);
     }
     else if (JOY_NEW(START_BUTTON))
     {
@@ -2203,33 +2410,6 @@ void PlayerHandleChooseMove(enum BattlerId battler)
     }
 }
 
-// Fantasy Retold: show L/R innate command availability on the move selection screen, as a single line of
-// outlined text just above the move menu. Uses B_WIN_MOVE_DESCRIPTION (bg0 rows 47-52, only on screen in the
-// move-select scroll position) with a transparent background so the battle scene shows through; an
-// unavailable command is greyed out rather than hidden. Colours are text palette (text.pal) slots.
-#define INNATE_HINT_Y   32  // bottom text line of the 6-tile-tall window
-#define INNATE_HINT_GAP 8
-static void MoveSelectionDisplayInnateHints(enum BattlerId battler)
-{
-    static const u8 sColorsOn[3] = {TEXT_COLOR_TRANSPARENT, 1, 3};  // white, dark shadow
-    static const u8 sColorsOff[3] = {TEXT_COLOR_TRANSPARENT, 2, 3}; // grey, dark shadow
-    bool32 canDodge = gBattleStruct->battlerState[battler].currentStamina >= GetDodgeCost(battler);
-    bool32 canRecup = CanUseRecuperate(battler);
-    u32 x = 0;
-
-    FillWindowPixelBuffer(B_WIN_MOVE_DESCRIPTION, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
-    if (gSaveBlock2Ptr->optionsButtonMode != OPTIONS_BUTTON_MODE_L_EQUALS_A) // L acts as A in that mode
-    {
-        AddTextPrinterParameterized4(B_WIN_MOVE_DESCRIPTION, FONT_NARROW, x, INNATE_HINT_Y, 0, 0,
-                                     canDodge ? sColorsOn : sColorsOff, TEXT_SKIP_DRAW, sText_InnateHintDodge);
-        x += GetStringWidth(FONT_NARROW, sText_InnateHintDodge, 0) + INNATE_HINT_GAP;
-    }
-    AddTextPrinterParameterized4(B_WIN_MOVE_DESCRIPTION, FONT_NARROW, x, INNATE_HINT_Y, 0, 0,
-                                 canRecup ? sColorsOn : sColorsOff, TEXT_SKIP_DRAW, sText_InnateHintRecup);
-    PutWindowTilemap(B_WIN_MOVE_DESCRIPTION);
-    CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_FULL);
-}
-
 void InitMoveSelectionsVarsAndStrings(enum BattlerId battler)
 {
     LoadTypeIcons(battler);
@@ -2242,7 +2422,7 @@ void InitMoveSelectionsVarsAndStrings(enum BattlerId battler)
         MoveSelectionDisplayPPString(battler);
     MoveSelectionDisplayPPNumber(battler);
     MoveSelectionDisplayMoveType(battler);
-    MoveSelectionDisplayInnateHints(battler);
+    sInnateMenuActive[battler] = FALSE;
 }
 
 static void PlayerHandleChooseItem(enum BattlerId battler)

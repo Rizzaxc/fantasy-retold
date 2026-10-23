@@ -67,9 +67,9 @@ These bands assume physical pressure. Against a **special** attacker, Stamina dr
 
 ## 3. Innate System Commands (L/R Shoulder Buttons)
 
-Every Pokémon possesses two innate mechanical actions mapped directly to the controller shoulder buttons. They are pressed on the **move selection screen**, where a one-line hint above the move menu reads `L:Dodge  R:Recup` — white when the command is usable this turn, grey when it isn't (not enough Stamina for Dodge; above the 40% gate for Recuperate). In the L=A button mode only `R:Recup` is shown. These commands execute with high-priority sequencing, functioning identically to item usage windows. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
+Every Pokémon possesses two innate mechanical actions, reached from the **innate menu**. On the move selection screen, **L** (R in the L=A button mode, where L acts as A) swaps the four move slots for **Dodge**, **Recuperate** and the mon's **Signature Move** (if it has one); L or B swaps back. An entry that can't be used this turn is drawn faded (not enough Stamina for Dodge, above the 40% gate for Recuperate, no PP left for the Signature Move) and picking it shows why. The right-hand panel shows the highlighted entry's Stamina cost (`STA -n`) or gain (`STA +n`), or the Signature Move's PP and type. The `L / MOVE INFO` tab above the menu is relabelled `L / INNATE` (upstream's move-description viewer is no longer reachable). These commands execute with high-priority sequencing, functioning identically to item usage windows. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
 
-### Dodge (L Button)
+### Dodge
 
 An active maneuvering defense mechanism balanced by compounding resource taxes.
 
@@ -87,7 +87,7 @@ Dodge is a mechanical command completely distinct from standard accuracy and eva
 1. When an attack is executed, the game first processes traditional parameters (the move's native accuracy pool, accuracy/evasion stage modifiers, and status-inflicted accuracy reductions). If a move fails this baseline accuracy check, it misses organically.
 2. The custom Dodge resolution mechanics only evaluate *after* a move has successfully passed its native accuracy roll. It dictates whether a confirmed hit is cleanly evaded, mitigated by 50%, or hits completely based on speed priority and repetition rules.
 
-### Recuperate (R Button)
+### Recuperate
 
 The primary sustain mechanism used to stabilize an active Pokémon's resource depth. **It is the wincon engine for bulky mons** — its purpose is to let a tank out-sustain chip damage, with the Trauma pool (§4) acting as the inescapable counter-clock.
 
@@ -314,6 +314,8 @@ Items whose only job was boosting the (now-removed) Sp. Def mitigation stat are 
 ### Signature Moves
 
 Every Pokémon features an integrated Signature Move that sits outside the traditional 4-slot move framework. These actions are structurally impossible to dodge completely; at worst, they will always connect at a minimum of 50% damage against a faster dodging target. *(Signature moves are damaging attacks and pay the standard action cost + Body Tax; per-move BP/type TBD.)*
+
+*Current implementation:* the Signature Move is chosen from the mon's own four moves (a move used ≥100 times once fully evolved becomes its signature and can no longer be replaced), so it still occupies a move slot. The innate menu's Signature entry selects that slot (same PP and targeting); the anti-Dodge property is not implemented yet.
 
 ### Itemized Moves
 
