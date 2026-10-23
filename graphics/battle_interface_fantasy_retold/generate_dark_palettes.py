@@ -123,9 +123,9 @@ text_palette = [
     '#F0D850',  # 10 Yellow
     '#8848A0',  # 11 Purple
     '#40B8C8',  # 12 Cyan
-    '#1A1A2E',  # 13 BG
-    '#2D2D44',  # 14 BG mid
-    '#C0C0D0',  # 15 Light text
+    '#E8E8F0',  # 13 Window text (battle windows draw text 13 on 14 with shadow 15)
+    '#2D2D44',  # 14 Window panel
+    '#1A1A2E',  # 15 Window text shadow
 ]
 
 def main():

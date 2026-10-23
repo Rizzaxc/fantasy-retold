@@ -19,7 +19,7 @@ def write_jasc_pal(filename, palette_hex):
 text_palette = [
     '#000000', '#E8E8F0', '#8888A0', '#4A4A5E', '#D03040', '#D87830',
     '#70C040', '#488828', '#3890D8', '#206090', '#F0D850', '#8848A0',
-    '#40B8C8', '#1A1A2E', '#2D2D44', '#C0C0D0',
+    '#40B8C8', '#E8E8F0', '#2D2D44', '#1A1A2E',
 ]
 
 textbox_palette_0 = [
