@@ -321,7 +321,8 @@ Every Pokémon features an integrated Signature Move that sits outside the tradi
 * **Knowing it.** The Signature Move counts as known: level-up learning, TMs and tutors treat it as already learned, so it can't be re-added to a slot.
 * **Using it.** It is picked from the innate menu (L on the move screen). It has **no PP** — it only pays the normal Stamina action cost (BP/10 + Body Tax), shown in the menu as `STA -n` with its type. Disable, Taunt, Encore, Choice lock etc. still apply through the engine's normal checks. In doubles it currently uses the move's default target (no manual target pick yet).
 * **Engine.** It is chosen with an extra move position, `SIGNATURE_MOVE_POSITION` (= `MAX_MON_MOVES`); `GetBattlerMoveAtPosition` resolves it. It is never stored in `gBattleMons[].moves / .pp`, so code that indexes those by a chosen/current position checks `position < MAX_MON_MOVES` (PP checks and deduction, Grudge, Last Resort's used-move bits, Mimic and Sketch fail when used as the signature).
-* **Not yet:** the anti-Dodge property above, and showing the Signature Move on the summary screen.
+* **Summary screen.** The BW summary's moves page shows it in the row under the four moves (where a move being learned or "Cancel" appears): type icon, name, and `Signature` in place of PP. That row goes back to "Cancel" / the new move while it's needed (move details, forget-a-move) and the signature returns afterwards. It isn't selectable for details yet.
+* **Not yet:** the anti-Dodge property above.
 
 ### Itemized Moves
 

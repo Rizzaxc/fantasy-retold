@@ -190,6 +190,7 @@ static EWRAM_DATA struct PokemonSummaryScreenData
         u8 OTName[17]; // 0x36
         u32 OTID; // 0x48  
         u8 teraType;
+        u16 signatureMove; // Fantasy Retold: lives outside the four move slots (design.md §10)
         u8 mintNature;
         u8 ivHp;
         u8 ivAtk;
@@ -327,6 +328,9 @@ static void Task_PrintContestMoves(u8);
 static void PrintContestMoveDescription(u8);
 static void PrintMoveDetails(u16);
 static void PrintNewMoveDetailsOrCancelText(void);
+static void PrintSignatureMoveRow(void);
+static void SetSignatureMoveTypeIcon(void);
+static void SetTypeSpritePosAndPal(u8 typeId, u8 x, u8 y, u8 spriteArrayId);
 static void SwapMovesNamesPP(u8, u8);
 static void PrintHMMovesCantBeForgotten(void);
 static void ResetSpriteIds(void);
@@ -2197,6 +2201,7 @@ static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
             sum->pp[i] = GetMonData(mon, MON_DATA_PP1+i);
         }
         sum->ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
+        sum->signatureMove = GetMonData(mon, MON_DATA_SIGNATURE_MOVE);
         break;
     case 2:
         if (sMonSummaryScreen->monList.mons == gPlayerParty || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->handleDeoxys == TRUE)
@@ -4566,6 +4571,7 @@ static void PrintBattleMoves(void)
     PrintMoveNameAndPP(1);
     PrintMoveNameAndPP(2);
     PrintMoveNameAndPP(3);
+    PrintSignatureMoveRow();
 
     if (sMonSummaryScreen->mode == SUMMARY_MODE_SELECT_MOVE)
     {
@@ -4603,6 +4609,8 @@ static void Task_PrintBattleMoves(u8 taskId)
     case 5:
         if (sMonSummaryScreen->mode == SUMMARY_MODE_SELECT_MOVE)
             PrintNewMoveDetailsOrCancelText();
+        else
+            PrintSignatureMoveRow();
         break;
     case 6:
         if (sMonSummaryScreen->mode == SUMMARY_MODE_SELECT_MOVE)
@@ -4828,9 +4836,51 @@ static void PrintMoveDetails(u16 move)
     ScheduleBgCopyTilemapToVram(0);
 }
 
+// Fantasy Retold: the row below the four moves (where a move being learned or "Cancel" goes) shows the
+// Signature Move while browsing: name, type icon and "Signature" in place of PP (it has no PP). It gives the
+// row back while that row is in use, and is redrawn when the move details close.
+#define SIGNATURE_ROW_CLEAR_Y      112
+#define SIGNATURE_ROW_CLEAR_HEIGHT 32
+static const u8 sText_SignatureMoveTag[] = _("Signature");
+
+static bool32 ShouldShowSignatureMoveRow(void)
+{
+    return sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES
+        && sMonSummaryScreen->mode != SUMMARY_MODE_SELECT_MOVE
+        && sMonSummaryScreen->summary.signatureMove != MOVE_NONE;
+}
+
+static void PrintSignatureMoveRow(void)
+{
+    u8 windowId = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_NAMES_PP);
+    u16 move = sMonSummaryScreen->summary.signatureMove;
+
+    if (!ShouldShowSignatureMoveRow())
+        return;
+
+    FillWindowPixelRect(windowId, PIXEL_FILL(0), 0, SIGNATURE_ROW_CLEAR_Y, WindowWidthPx(windowId), SIGNATURE_ROW_CLEAR_HEIGHT);
+    PrintTextOnWindowToFitPx_WithFont(windowId, GetMoveName(move), 3, 114, 0, 12, FONT_SMALL, WindowWidthPx(windowId) - 3);
+    PrintTextOnWindowWithFont(windowId, sText_SignatureMoveTag, 8, 128, 0, 12, FONT_SMALL);
+}
+
+static void SetSignatureMoveTypeIcon(void)
+{
+    u16 move = sMonSummaryScreen->summary.signatureMove;
+
+    if (!ShouldShowSignatureMoveRow())
+        return;
+
+    enum MonState state = gMain.inBattle ? MON_IN_BATTLE : MON_OUTSIDE_BATTLE;
+    u32 type = P_SHOW_DYNAMIC_TYPES ? CheckDynamicMoveType(&sMonSummaryScreen->currentMon, move, 0, state) : GetMoveType(move);
+    SetTypeSpritePosAndPal(type, 8, 128, SPRITE_ARR_ID_TYPE + 4);
+}
+
 static void PrintNewMoveDetailsOrCancelText(void)
 {
     u8 windowId1 = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_NAMES_PP);
+
+    // Fantasy Retold: clear the Signature Move row first; "Cancel" / the new move take its place.
+    FillWindowPixelRect(windowId1, PIXEL_FILL(0), 0, SIGNATURE_ROW_CLEAR_Y, WindowWidthPx(windowId1), SIGNATURE_ROW_CLEAR_HEIGHT);
 
     if (sMonSummaryScreen->newMove == MOVE_NONE)
     {
@@ -4858,6 +4908,9 @@ static void ClearCancelText(void)
 {
     u8 windowId = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_NAMES_PP);
     FillWindowPixelRect(windowId, PIXEL_FILL(0), 0, 116, 72, 16);
+    // Fantasy Retold: the row is free again — bring the Signature Move back.
+    PrintSignatureMoveRow();
+    SetSignatureMoveTypeIcon();
     CopyWindowToVram(windowId, COPYWIN_GFX);
 }
 
@@ -5004,6 +5057,7 @@ static void SetTypeIcons(void)
     case PSS_PAGE_BATTLE_MOVES:
         SetMoveTypeIcons();
         SetNewMoveTypeIcon();
+        SetSignatureMoveTypeIcon();
         break;
     case PSS_PAGE_CONTEST_MOVES:
         SetContestMoveTypeIcons();
