@@ -381,3 +381,20 @@ The fallback flags mirror the minimum project assumptions needed for code naviga
 * header roots: `include`, project root, and `tools/agbcc/include`
 
 Primary goal: make quoted project includes such as `#include "global.h"` resolve reliably in the editor without changing the actual build pipeline.
+
+### Upstream base
+
+The branch tracks `rh-hideout/pokeemerald-expansion` **`master`** (not `upcoming`). Last merged: **expansion 1.17.1 + 20** (`origin/master` @ 2026-10-22). Where upstream relocated code that carries Fantasy Retold hooks, the hooks moved with it:
+
+| Hook | Lives in |
+| ---- | -------- |
+| Trauma tally per hit (`TrackTraumaFromHit`), Trauma heal cap on move-damage HP gain, Physical/Psyshock Stamina attrition | `battle_move_resolution.c` — `CancelerHealthBarUpdate` / `TryMoveDamageUpdate` |
+| Status-rail level on move-applied status (`SetNonVolatileStatus(..., railMinLevel)`), innate Sheer Force secondary suppression | `battle_set_effect.c` (upstream's `SetMoveEffect` handler table) |
+| Crit-blocked messages, innate Natural Cure / Regenerator, EV-gain disable, Stamina banking on switch-out | `battle_script_commands.c` |
+
+### Battle UI graphics folder
+
+Fantasy Retold battle-interface art lives in `graphics/battle_interface_fantasy_retold/` (a fork of upstream's `graphics/battle_interface/`); `src/graphics.c`, `gimmicks.h`, `battle_interface.c` and the level-up banner point there. Concatenated outputs (`textbox.gbapal`, `battle_bar.4bpp`) have their own rules in `graphics_file_rules.mk` under `FRBATINTGFXDIR`.
+
+* Upstream split the doubles frame-end into **player** / **opponent** variants and added `healthbox_singles_opponent_large.png` (used only when `B_HP_PERCENTAGE_DISPLAY` is TRUE). The opponent frame-end pair and the large box are still **vanilla copies** — they need the Fantasy Retold palette pass.
+* Keep `B_HP_PERCENTAGE_DISPLAY` **FALSE**: the opponent healthbox already prints the Stamina percentage on that row.

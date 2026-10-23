@@ -67,7 +67,7 @@ DOUBLE_BATTLE_TEST("Lava Plume inflicts burn to all adjacent battlers")
 SINGLE_BATTLE_TEST("Matcha Gotcha inflicts burn 40% of the time")
 {
     // Attacking moves have double the chance to inflict a status condition (20% base -> 40%).
-    PASSES_RANDOMLY(40, 100, RNG_SECONDARY_EFFECT);
+    PASSES_RANDOMLY(40, 100, RNG_SECONDARY_EFFECT_2);
     GIVEN {
         ASSUME(MoveHasAdditionalEffect(MOVE_MATCHA_GOTCHA, MOVE_EFFECT_BURN) == TRUE);
         PLAYER(SPECIES_WOBBUFFET);
