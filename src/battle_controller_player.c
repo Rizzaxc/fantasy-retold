@@ -125,8 +125,8 @@ static const u8 sText_InnateRecuperate[] = _("Recuperate");
 static const u8 sText_InnateStamina[] = _("STA");
 static const u8 sText_InnateDodgeInfo[] = _("Evade");
 static const u8 sText_InnateRecuperateInfo[] = _("Rest");
-// Unavailable entries: dark grey with no outline (text palette slots 3 / 14), so they read as faded.
-static const u8 sText_InnateDisabledColor[] = _("{COLOR 3}{SHADOW 14}");
+// Unavailable entries: light grey with no outline (text palette slots 15 / 14), so they read as faded.
+static const u8 sText_InnateDisabledColor[] = _("{COLOR 15}{SHADOW 14}");
 
 static bool8 sInnateMenuActive[MAX_BATTLERS_COUNT];
 static u8 sInnateMenuCursor[MAX_BATTLERS_COUNT];

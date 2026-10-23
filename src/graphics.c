@@ -1349,8 +1349,9 @@ const u16 gDomeTourneyMatchCardBg_Pal[] = INCGFX_U16("graphics/battle_frontier/t
 const u32 gBattleArenaJudgmentSymbolsGfx[] = INCGFX_U32("graphics/battle_frontier/arena_judgment_symbols.png", ".4bpp.smol");
 const u16 gBattleArenaJudgmentSymbolsPalette[] = INCGFX_U16("graphics/battle_frontier/arena_judgment_symbols.png", ".gbapal");
 
-const u16 gBattleWindowTextPalette[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/text.pal", ".gbapal");
-const u16 gPPTextPalette[] = INCGFX_U16("graphics/battle_interface_fantasy_retold/text_pp.pal", ".gbapal");
+// Fantasy Retold: battle menu text uses the vanilla palettes (dark grey on white).
+const u16 gBattleWindowTextPalette[] = INCGFX_U16("graphics/battle_interface/text.pal", ".gbapal");
+const u16 gPPTextPalette[] = INCGFX_U16("graphics/battle_interface/text_pp.pal", ".gbapal");
 
 const u16 gTilesetAnims_BattleDomePals0_0[] = INCGFX_U16("graphics/battle_frontier/dome_anim1.pal", ".gbapal");
 const u16 gTilesetAnims_BattleDomePals0_1[] = INCGFX_U16("graphics/battle_frontier/dome_anim2.pal", ".gbapal");

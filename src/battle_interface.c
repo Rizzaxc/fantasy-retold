@@ -597,7 +597,7 @@ static const union TextColor sHealthBoxTextColor =
 {
     .background = 0,
     .foreground = 1,
-    .shadow = 3,
+    .shadow = 6, // Fantasy Retold: light grey shadow (slot 3 is near-black in this palette and smeared the glyphs)
     .accent = 0
 };
 
