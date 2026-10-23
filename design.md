@@ -53,6 +53,10 @@ $$\text{Effective Speed} = \text{Base Speed} \times \left(0.15 + \frac{\text{Cur
 * **The Exhaustion Cliff:** Fast but resource-inefficient attackers experience severe speed degradation across consecutive turns.
 * **The Auto-Crit State:** If `CurrentSta` hits **0**, the Pokémon enters the *Exhaustion Zone*. Any incoming damaging move received while at 0 Stamina triggers an **automatic critical hit**. The check uses the target's **live pre-hit Stamina**, not a turn-start snapshot: if a mon exhausts itself earlier in the round, later incoming hits auto-crit; if a physical hit is the thing that drains Stamina to 0, that same hit does **not** retroactively become a crit. If Battle Armor / Shell Armor blocks that exhaustion auto-crit, the battle log explicitly announces that the target's armor blocked the critical hit; if the Bold / Impish innate armor effect is the blocker, it instead says the target is immune to critical hits.
 
+### AI Stamina Management
+
+Trainer AI can opt into `AI_FLAG_STAMINA_MANAGEMENT`. It prefers attacking a target already at 0 Stamina and takes an available KO before considering resource conservation. Against a non-exhausted target, it weighs the selected attack's Stamina cost together with predicted incoming physical attrition; it prefers a safe alternate attack, Recuperate, or an available switch over ending the exchange at 0 Stamina. At or below the Recuperate threshold, a bulkier battler favors Recuperate, while a frailer battler keeps attacking. When a repeated move would exhaust it, it can split its choice between a different safe attack and Recuperate. A crit-immune battler with enough Stamina may Dodge a predicted physical hit; a slower battler at full Stamina attacks when the predicted exchange does not exhaust it.
+
 ### Pacing Targets (the Physical Clock)
 
 Stamina depletion (own actions + incoming physical attrition) governs the **physical** time-to-death. With vanilla BP (~90 average), the design lands:
