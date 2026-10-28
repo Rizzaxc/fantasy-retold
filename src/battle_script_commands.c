@@ -9375,6 +9375,21 @@ void ApplyExperienceMultipliers(s32 *expAmount, u8 expGetterMonId, u8 faintedBat
 
         *expAmount = value + 1;
     }
+
+    // Fantasy Retold: reward fighting at your level (design.md §10, Level-Band EXP). The in-band bonus is wild-only.
+    {
+        s32 levelDiff = (s32)GetMonData(&gParties[B_TRAINER_PLAYER][expGetterMonId], MON_DATA_LEVEL) - gBattleMons[faintedBattler].level;
+
+        if (levelDiff >= -EXP_LEVEL_BAND && levelDiff <= EXP_LEVEL_BAND)
+        {
+            if (!(gBattleTypeFlags & BATTLE_TYPE_TRAINER))
+                *expAmount *= 2;
+        }
+        else if (*expAmount > 1)
+        {
+            *expAmount /= 2;
+        }
+    }
 }
 
 void BS_ItemRestoreHP(void)

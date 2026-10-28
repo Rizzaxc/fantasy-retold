@@ -148,8 +148,9 @@ WILD_BATTLE_TEST("Transformed Pokemon gives the experience points of the copied 
     } SCENE {
         EXPERIENCE_BAR(player, captureGainedExp: &gainedExp);
     } THEN {
-        EXPECT_EQ(gainedExp, gSpeciesInfo[speciesExp].expYield);
-        EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_EXP), 1 + gSpeciesInfo[speciesExp].expYield);
+        // Fantasy Retold: Lv1 vs Lv7 is outside the level band, so EXP is halved.
+        EXPECT_EQ(gainedExp, gSpeciesInfo[speciesExp].expYield / 2);
+        EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_EXP), 1 + gSpeciesInfo[speciesExp].expYield / 2);
         EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_HP_EV), gSpeciesInfo[speciesExp].evYield_HP);
     }
 }
@@ -217,8 +218,8 @@ AI_TWO_VS_ONE_BATTLE_TEST("Partner Pokemon do not gain experience")
 AI_ONE_VS_TWO_BATTLE_TEST("Both opponent's Pokemon give experience in battle against two opponents")
 {
     u32 expectedXp = 1; // level 1 xp
-    expectedXp += gSpeciesInfo[SPECIES_WYNAUT].expYield * 100 / 7; // level (100) * scaling multipler (1 / 7)
-    expectedXp += gSpeciesInfo[SPECIES_WOBBUFFET].expYield * 100 / 7;
+    expectedXp += gSpeciesInfo[SPECIES_WYNAUT].expYield * 100 / 7 / 2; // level (100) * scaling multipler (1 / 7), halved outside the level band
+    expectedXp += gSpeciesInfo[SPECIES_WOBBUFFET].expYield * 100 / 7 / 2;
     GIVEN {
         WITH_CONFIG(B_SCALED_EXP, GEN_3);
         WITH_CONFIG(B_UNEVOLVED_EXP_MULTIPLIER, GEN_3);
@@ -232,5 +233,55 @@ AI_ONE_VS_TWO_BATTLE_TEST("Both opponent's Pokemon give experience in battle aga
         TURN { }
     } THEN {
         EXPECT_EQ(GetMonData(&gParties[B_TRAINER_PLAYER][0], MON_DATA_EXP), expectedXp);
+    }
+}
+
+WILD_BATTLE_TEST("Fantasy Retold: EXP is doubled within the level band and halved outside it", s32 exp)
+{
+    u8 level = 0;
+
+    PARAMETRIZE { level = 10; } // in band
+    PARAMETRIZE { level = 13; } // edge of band
+    PARAMETRIZE { level = 14; } // out of band
+
+    GIVEN {
+        WITH_CONFIG(B_SCALED_EXP, GEN_3);
+        WITH_CONFIG(B_UNEVOLVED_EXP_MULTIPLIER, GEN_3);
+        PLAYER(SPECIES_WOBBUFFET) { Level(level); }
+        OPPONENT(SPECIES_CATERPIE) { Level(10); HP(1); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_SCRATCH); }
+    } SCENE {
+        MESSAGE("The wild Caterpie fainted!");
+        EXPERIENCE_BAR(player, captureGainedExp: &results[i].exp);
+    } FINALLY {
+        EXPECT_EQ(results[0].exp, results[1].exp);
+        EXPECT_EQ(results[0].exp, gSpeciesInfo[SPECIES_CATERPIE].expYield * 10 / 7 * 2);
+        EXPECT_EQ(results[2].exp, gSpeciesInfo[SPECIES_CATERPIE].expYield * 10 / 7 / 2);
+    }
+}
+
+SINGLE_BATTLE_TEST("Fantasy Retold: Trainer battles skip the level-band bonus but keep the penalty", s32 exp)
+{
+    u8 level = 0;
+
+    PARAMETRIZE { level = 10; } // in band: default rate
+    PARAMETRIZE { level = 14; } // out of band: halved
+
+    GIVEN {
+        WITH_CONFIG(B_SCALED_EXP, GEN_3);
+        WITH_CONFIG(B_UNEVOLVED_EXP_MULTIPLIER, GEN_3);
+        WITH_CONFIG(B_TRAINER_EXP_MULTIPLIER, GEN_LATEST);
+        PLAYER(SPECIES_WOBBUFFET) { Level(level); }
+        OPPONENT(SPECIES_CATERPIE) { Level(10); HP(1); }
+        OPPONENT(SPECIES_CATERPIE) { Level(10); }
+    } WHEN {
+        TURN { MOVE(player, MOVE_SCRATCH); SEND_OUT(opponent, 1); }
+    } SCENE {
+        MESSAGE("The opposing Caterpie fainted!");
+        EXPERIENCE_BAR(player, captureGainedExp: &results[i].exp);
+    } FINALLY {
+        EXPECT_EQ(results[0].exp, gSpeciesInfo[SPECIES_CATERPIE].expYield * 10 / 7);
+        EXPECT_EQ(results[1].exp, gSpeciesInfo[SPECIES_CATERPIE].expYield * 10 / 7 / 2);
     }
 }

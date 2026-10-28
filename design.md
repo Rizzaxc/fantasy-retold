@@ -371,6 +371,15 @@ Every Pokémon features an integrated Signature Move that sits outside the tradi
 
 Allows players to expand tactical flexibility by slotting an active, usable combat move directly into a Pokémon's held-item accessory slot. *(Mutually exclusive with other held items, including Choice accessories.)*
 
+### Level-Band EXP
+
+EXP rewards fighting opponents near your own level and discourages both over-levelling and power-levelling.
+
+* **Rule.** Each EXP earner compares its level to the fainted Pokémon's. Within **±`EXP_LEVEL_BAND` (3) levels** (inclusive), its EXP is **doubled in wild battles**; trainer battles keep the default rate. Outside the band, its EXP is **halved** in every battle (an award of 1 stays 1).
+* **Why wild-only.** Trainer EXP is fixed and can't be farmed, so the bonus would only inflate the planned level curve. Wild battles are the grindable source, and the bonus there pays for catching up to the route's level rather than grinding weak encounters.
+* **Per earner.** The band is checked per Pokémon, so in one battle a Pokémon close in level can earn double while an over-levelled teammate or an Exp. Share holder earns half.
+* **Engine.** This is the last step of `ApplyExperienceMultipliers` (`battle_script_commands.c`). It runs after the vanilla multipliers (traded, Lucky Egg, Exp. Charm, affection, Gen 5+ level scaling), so it stacks with them.
+
 ### Repurposed Moves (consequence of unified Defense)
 
 * **Psyshock / Psystrike / Secret Sword** — their vanilla gimmick (special move that hits physical Def) is meaningless now that all special moves hit Def. Repurposed identity: **special damage that exhausts like a physical hit** — they apply the Physical Stamina attrition (`BP/10`, ×2 SE, per hit) and deal **no Trauma** (they opt out of the Special→Trauma split). The special-side stamina-shredders. *(Attrition implemented in Phase 2's hook; the no-Trauma opt-out lands with the Phase 3 split.)*
@@ -417,6 +426,7 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 | Nature     | Calm / Careful                  | Resilient (+1 Sp.Def / Trauma-resist stage on entry)               |
 | Nature     | Relaxed / Lax                   | Regenerator (HP on switch-out)                                     |
 | Nature     | Sassy / Gentle                  | Natural Cure (status cleared on switch)                            |
+| EXP        | Level band                      | ×2 within ±3 levels (wild only; trainer ×1); ×0.5 outside          |
 | Pacing     | Time-to-death (physical)        | frail 5–7 / mid 7–10 / giga 10+ turns                              |
 | Sweep      | Optimal-case trade              | 1 for 2–2.5                                                        |
 
