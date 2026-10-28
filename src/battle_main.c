@@ -2980,7 +2980,10 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
         // still 0) seed the rail from its incoming status1 so an overworld-inflicted status carries in; on
         // any later send-out the rail overwrites the status1 mirror so the persisted level is restored.
         if (partyState->storedStamina == 0)
+        {
+            gBattleMons[battler].volatiles.confusionTimer = 0; // still the previous occupant's; reset below anyway
             ReconcileStatusRailsFromBridge(battler);
+        }
         SyncStatusRailBridge(battler);
     }
 
@@ -3048,6 +3051,10 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
 
     gBattleStruct->battlerState[battler].notOnField = FALSE;
     gBattleMons[battler].volatiles.truantSwitchInHack = volatilesCopy->truantSwitchInHack;
+
+    // Fantasy Retold: the volatiles were just reset; put back the persisted Confusion line (Lv2+) and the
+    // rest of the rail mirror for the incoming mon (design.md §6).
+    SyncStatusRailBridge(battler);
 
     gBattleStruct->hazardsCounter = 0;
     gSpecialStatuses[battler].queuedSwitch = NO_QUEUED_SWITCH;
@@ -4472,7 +4479,21 @@ u32 GetBaseStamina(enum BattlerId battler)
 u32 GetDodgeCost(enum BattlerId battler)
 {
     u32 baseSta = GetBaseStamina(battler);
-    return 5 + (20 * gBattleStruct->battlerState[battler].dodgeConsecutiveUses) + (baseSta * 2) / 100;
+    return 5 + (20 * gBattleStruct->battlerState[battler].dodgeConsecutiveUses) + (baseSta * 2) / 100
+         + GetStatusRailStaminaSurcharge(battler);
+}
+
+// Fantasy Retold: Stamina action cost of a move (design.md §2): BP/10 + 2% BaseSta body tax, or a flat 10 for
+// a status move, plus the Chilled / Drowsy surcharge (design.md §6).
+u32 GetMoveStaminaCost(enum BattlerId battler, enum Move move)
+{
+    u32 cost;
+
+    if (IsBattleMoveStatus(move))
+        cost = 10;
+    else
+        cost = (GetMovePower(move) / 10) + ((GetBaseStamina(battler) * 2) / 100);
+    return cost + GetStatusRailStaminaSurcharge(battler);
 }
 
 u32 GetBattlerTotalSpeedStat(enum BattlerId battler, enum Ability ability, enum HoldEffect holdEffect)
@@ -4530,9 +4551,12 @@ u32 GetBattlerTotalSpeedStat(enum BattlerId battler, enum Ability ability, enum 
     if (gSideStatuses[GetBattlerSide(battler)] & SIDE_STATUS_TAILWIND)
         speed *= 2;
 
-    // paralysis drop
+    // paralysis drop (Fantasy Retold: Paralyzed is the top of the Electric line and slows massively)
     if (gBattleMons[battler].status1 & STATUS1_PARALYSIS && ability != ABILITY_QUICK_FEET)
-        speed /= GetConfig(B_PARALYSIS_SPEED) >= GEN_7 ? 2 : 4;
+        speed /= PARALYSIS_SPEED_DIVISOR;
+
+    // Fantasy Retold: Soaked / Chilled / Drowsy (design.md §6)
+    speed = speed * GetStatusRailSpeedPercent(battler) / 100;
 
     if (gSideStatuses[GetBattlerSide(battler)] & SIDE_STATUS_SWAMP)
         speed /= 4;

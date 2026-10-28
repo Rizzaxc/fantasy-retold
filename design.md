@@ -27,7 +27,7 @@ Stamina serves as the primary operational currency governing action speed, move 
 
 * `BaseSta` is the repurposed Special Defense stat, used at its native scale (no rescaling — EV/IV expectations are preserved).
 * **Stamina persists across switches.** A Pokémon's first send-out of the battle enters fresh at `CurrentSta = BaseSta`. On every **switch-out**, it banks its current Stamina plus a level-scaled rest bonus of **5 + Level / 2** (capped at `BaseSta`); it returns to the field at that banked value. Speed decay is a function of `CurrentSta/BaseSta`, so it carries across switches too — an exhausted mon that pivots out comes back slow *and* near-empty.
-* **UI note:** Both healthboxes show Stamina as a **bar directly under the HP bar, the same length** (no number), so the two read side by side. It fills left to right as `CurrentSta/BaseSta`: **green** normally, **yellow** at or below the Recuperate threshold (`RECUPERATE_STAMINA_PERCENT`, 40%; a grey notch under the bar marks the threshold) so the player can see when R is live, and **empty with a red frame** at 0 Stamina (Exhaustion Zone). Any non-zero Stamina draws at least 1px. Exhaustion / auto-crit checks always use the exact live `CurrentSta`, not the drawn gauge.
+* **UI note:** Both healthboxes show Stamina as a **bar directly under the HP bar, the same length** (no number), so the two read side by side. It fills left to right as `CurrentSta/BaseSta`: **green** normally, **yellow** at or below the Recuperate threshold (`RECUPERATE_STAMINA_PERCENT`, 40%; a grey notch under the bar marks the threshold) so the player can see when R is live, and **empty with a red frame** at 0 Stamina (Exhaustion Zone). Any non-zero Stamina draws at least 1px. Exhaustion / auto-crit checks always use the exact live `CurrentSta`, not the drawn gauge. The bar **slides** to a new value at the HP bar's speed (a full bar in 24 frames, as `MoveBattleBar` does with `B_FAST_HP_DRAIN`): `battle_interface.c` keeps the shown value per battler (`sStaminaShown`) and the status-column sprite callback steps it every frame (`StepStaminaGauge`). A full healthbox redraw (a send-out) shows the live value at once.
 
 #### Why a level-scaled rest bonus (frail pivots, bulk plants)
 
@@ -80,7 +80,7 @@ These bands assume physical pressure. Against a **special** attacker, Stamina dr
 
 ## 3. Innate System Commands (L/R Shoulder Buttons)
 
-Every Pokémon possesses two innate mechanical actions, reached from the **innate menu**. On the move selection screen, **L** (R in the L=A button mode, where L acts as A) swaps the four move slots for **Dodge**, **Recuperate** and the mon's **Signature Move** (if it has one); L or B swaps back. An entry that can't be used this turn is drawn faded (not enough Stamina for Dodge, above the 40% gate for Recuperate) and picking it shows why. The right-hand panel shows the highlighted entry's Stamina cost (`STA -n`) or gain (`STA +n`), or the Signature Move's Stamina cost and type (it has no PP). While the menu is open, the move-description window above it (`B_WIN_MOVE_DESCRIPTION`) describes the highlighted entry and updates as the cursor moves. Dodge and Recuperate use their own three-line text (`sText_InnateDodgeDesc` / `sText_InnateRecuperateDesc` in `battle_controller_player.c`), in plain words with no numbers, because the panel already shows the Stamina cost or gain. The Signature Move uses the normal move description (category icon, PWR, ACC and text). The window closes when the menu closes or an entry is picked. The `L / MOVE INFO` tab above the menu is relabelled `L / INNATE` (upstream's move-description viewer is no longer reachable). Recuperate executes with high-priority sequencing, in the item usage window ahead of all moves, **unless the user is at 0 Stamina**: an exhausted Recuperate loses that priority and resolves in normal speed order (an exhausted mon is also slow, so a fast attacker gets its auto-crit in first). Dodge keeps its normal speed slot in the turn order, because its outcome (below) is decided by who acts first. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
+Every Pokémon possesses two innate mechanical actions, reached from the **innate menu**. On the move selection screen, **L** (R in the L=A button mode, where L acts as A) swaps the four move slots for **Dodge**, **Recuperate** and the mon's **Signature Move** (if it has one); L or B swaps back. An entry that can't be used this turn is drawn faded (not enough Stamina for Dodge, above the 40% gate for Recuperate) and picking it shows why. The right-hand panel shows the highlighted entry's Stamina cost (`STA -n`) or gain (`STA +n`), or the Signature Move's Stamina cost and type (it has no PP). The innate menu has no description panel. The `L / MOVE INFO` tab above the menu is relabelled `L / INNATE` (upstream's move-description viewer is no longer reachable). Recuperate executes with high-priority sequencing, in the item usage window ahead of all moves, **unless the user is at 0 Stamina**: an exhausted Recuperate loses that priority and resolves in normal speed order (an exhausted mon is also slow, so a fast attacker gets its auto-crit in first). Dodge keeps its normal speed slot in the turn order, because its outcome (below) is decided by who acts first. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
 
 **Battle text.** When the action runs, Dodge prints *"X is dodging!"* and Recuperate prints *"X is recuperating!"*, each before its animation (`BattleScript_FRDodge` / `BattleScript_FRRecuperate`). If Recuperate also purged a Level 1 status, it uses `BattleScript_FRRecuperateCured`, which adds *"X shook off a minor ailment!"* after the HP heal. Dodge keeps its normal speed slot, so a faster attacker's hit can land before the Dodge line prints; the wording is present-tense so it reads correctly in either order.
 
@@ -122,6 +122,7 @@ The primary sustain mechanism used to stabilize an active Pokémon's resource de
 * **Mechanical Resolution:** Can only be selected if the user is at **40% of `BaseSta` or lower**. When legal, it instantly restores `CurrentSta` by exactly $40\%$ of `BaseSta`. Exempt from the Body Tax.
 * **Sustain Properties:** Grants a minor HP heal of `RECUPERATE_HP_HEAL_PERCENT` (12%) of max HP × `CurrentSta/BaseSta` after the refill — about 5% from empty, about 10% from the 40% gate — and purges **1 random Level 1 status condition** from the user's status rail. (It cannot touch Level 2+ statuses — persistent conditions and Trauma are how walls are beaten.)
 * **Scaling Ceiling:** Any operational HP healing function in the engine scales dynamically using `CurrentSta` as its primary scaling vector ($\propto r = \frac{\text{CurrentSta}}{\text{BaseSta}}$), capping healing efficiency when exhausted.
+* **KO'd before it resolves:** An exhausted Recuperate acts in its speed slot, so a faster foe can KO the user first. The queued Recuperate (and likewise a queued Dodge) is then dropped: no refill, no heal, and the user faints normally.
 
 ---
 
@@ -209,60 +210,73 @@ Walls get the same breadth as attackers: four abilities, each answering one of a
 
 ### Core Model
 
-* **Multi-stage rails.** A condition advances through levels. Applying the **same kind** again stacks it upward (Lv1 → Lv2 → Lv3). **Status moves apply directly at Level 2**; **attacking-move secondary effects apply at Level 1**.
-* **Persistence.** **Level 1 is volatile** (clears automatically on switch-out). **Level 2 and above are persistent** (require active curing or mechanical expiration; survive switches).
+* **Multi-stage rails.** A condition advances through levels. Applying the **same kind** again stacks it upward (Lv1 → Lv2 → Lv3). **Status moves apply directly at Level 2**; **attacking-move secondary effects, abilities and self-inflicted effects apply at Level 1**. (Exception: the Chill line always starts at Chilled.)
+* **Lines coexist.** Unlike vanilla, a mon can carry several lines at once (only Burn excludes Soaked and the Chill line). Applying a line only fails when that line is already at its top level ("already burned / asleep / ...").
+* **Persistence.** **Level 1 is volatile** (clears automatically on switch-out). **Level 2 and above are persistent** (require active curing or mechanical expiration; survive switches). This includes the Confusion line.
 * **Proc rates.** Status effect triggers on all attacking moves have their baseline application probabilities **doubled**.
-* **Cleansing.** Recuperate purges 1 random **Level 1** condition only.
+* **Cleansing.** Recuperate purges 1 random **Level 1** condition only. Full cures (Full Heal-type items, Heal Bell / Aromatherapy, Natural Cure) clear **every** line.
 * **UI.** Every active line gets a cell in the healthbox **status column** (see "Healthbox layout" under §12, Battle UI graphics folder): its icon plus one pip per stage the line can reach, lit up to the current stage.
 
 ### The Condition Core
 
+Numbers below are the current defaults (`include/constants/battle.h`, "status rail tuning"). Speed slows stack multiplicatively with each other and with Stamina decay.
+
 **Soaked** *(Lv1, single-stack)*
 
-* Lowers effective action Speed. Reduces incoming Fire-type damage; scales up incoming Electric- and Ice-type damage.
-* Water-type immuned
+* Speed ×0.75. Incoming Fire damage ×0.5; incoming Electric and Ice damage ×1.5.
+* **Source:** a damaging Water move has a **20%** chance to Soak each target it hits (10% baseline, doubled like every status proc). Fails on a burned target.
+* **Duration:** 3 turns.
+* Water-type immune.
 
 **Chilled → Frozen ‖ Frostbitten**
 
-* **Progression:** Successive Ice applications / Status moves advance Chilled (Lv1) into a **random** branch — either **Frozen** or **Frostbitten** (Lv2). There is no direct way to apply the Lv2 forms.
-* **Modifiers:** Chilled reduces Speed and adds a flat increase to all active Stamina action costs. **Frozen** forces a complete loss of turn actions. **Frostbitten** bypasses HP tracking to tick damage directly into the Trauma pool.
-* **Removal:** Naturally expires after 2 active turns if un-renewed. **Instantly thaws if hit by, or executing, a Fire-type move.**
-* Ice-type immuned
+* **Progression:** Any Ice application (secondary or status move) lands **Chilled** (Lv1); the next one advances it into a **random** branch — either **Frozen** or **Frostbitten** (Lv2). There is no direct way to apply the Lv2 forms.
+* **Chilled:** Speed ×0.75 and **+5 Stamina** on every move and Dodge.
+* **Frozen:** forces a complete loss of turn actions (no random thaw). **Frostbitten:** ticks **maxHP/16** each turn, all of it Trauma (it no longer weakens special attacks).
+* **Removal:** Expires after **2 turns** if not renewed (every Ice application resets it to 2). **Instantly thaws if hit by, or executing, a Fire-type move** (the whole line, Chilled included).
+* Ice-type immune. Mutually exclusive with Burn.
 
 **Burned** *(stacks up to 3)*
 
-* **Exclusions:** Mutually exclusive — cannot apply to a target afflicted by Soaked or any Ice-based status; downgrades when using or being hit by Water or Ice moves.
-* **Modifiers:** Compounding damage ticks over time; degrades Physical damage output per stack.
-* Fire-type immuned
+* **Stacks:** a secondary adds 1 stack, a status move (Will-O-Wisp) lands at 2, each reapplication adds 1.
+* **Modifiers:** End-of-turn tick of **maxHP/16 per stack**; physical damage **−15% per stack** (×0.85 / ×0.70 / ×0.55; Guts still ignores it).
+* **Exclusions:** Can't apply to a Soaked or chilled target. **Loses a stack** whenever the burned mon uses, or is hit by, a Water or Ice move.
+* Fire-type immune.
 
 **Poison → Toxic**
 
 * **Progression:** Baseline Poison rules govern Level 1; status-driven application upgrades to Toxic (Level 2).
-* **Modifiers:** Toxic ticks increase each consecutive turn and **bypass HP mitigation, carving directly into the Trauma pool.** *(Cap the escalation to prevent runaway lethality.)* Toxic is the primary hard-counter to pure Recuperate-stalling walls (Recuperate cannot cleanse a Lv2).
-* Poison-type immuned
+* **Modifiers:** Toxic ticks increase each consecutive turn and **bypass HP mitigation, carving directly into the Trauma pool** (capped at 8 turns of escalation). Toxic is the primary hard-counter to pure Recuperate-stalling walls (Recuperate cannot cleanse a Lv2).
+* Poison-type immune.
 
 **Dazed → Shocked → Paralyzed** *(Electric line)*
 
-* **Dazed** (Lv1): accuracy penalty. **Shocked** (Lv2): accuracy penalty, increased incoming Electric damage and Electric-status chance. **Paralyzed** (Lv3): massively lowers Speed + chance to skip turn.
-* **Downgrades** when using, or being hit by, Ground moves.
-* Electric-type immuned
+* **Dazed** (Lv1): accuracy ×0.9.
+* **Shocked** (Lv2): accuracy ×0.8, incoming Electric damage ×1.25, and Electric secondary effects are twice as likely to land on it. Thunder Wave and other paralysis status moves land here.
+* **Paralyzed** (Lv3): Speed ÷4 and the vanilla 25% chance to lose the turn; keeps Shocked's penalties.
+* **Downgrades** one level when the mon uses, or is hit by, a Ground move.
+* Electric-type immune.
 
 **Drowsy → Asleep → Nightmare** *(Sleep line)*
 
-* **Drowsy** (Lv1): scales down Speed, inflates Stamina costs. **Asleep** (Lv2): denies action execution. **Nightmare** (Lv3): denies action execution while draining health directly as permanent Trauma.
-* **Duration & Valve:** Base duration **3 turns**. Reduced by **1 turn each time the target is struck by a direct damaging attack** (valve applies across the whole rail, including Nightmare). Cannot be refreshed or extended while an active sleep state is rolling; advancing to Nightmare inherits the remaining counter (no reset).
+* **Drowsy** (Lv1): Speed ×0.75 and **+5 Stamina** on every move and Dodge. **Asleep** (Lv2): can't act (Snore / Sleep Talk still work). **Nightmare** (Lv3): can't act, and loses **maxHP/8** each turn, all of it Trauma.
+* **Duration & Valve:** Base duration **3 turns**, counted down at end of turn (Early Bird counts 2). Reduced by **1 turn each time the target is struck by a direct damaging attack** (valve applies across the whole rail); reaching 0 wakes it at once. A fresh Drowsy, or falling asleep, starts the 3 turns; advancing to Nightmare inherits the remaining count (no reset, no refresh).
 
-**Confused -> Stupefied-> Frightened** *(Confusion line)*
+**Confused → Stupefied → Frightened** *(Confusion line)*
 
-- Confused (Lv 1): Chance to miss/ hit itself
+* **Confused** (Lv1): 33% chance to hit itself instead of acting (vanilla).
+* **Stupefied** (Lv2): additionally, **25%** chance its move turns on its ally (doubles, single-target damaging moves); in singles, or with no ally, it hits itself instead.
+* **Frightened** (Lv3): additionally, **20%** chance at the start of its action to panic and flee to a random party member instead of acting (trainer battles; not while rooted, Dynamaxed or commanding). With nowhere to run it still loses the turn.
+* Effects are cumulative. Confuse Ray-type status moves land at Stupefied; secondary confusion, Outrage fatigue and confusing berries at Confused.
+* Lasts **3 turns** (end-of-turn count). Advancing the line keeps the current count (turn 1 Confused, turn 2 Stupefied → the line still has 2 turns).
 
-- Stupefied (Lv 2): Chance to target itself/ teammate with a move
+### Implementation
 
-- Frightened (Lv 3): Chance to randomly switch
-
-- Effects in this chain are cummulative
-
-- Lasts 3 turns if not reapplied. Each stack preserves the current count (ie turn 1 Confused, turn 2 Stupefied --> the chain still has 2 turns)
+* **State.** `struct PartyState.rails[]` (`StatusRailEntry`: `level`, `counter` = Toxic escalation or turns left, `branch` = the Chill line's Lv2 form) is the source of truth; `src/status_rail.c` owns it.
+* **Mirror.** The vanilla `status1` bits and `volatiles.confusionTimer` are kept as a mirror (`SyncStatusRailBridge`): Poison/Toxic, Burn (any stacks), Frozen / Frostbitten, Paralyzed, Asleep / Nightmare (the sleep bits hold the turns left) and the whole Confusion line. Several bits can now be set together. Soaked, Chilled, Dazed, Shocked and Drowsy have no vanilla equivalent and exist only on the rail.
+* **Reconcile.** Every rail change first reads the mirror back (`ReconcileStatusRailsFromBridge`), so anything vanilla writes straight to `status1` / `confusionTimer` (Toxic Orb, Rest, Yawn, Psycho Shift, Outrage fatigue, cures, Uproar waking a sleeper, ...) is picked up. The healthbox only reads, since it polls every frame.
+* **Hooks.** Application: `SetNonVolatileStatus` / `HandleSetEffectConfusion` (new levels print through `BattleScript_FRRailEffectApplied` with `gBattleScripting.savedStringId`). "Already" checks: `CanSetNonVolatileStatus` / `CanBeConfused`. Actions: `CancelerAsleepOrFrozen`, `CancelerConfused` (+ the Stupefied redirect in `CancelerSetTargets`). After a damaging move: `MOVEEND_STATUS_RAILS` (type interactions, Soak, Sleep valve). End of turn: Burn stacks, Frostbite and Nightmare Trauma ticks, and `ENDTURN_STATUS_RAILS` (timers). Effects: `GetStatusRailSpeedPercent`, `GetStatusRailStaminaSurcharge` (through `GetMoveStaminaCost` / `GetDodgeCost`), `GetStatusRailAccuracyPercent`, `GetStatusRailIncomingDamageModifier`, `GetBurnRailPhysicalModifier`.
+* **Switching.** Switch-out drops Lv1 (`ClearVolatileStatusRails`); switch-in re-syncs the mirror after the volatiles reset, which restores a persisted Confusion line.
 
 ---
 
@@ -386,6 +400,14 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 | Trauma     | SpD stage resistance            | ×0.85 per +1 stage (Trauma channel only)                           |
 | Status     | Proc rate                       | ×2 baseline                                                        |
 | Status     | Sleep base duration             | 3 turns (−1 per damaging hit)                                      |
+| Status     | Soaked                          | Speed ×0.75; Fire ×0.5, Electric/Ice ×1.5 taken; 3 turns; 20% proc |
+| Status     | Chilled / Drowsy                | Speed ×0.75 and +5 Stamina per action (each)                       |
+| Status     | Chill duration                  | 2 turns, renewed by each Ice application                           |
+| Status     | Burn                            | maxHP/16 per stack per turn; physical −15% per stack               |
+| Status     | Dazed / Shocked accuracy        | ×0.9 / ×0.8 (Shocked+: Electric ×1.25 taken)                       |
+| Status     | Paralyzed                       | Speed ÷4; 25% lose turn                                            |
+| Status     | Frostbitten / Nightmare         | maxHP/16 / maxHP/8 per turn, all Trauma                            |
+| Status     | Confusion line                  | 3 turns; Stupefied 25% ally/self, Frightened 20% flee              |
 | Setup      | Speed-boosting setup cost       | 0 Stamina                                                          |
 | Nature     | Neutral                         | Advantage (guaranteed hit if faster)                               |
 | Nature     | Reckless (under-used offense)   | Super Luck (+1 crit stage)                                         |
@@ -405,6 +427,7 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 * Body Tax % final value (1.5–2% range; currently 2%).
 * Nature ability magnitudes (Crusher +50%, Disruptor `a→0.50`, Resilient −25%) — validate vs the wall-breaking triangle.
 * Cap on Toxic Trauma escalation (§6).
+* Playtest the §6 status defaults (Lv1 slows / surcharges, Dazed / Shocked accuracy, Paralyzed ÷4, Nightmare maxHP/8, Stupefied 25%, Frightened 20%, Soak 20%). AI scoring doesn't value the new levels yet; it still reads the vanilla `status1` mirror.
 * Field Hazards and Held Item systems (§8, §9).
 
 ---
@@ -439,13 +462,14 @@ Fantasy Retold battle-interface art lives in `graphics/battle_interface_fantasy_
 
 * **Palettes.** `textbox.gbapal` is built as `textbox_0.gbapal` + `textbox_1.gbapal`, which come from the JASC `textbox_0.pal` / `textbox_1.pal`. Those `.pal` files are written by `generate_jasc_pals.py`; `generate_dark_palettes.py` holds the same colour lists for the raw `.gbapal` outputs. Edit a palette in **both** scripts and rerun `generate_jasc_pals.py` — the build only reads the `.pal` files.
 * **Battle menu text** (move names, PP / type, FIGHT / BAG menu) uses the **vanilla** `graphics/battle_interface/text.pal` / `text_pp.pal` (dark grey on white). The dark `text.pal` in the Fantasy Retold folder is no longer used.
+* **Menu cursors** (action menu, move menu + move-swap cursors, Yes/No, catch-or-not) are `textbox.png` tiles 1–2 and 28–31, placed on top of those white menu windows. Vanilla draws them in BG palette 0, which is now the dark textbox palette, so the arrows came out navy/blue/red. Their pixels now use `text.pal` indices (14 white, 13 dark grey, 15 light grey), and the `*CreateCursorAt` functions set palette 5 in the tilemap entry (`0x5000 | tile`).
 
 #### Healthbox layout
 
 Drawn from scratch rather than adapted from the vanilla box. Each box is a **dark corner-cut plate** (the same navy as the text box) plus a **status column** beside it.
 
 * **Plate.** Player: 104×32. Row 1 has the name + gender symbol and, right-aligned, the level. Below it, the **HP bar** (4px), then the **Stamina bar** (2px), both 94px. The bottom row has the 1px **EXP track** (singles only) and, right-aligned, `current / effective max` HP. Opponent: 100×24, with the same name row and the same bars at 90px. It has no numbers or EXP, and shows a 5px caught-ball icon before the name when the species is caught. Player doubles plates are the player plate without the EXP track. The HP numbers are always shown with the bars; the vanilla doubles bars/numbers toggle (`SwapHpBarsWithHpText`) is a no-op.
-* **Status column.** A box as tall as the plate, with one 12×9 cell per active status line in a fixed order: Soaked, Chill line, Burn, Poison line, Electric line, Sleep line, Confusion line. Each cell holds a 7×7 icon in the line's colour (drop, snowflake, flame, skull, bolt, Z, swirl) and one pip per stage the line can reach, lit bottom-up to the current stage. Cells fill top-down, two per column. Extra columns grow away from the plate: left for the player, right toward the screen centre for the opponent. Up to 6 lines can be active at once (Burn excludes Soaked and the Chill line), which is 3 columns. With no status the column is hidden. `GetHealthboxStatusStages` maps lines to stages. It reads `RAIL_POISON`, and until the other rails exist it uses vanilla `status1`: Burn → 1, Frozen / Frostbitten → Chill 2, Paralysis → Electric 3, Sleep → Sleep 2, and the confusion timer → Confusion 1. **New rails plug in there.** The column is the old healthbar sprite, now 64×32 on the healthbox palette. Its callback polls the stages every frame and redraws on any change, because confusion and rails change without a healthbox update.
+* **Status column.** A box as tall as the plate, with one 12×9 cell per active status line in a fixed order: Soaked, Chill line, Burn, Poison line, Electric line, Sleep line, Confusion line. Each cell holds a 7×7 icon in the line's colour (drop, snowflake, flame, skull, bolt, Z, swirl) and one pip per stage the line can reach, lit bottom-up to the current stage. Cells fill top-down, two per column. Extra columns grow away from the plate: left for the player, right toward the screen centre for the opponent. Up to 6 lines can be active at once (Burn excludes Soaked and the Chill line), which is 3 columns. With no status the column is hidden. `GetHealthboxStatusStages` maps lines to stages: each line shows its status rail's level (§6). It only reads (it runs every frame), so a status that vanilla code wrote straight to `status1` and that no rail has picked up yet shows at the stage its bit stands for (Burn 1, Frozen / Frostbitten → Chill 2, Paralysis → Electric 3, Sleep → Sleep 2, confusion timer → Confusion 1). The column is the old healthbar sprite, now 64×32 on the healthbox palette. Its callback polls the stages every frame and redraws on any change, because confusion and rails change without a healthbox update.
 * **Art vs runtime.** `generate_healthbox_art.py` draws only the static parts: plates, bar frames, the 40% notch and the EXP track. Its layout numbers must match `sHealthboxLayouts` / `HB_*` in `battle_interface.c`. Text, bar fills, the exhausted red frame, the ball icon and the status column are drawn at runtime with `FillHealthboxRect` / `PrintOnHealthbox`. These treat the two healthbox sprites as one 128px canvas. The HP bar no longer uses the `hpbar` tiles.
 * **Healthbox palette** (`ball_status_bar.png`): 1 plate, 2 empty gauge / cell, 3 ink, 4 slate, 5 white text, 6 grey, 7 red, 8 green, 9 purple, 10 cyan, 11 orange, 12 blue, 13 yellow, 14 sky, 15 pink (Confusion). Text is white with an ink shadow. The gender symbols use explicit colours (blue ♂ / red ♀) instead of the shared dynamic text colours.
 * **Positions.** Every plate starts at the sprite's `(x − 32, y − 16)`. The 64×64 player singles box keeps the 64×32 template's centre offset. Gimmick indicators sit just left of the level digits (`sIndicatorPositions` in `battle_gimmick.c`).

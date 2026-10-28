@@ -904,6 +904,12 @@ void HandleAction_Dodge(void)
     u32 cost = GetDodgeCost(battler);
 
     gBattlerAttacker = battler;
+    // A battler KO'd earlier in the turn drops its queued action, same as HandleAction_UseMove.
+    if (!IsBattlerAlive(battler))
+    {
+        gCurrentActionFuncId = B_ACTION_FINISHED;
+        return;
+    }
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
 
@@ -932,6 +938,13 @@ void HandleAction_Recuperate(void)
     u32 r, healAmount;
 
     gBattlerAttacker = battler;
+    // An exhausted Recuperate resolves in its speed slot, so a faster foe can KO the user first. Drop the
+    // action then, or the heal would lift it off 0 HP and it would never faint.
+    if (!IsBattlerAlive(battler))
+    {
+        gCurrentActionFuncId = B_ACTION_FINISHED;
+        return;
+    }
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
 
@@ -5458,9 +5471,14 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
         }
         break;
     case MOVE_EFFECT_BURN:
-        if (gBattleMons[battlerDef].status1 & STATUS1_BURN)
+        // Fantasy Retold: Burn stacks to 3 (design.md §6), and can't take hold on a Soaked or chilled target.
+        if (GetStatusRailLevel(battlerDef, RAIL_BURN) >= GetStatusRailMaxLevel(RAIL_BURN))
         {
             battleScript = BattleScript_AlreadyBurned;
+        }
+        else if (IsBurnBlockedByStatusRails(battlerDef))
+        {
+            battleScript = BattleScript_ButItFailed;
         }
         else if (IS_BATTLER_OF_TYPE(battlerDef, TYPE_FIRE))
         {
@@ -5478,7 +5496,8 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
         }
         break;
     case MOVE_EFFECT_SLEEP:
-        if (gBattleMons[battlerDef].status1 & STATUS1_SLEEP)
+        // Fantasy Retold: Drowsy -> Asleep -> Nightmare; only a Nightmare is "already asleep".
+        if (GetStatusRailLevel(battlerDef, RAIL_SLEEP) >= GetStatusRailMaxLevel(RAIL_SLEEP))
         {
             battleScript = BattleScript_AlreadyAsleep;
         }
@@ -5509,9 +5528,15 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
         break;
     case MOVE_EFFECT_FREEZE:
     case MOVE_EFFECT_FROSTBITE:
-        if (gBattleMons[battlerDef].status1 & STATUS1_ICY_ANY)
+        // Fantasy Retold: Chilled can still advance to Frozen / Frostbitten; Burn and the Chill line exclude
+        // each other (design.md §6).
+        if (GetStatusRailLevel(battlerDef, RAIL_CHILL) >= GetStatusRailMaxLevel(RAIL_CHILL))
         {
             battleScript = BattleScript_AlreadyBurned;
+        }
+        else if (GetStatusRailLevel(battlerDef, RAIL_BURN) != 0)
+        {
+            battleScript = BattleScript_ButItFailed;
         }
         else if (IS_BATTLER_OF_TYPE(battlerDef, TYPE_ICE) || IsBattlerWeatherAffected(GetBattlerHoldEffect(battlerDef), GetWeather(), B_WEATHER_SUN))
         {
@@ -5562,14 +5587,8 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
     {
         battleScript = BattleScript_SafeguardProtected;
     }
-    else if (gBattleMons[battlerDef].status1 & STATUS1_ANY)
-    {
-        // Fantasy Retold: regular Poison (rail Lv1) must not block advancing the Poison -> Toxic rail
-        // (design.md §6); any other pre-existing non-volatile status still blocks application.
-        if (!((effect == MOVE_EFFECT_POISON || effect == MOVE_EFFECT_TOXIC)
-              && (gBattleMons[battlerDef].status1 & STATUS1_ANY) == STATUS1_POISON))
-            battleScript = BattleScript_ButItFailed;
-    }
+    // Fantasy Retold: no "already has a status" check — each line runs on its own rail and several can be
+    // active at once (design.md §6). The per-line "already at max" checks are above.
 
     if (IsNonVolatileStatusBlocked(battlerDef, abilityDef, abilityAffected, battleScript, option))
         return FALSE;
@@ -5626,7 +5645,8 @@ bool32 CanBeConfused(enum BattlerId battlerAtk, enum BattlerId effectBattler)
 {
     enum Ability effectAbility = GetBattlerAbility(effectBattler);
 
-    if (gBattleMons[effectBattler].volatiles.confusionTimer > 0
+    // Fantasy Retold: confusion advances Confused -> Stupefied -> Frightened; only the top level blocks it.
+    if (GetStatusRailLevel(effectBattler, RAIL_CONFUSION) >= GetStatusRailMaxLevel(RAIL_CONFUSION)
      || IsSafeguardProtected(battlerAtk, effectBattler, GetBattlerAbility(battlerAtk))
      || IsMistyTerrainAffected(effectBattler, effectAbility, GetBattlerHoldEffect(effectBattler), gFieldTimers.terrain)
      || IsAbilityAndRecord(effectBattler, effectAbility, ABILITY_OWN_TEMPO))
@@ -7481,15 +7501,13 @@ static inline uq4_12_t GetBurnOrFrostBiteModifier(struct DamageContext *ctx)
 {
     enum BattleMoveEffects moveEffect = GetMoveEffect(ctx->move);
 
+    // Fantasy Retold: Burn weakens physical damage per stack (design.md §6); Frostbitten no longer weakens
+    // special damage (it ticks into Trauma instead).
     if (gBattleMons[ctx->battlerAtk].status1 & STATUS1_BURN
         && IsBattleMovePhysical(ctx->move)
         && (GetConfig(B_BURN_FACADE_DMG) < GEN_6 || moveEffect != EFFECT_FACADE)
         && ctx->abilities[ctx->battlerAtk] != ABILITY_GUTS)
-        return UQ_4_12(0.5);
-    if (gBattleMons[ctx->battlerAtk].status1 & STATUS1_FROSTBITE
-        && IsBattleMoveSpecial(ctx->move)
-        && (GetConfig(B_BURN_FACADE_DMG) < GEN_6 || moveEffect != EFFECT_FACADE))
-        return UQ_4_12(0.5);
+        return GetBurnRailPhysicalModifier(ctx->battlerAtk);
     return UQ_4_12(1.0);
 }
 
@@ -7842,6 +7860,9 @@ s32 ApplyModifiersAfterDmgRoll(struct DamageContext *ctx, s32 dmg)
 
     // Fantasy Retold: Halved Damage Profile — all move damage outputs exactly 50% of vanilla.
     DAMAGE_APPLY_MODIFIER(UQ_4_12(0.5));
+
+    // Fantasy Retold: Soaked / Shocked defender (design.md §6).
+    DAMAGE_APPLY_MODIFIER(GetStatusRailIncomingDamageModifier(ctx->battlerDef, ctx->moveType));
 
     // Fantasy Retold: Dodge (L command) — if the target is dodging and the attacker is FASTER (acts
     // first), the move can't be fully evaded but lands at 50% damage. (If the attacker were slower the
@@ -9918,6 +9939,11 @@ u32 CalcSecondaryEffectChance(enum BattlerId battler, enum Ability battlerAbilit
     if (isStatusEffect && !IsBattleMoveStatus(gCurrentMove))
         secondaryEffectChance *= 2;
 
+    // Fantasy Retold: a Shocked (or Paralyzed) target is twice as easy to push down the Electric line.
+    if (moveEffect == MOVE_EFFECT_PARALYSIS && !additionalEffect->self
+     && GetStatusRailLevel(gBattlerTarget, RAIL_ELECTRIC) >= 2)
+        secondaryEffectChance *= 2;
+
     // Serene Grace and Rainbow each grant 1.5x (down from 2x), and stack.
     // Preserve the original cap: with both active, flinch only receives one multiplier.
     if (hasRainbow && hasSereneGrace && moveEffect == MOVE_EFFECT_FLINCH)
@@ -10552,6 +10578,7 @@ bool32 ItemHealMonVolatile(enum BattlerId battler, enum Item itemId)
     {
         statusChanged = (gBattleMons[battler].volatiles.infatuation || gBattleMons[battler].volatiles.confusionTimer > 0);
         gBattleMons[battler].volatiles.infatuation = 0;
+        ClearAllStatusRails(battler); // Fantasy Retold: a full cure clears every status line (design.md §6)
         gBattleMons[battler].volatiles.confusionTimer = 0;
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_CONFUSION;
     }
@@ -10842,6 +10869,9 @@ u32 GetTotalAccuracy(struct BattleCalcValues *cv, u32 weather)
 
     if (gBattleStruct->battlerState[battlerAtk].usedMicleBerry)
         calc = (calc * 120) / 100;  // 20% acc boost
+
+    // Fantasy Retold: Dazed / Shocked / Paralyzed attacker (design.md §6)
+    calc = (calc * GetStatusRailAccuracyPercent(battlerAtk)) / 100;
 
     if (gFieldStatuses & STATUS_FIELD_GRAVITY)
         calc = (calc * 5) / 3; // 1.66 Gravity acc boost

@@ -1796,7 +1796,6 @@ BattleScript_EffectFocusEnergy::
 BattleScript_EffectConfuse::
 	attackcanceler
 	jumpifability BS_TARGET, ABILITY_OWN_TEMPO, BattleScript_OwnTempoPrevents
-	jumpifvolatile BS_TARGET, VOLATILE_CONFUSION, BattleScript_AlreadyConfused
 	jumpifterrainaffected BS_TARGET, B_TERRAIN_MISTY, BattleScript_MistyTerrainPrevents
 	jumpifsafeguard BattleScript_SafeguardProtected
 	attackanimation
@@ -4210,6 +4209,29 @@ BattleScript_BattlerFrostbiteHealed::
 	waitmessage B_WAIT_TIME_LONG
 	updatestatusicon BS_SCRIPTING
 	return
+
+@ Fantasy Retold: status rails (design.md §6). The message is gBattleScripting.savedStringId (printstring 0).
+@ A rail level with no vanilla script (Dazed, Shocked, Drowsy, Nightmare, Chilled, extra Burn stacks, ...).
+BattleScript_FRRailEffectApplied::
+	printstring 0
+	waitmessage B_WAIT_TIME_LONG
+	goto BattleScript_UpdateEffectStatusIconRet
+
+@ A rail changing on its own or from a hit (timers running out, type interactions, Soak, the Sleep valve).
+BattleScript_FRRailMessageRet::
+	printstring 0
+	waitmessage B_WAIT_TIME_LONG
+	return
+
+@ Frightened: the attacker tries to flee to a random party member instead of acting (trainer battles only).
+BattleScript_FRFrightenedFlee::
+	printstring STRINGID_FRPANICKED
+	waitmessage B_WAIT_TIME_LONG
+	forcerandomswitch BattleScript_FRFrightenedNowhereToRun
+BattleScript_FRFrightenedNowhereToRun::
+	printstring STRINGID_FRNOWHERETORUN
+	waitmessage B_WAIT_TIME_LONG
+	goto BattleScript_MoveEnd
 
 BattleScript_MoveUsedIsParalyzed::
 	printstring STRINGID_PKMNISPARALYZED

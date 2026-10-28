@@ -251,6 +251,7 @@ static void Task_HidePartyStatusSummary_DuringBattle(u8);
 
 static void SpriteCB_HealthBoxOther(struct Sprite *);
 static void SpriteCB_HealthBar(struct Sprite *);
+static void DrawStaminaGaugeOnHealthbox(u32 healthboxSpriteId, enum BattlerId battler);
 static void SpriteCB_StatusSummaryBar_Enter(struct Sprite *);
 static void SpriteCB_StatusSummaryBar_Exit(struct Sprite *);
 static void SpriteCB_StatusSummaryBalls_Enter(struct Sprite *);
@@ -726,29 +727,33 @@ static s32 GetHealthboxPlateTop(struct Sprite *healthbox)
 }
 
 // Fills `stages` with the current stage (0 = none) of every status line and returns them packed 2 bits
-// per line, so the status column can tell when it needs a redraw. RAIL_POISON is the only rail so far;
-// the other lines still run on vanilla status1 / confusion and show the stage that status sits at in
-// design.md §6. New rails plug in here.
+// per line, so the status column can tell when it needs a redraw. Every line reads its status rail
+// (design.md §6). This runs every frame, so it only reads: a status that vanilla code wrote straight to
+// status1 / confusionTimer and that no rail has picked up yet shows at the stage that bit stands for.
 static u32 GetHealthboxStatusStages(enum BattlerId battler, u8 stages[HB_STATUS_COUNT])
 {
     u32 status1 = gBattleMons[battler].status1;
     u32 i, signature = 0;
 
-    for (i = 0; i < HB_STATUS_COUNT; i++)
-        stages[i] = 0;
-
-    if (status1 & STATUS1_ICY_ANY)
-        stages[HB_STATUS_CHILL] = 2; // Frozen / Frostbitten
-    if (status1 & STATUS1_BURN)
-        stages[HB_STATUS_BURN] = 1;
+    stages[HB_STATUS_SOAK] = GetStatusRailLevel(battler, RAIL_SOAK);
+    stages[HB_STATUS_CHILL] = GetStatusRailLevel(battler, RAIL_CHILL);
+    stages[HB_STATUS_BURN] = GetStatusRailLevel(battler, RAIL_BURN);
     stages[HB_STATUS_POISON] = GetStatusRailLevel(battler, RAIL_POISON);
-    if (stages[HB_STATUS_POISON] == 0 && (status1 & STATUS1_PSN_ANY)) // set by code that bypasses the rail
+    stages[HB_STATUS_ELECTRIC] = GetStatusRailLevel(battler, RAIL_ELECTRIC);
+    stages[HB_STATUS_SLEEP] = GetStatusRailLevel(battler, RAIL_SLEEP);
+    stages[HB_STATUS_CONFUSION] = GetStatusRailLevel(battler, RAIL_CONFUSION);
+
+    if (stages[HB_STATUS_CHILL] < 2 && (status1 & STATUS1_ICY_ANY))
+        stages[HB_STATUS_CHILL] = 2;
+    if (stages[HB_STATUS_BURN] == 0 && (status1 & STATUS1_BURN))
+        stages[HB_STATUS_BURN] = 1;
+    if (stages[HB_STATUS_POISON] == 0 && (status1 & STATUS1_PSN_ANY))
         stages[HB_STATUS_POISON] = (status1 & STATUS1_TOXIC_POISON) ? 2 : 1;
-    if (status1 & STATUS1_PARALYSIS)
+    if (stages[HB_STATUS_ELECTRIC] < 3 && (status1 & STATUS1_PARALYSIS))
         stages[HB_STATUS_ELECTRIC] = 3;
-    if (status1 & STATUS1_SLEEP)
+    if (stages[HB_STATUS_SLEEP] < 2 && (status1 & STATUS1_SLEEP))
         stages[HB_STATUS_SLEEP] = 2;
-    if (gBattleMons[battler].volatiles.confusionTimer > 0)
+    if (stages[HB_STATUS_CONFUSION] == 0 && gBattleMons[battler].volatiles.confusionTimer > 0)
         stages[HB_STATUS_CONFUSION] = 1;
 
     for (i = 0; i < HB_STATUS_COUNT; i++)
@@ -839,6 +844,37 @@ static void DrawHealthboxStatusColumn(struct Sprite *sprite, enum BattlerId batt
     }
 }
 
+// Fantasy Retold: the Stamina value the bar currently shows. It slides toward the live CurrentSta at the HP
+// bar's speed (SpriteCB_HealthBar steps it every frame) and snaps on a full healthbox redraw (send-out).
+static u16 sStaminaShown[MAX_BATTLERS_COUNT];
+
+static u32 GetLiveStaminaForBar(enum BattlerId battler)
+{
+    return min(gBattleStruct->battlerState[battler].currentStamina, GetBaseStamina(battler));
+}
+
+// Fantasy Retold: moves the shown Stamina one frame's step toward the live value, at the HP bar's pace
+// (MoveBattleBar: a full bar in B_HEALTHBAR_PIXELS / 2 = 24 frames with B_FAST_HP_DRAIN, else 1 point a frame).
+#define STAMINA_BAR_FULL_DRAIN_FRAMES 24
+
+static void StepStaminaGauge(u32 healthboxSpriteId, enum BattlerId battler)
+{
+    u32 target = GetLiveStaminaForBar(battler);
+    u32 shown = sStaminaShown[battler];
+    u32 step;
+
+    if (shown == target)
+        return;
+
+    step = B_FAST_HP_DRAIN == FALSE ? 1 : max(GetBaseStamina(battler) / STAMINA_BAR_FULL_DRAIN_FRAMES, 1);
+    if (shown < target)
+        shown = min(shown + step, target);
+    else
+        shown = (shown > target + step) ? shown - step : target;
+    sStaminaShown[battler] = shown;
+    DrawStaminaGaugeOnHealthbox(healthboxSpriteId, battler);
+}
+
 // The healthbar sprite is the status column: keeps it beside the plate and redraws it whenever any
 // status stage changes (polled, since confusion and rails change without a healthbox update).
 static void SpriteCB_HealthBar(struct Sprite *sprite)
@@ -859,6 +895,9 @@ static void SpriteCB_HealthBar(struct Sprite *sprite)
 
     if (gBattleStruct != NULL && GetHealthboxStatusStages(battler, stages) != (u16)sprite->hBar_StatusSignature)
         DrawHealthboxStatusColumn(sprite, battler);
+
+    if (gBattleStruct != NULL)
+        StepStaminaGauge(sprite->hBar_HealthBoxSpriteId, battler);
 }
 
 static void SpriteCB_HealthBoxOther(struct Sprite *sprite)
@@ -1101,12 +1140,12 @@ static void DrawHealthboxHpBar(u32 healthboxSpriteId, enum BattlerId battler, s3
 // Fantasy Retold: the Stamina bar under the HP bar, same length. Green normally, yellow once Recuperate is
 // available (the plate art has a notch under the bar at that threshold), empty with a red frame at 0
 // Stamina. Any non-zero Stamina shows at least 1px, since exhaustion keys off the exact live value
-// (CurrentSta == 0), not the drawn bar.
+// (CurrentSta == 0), not the drawn bar. Draws the animated value (sStaminaShown), not the live one.
 static void DrawStaminaGaugeOnHealthbox(u32 healthboxSpriteId, enum BattlerId battler)
 {
     const struct HealthboxLayout *layout = GetHealthboxLayout(battler);
     u32 x = layout->barX, y = layout->staY, w = layout->barW;
-    u32 curSta = gBattleStruct->battlerState[battler].currentStamina;
+    u32 curSta = sStaminaShown[battler];
     u32 baseSta = GetBaseStamina(battler);
     u32 filled, frameColor, fillColor;
 
@@ -1907,7 +1946,10 @@ void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elem
             LoadBattleBarGfx(0);
             SetBattleBarStruct(battler, healthboxSpriteId, maxHp, currHp, 0);
             MoveBattleBar(battler, healthboxSpriteId, HEALTH_BAR, 0);
-            // Fantasy Retold: refresh the Stamina gauge whenever the HP bar redraws.
+            // Fantasy Retold: refresh the Stamina gauge whenever the HP bar redraws; a full redraw (send-out)
+            // shows the live value at once instead of sliding to it.
+            if (elementId == HEALTHBOX_ALL)
+                sStaminaShown[battler] = GetLiveStaminaForBar(battler);
             DrawStaminaGaugeOnHealthbox(healthboxSpriteId, battler);
         }
 
@@ -1954,7 +1996,10 @@ void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elem
             LoadBattleBarGfx(0);
             SetBattleBarStruct(battler, healthboxSpriteId, maxHp, currHp, 0);
             MoveBattleBar(battler, healthboxSpriteId, HEALTH_BAR, 0);
-            // Fantasy Retold: refresh the Stamina gauge whenever the HP bar redraws.
+            // Fantasy Retold: refresh the Stamina gauge whenever the HP bar redraws; a full redraw (send-out)
+            // shows the live value at once instead of sliding to it.
+            if (elementId == HEALTHBOX_ALL)
+                sStaminaShown[battler] = GetLiveStaminaForBar(battler);
             DrawStaminaGaugeOnHealthbox(healthboxSpriteId, battler);
         }
         if (elementId == HEALTHBOX_NICK || elementId == HEALTHBOX_ALL)
@@ -1964,9 +2009,8 @@ void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elem
     }
 }
 
-// Fantasy Retold: redraw just the Stamina gauge for one battler. Called both on full healthbox
-// redraws (via UpdateHealthboxAttribute) and directly from battle logic right after Stamina changes
-// (action cost, attrition) so the gauge tracks the value without waiting for a full redraw.
+// Fantasy Retold: redraw just the Stamina gauge for one battler. Called from battle logic right after
+// Stamina changes (action cost, attrition); the bar then slides to the new value (SpriteCB_HealthBar).
 void UpdateStaminaGaugeOnHealthbox(enum BattlerId battler)
 {
     u8 spriteId = gHealthboxSpriteIds[battler];

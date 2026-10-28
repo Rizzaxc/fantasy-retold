@@ -22,6 +22,7 @@ enum EndTurnResolutionOrder
     ENDTURN_BURN,
     ENDTURN_FROSTBITE,
     ENDTURN_NIGHTMARE,
+    ENDTURN_STATUS_RAILS, // Fantasy Retold: status rail timers (design.md §6)
     ENDTURN_CURSE,
     ENDTURN_WRAP,
     ENDTURN_SALT_CURE,

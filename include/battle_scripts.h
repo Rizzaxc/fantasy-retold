@@ -736,6 +736,10 @@ extern const u8 BattleScript_StatChangeFailed[];
 extern const u8 BattleScript_FRDodge[];       // Fantasy Retold: L innate command
 extern const u8 BattleScript_FRRecuperate[];  // Fantasy Retold: R innate command
 extern const u8 BattleScript_FRDodgeHalvedMsg[]; // Fantasy Retold: hit halved by Dodge
+extern const u8 BattleScript_FRRailEffectApplied[]; // Fantasy Retold: status rails
+extern const u8 BattleScript_FRRailMessageRet[];    // Fantasy Retold: status rails
+extern const u8 BattleScript_FRFrightenedFlee[];    // Fantasy Retold: status rails
+extern const u8 BattleScript_AlreadyConfused[];
 extern const u8 BattleScript_FRRecuperateCured[]; // Fantasy Retold: R innate command that purged a status
 extern const u8 BattleScript_ToxicThread[];
 extern const u8 BattleScript_PlayMoveAnim[];

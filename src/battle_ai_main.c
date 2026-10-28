@@ -511,12 +511,7 @@ static struct ChosenAction ChooseMoveOrAction(enum BattlerId battler)
 
 static u32 GetAIMoveStaminaCost(enum BattlerId battler, enum Move move)
 {
-    u32 baseSta = GetBaseStamina(battler);
-
-    if (IsBattleMoveStatus(move))
-        return 10;
-
-    return GetMovePower(move) / 10 + (baseSta * 2) / 100;
+    return GetMoveStaminaCost(battler, move);
 }
 
 // The move the AI braces for: the predicted move when AI_FLAG_PREDICT_MOVE rolled a prediction this turn,

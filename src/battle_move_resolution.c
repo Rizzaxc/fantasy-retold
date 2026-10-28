@@ -9,6 +9,7 @@
 #include "battle_script_commands.h"
 #include "battle_stat_change.h"
 #include "battle_scripts.h"
+#include "status_rail.h"
 #include "battle_z_move.h"
 #include "battle_anim_scripts.h"
 #include "item.h"
@@ -139,61 +140,31 @@ static enum CancelerResult CancelerAsleepOrFrozen(struct BattleCalcValues *cv)
         }
         else
         {
-            u32 toSub;
-            if (IsAbilityAndRecord(cv->battlerAtk, cv->abilities[cv->battlerAtk], ABILITY_EARLY_BIRD))
-                toSub = 2;
-            else
-                toSub = 1;
-
-            if ((gBattleMons[cv->battlerAtk].status1 & STATUS1_SLEEP) < toSub)
-                gBattleMons[cv->battlerAtk].status1 &= ~STATUS1_SLEEP;
-            else
-                gBattleMons[cv->battlerAtk].status1 -= toSub;
-
-            if (gBattleMons[cv->battlerAtk].status1 & STATUS1_SLEEP)
+            // Fantasy Retold: the Sleep line counts down at end of turn and on hits (status_rail.c), not
+            // here, so an Asleep / Nightmare battler just can't act (Snore / Sleep Talk still work).
+            if (cv->moveEffect == EFFECT_SNORE)
             {
-                if (cv->moveEffect == EFFECT_SNORE)
-                {
-                    BattleScriptCall(BattleScript_BeforeSnoreMessage);
-                    result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
-                }
-                else if (cv->moveEffect == EFFECT_SLEEP_TALK)
-                {
-                    result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
-                }
-                else
-                {
-                    gBattlescriptCurrInstr = BattleScript_MoveUsedIsAsleep;
-                    result = CANCELER_RESULT_FAILURE;
-                }
+                BattleScriptCall(BattleScript_BeforeSnoreMessage);
+                result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
+            }
+            else if (cv->moveEffect == EFFECT_SLEEP_TALK)
+            {
+                result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
             }
             else
             {
-                TryDeactivateSleepClause(cv->battlerAtk, gBattlerPartyIndexes[cv->battlerAtk]);
-                gBattleMons[cv->battlerAtk].volatiles.nightmare = FALSE;
-                gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_WOKE_UP;
-                result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
-                BattleScriptCall(BattleScript_MoveUsedWokeUp);
+                gBattlescriptCurrInstr = BattleScript_MoveUsedIsAsleep;
+                result = CANCELER_RESULT_FAILURE;
             }
         }
         RequestNonVolatileChange(cv->battlerAtk);
     }
     else if (gBattleMons[cv->battlerAtk].status1 & STATUS1_FREEZE && !MoveThawsUser(cv->move))
     {
-        if (!RandomPercentage(RNG_FROZEN, (GetConfig(B_FREEZE_TURNS) >= GEN_CHAMPIONS ? 25 : 20)) && GetBattlerPartyState(cv->battlerAtk)->freezeTurns < 2)
-        {
-            result = CANCELER_RESULT_FAILURE;
-            if (GetConfig(B_FREEZE_TURNS) >= GEN_CHAMPIONS)
-                GetBattlerPartyState(cv->battlerAtk)->freezeTurns++;
-            gBattlescriptCurrInstr = BattleScript_MoveUsedIsFrozen;
-        }
-        else // unfreeze
-        {
-            DefrostBattler(cv->battlerAtk, STATUS1_FREEZE);
-            result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
-            BattleScriptCall(BattleScript_BattlerDefrosted);
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_DEFROSTED;
-        }
+        // Fantasy Retold: Frozen always costs the turn; it ends after CHILL_DURATION turns or on a Fire hit
+        // (status_rail.c), with no random thaw.
+        result = CANCELER_RESULT_FAILURE;
+        gBattlescriptCurrInstr = BattleScript_MoveUsedIsFrozen;
     }
 
     return result;
@@ -401,47 +372,73 @@ static enum CancelerResult CancelerImprisoned(struct BattleCalcValues *cv)
 
 static enum CancelerResult CancelerConfused(struct BattleCalcValues *cv)
 {
-    struct Volatiles *vol = &gBattleMons[cv->battlerAtk].volatiles;
+    // Fantasy Retold: the Confusion line (design.md §6). Effects are cumulative: Frightened (Lv3) may flee,
+    // every level may hit itself, Stupefied+ (Lv2) may turn its move on its ally (or itself in singles). The
+    // turns count down at end of turn (status_rail.c), not here.
+    u32 confusionLevel;
 
-    if (vol->confusionTimer)
+    gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect = FALSE;
+    ReconcileStatusRailsFromBridge(cv->battlerAtk);
+    confusionLevel = GetStatusRailLevel(cv->battlerAtk, RAIL_CONFUSION);
+
+    if (confusionLevel != 0)
     {
-        if (vol->confusionTimer != PERMANENT_VOLATILE)
-            vol->confusionTimer--;
+        bool32 hitsItself = RandomPercentage(RNG_CONFUSION, (GetConfig(B_CONFUSION_SELF_DMG_CHANCE) >= GEN_7 ? 33 : 50));
 
-        if (vol->confusionTimer)
+        if (confusionLevel >= 3
+         && (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+         && !(gBattleTypeFlags & BATTLE_TYPE_ARENA)
+         && !gBattleMons[cv->battlerAtk].volatiles.root
+         && GetActiveGimmick(cv->battlerAtk) != GIMMICK_DYNAMAX
+         && !gBattleStruct->battlerState[cv->battlerAtk].commandingDondozo
+         && RandomPercentage(RNG_FRIGHTENED, FRIGHTENED_FLEE_CHANCE))
         {
-             // confusion dmg
-            if (RandomPercentage(RNG_CONFUSION, (GetConfig(B_CONFUSION_SELF_DMG_CHANCE) >= GEN_7 ? 33 : 50)))
-            {
-                gBattleCommunication[MULTISTRING_CHOOSER] = TRUE;
-                gBattlerTarget = gBattlerAttacker;
-                struct DamageContext dmgCtx = {0};
-                dmgCtx.battlerAtk = dmgCtx.battlerDef = cv->battlerAtk;
-                dmgCtx.move = dmgCtx.chosenMove = dmgCtx.baseMove = MOVE_NONE;
-                dmgCtx.moveType = TYPE_MYSTERY;
-                dmgCtx.isCrit = FALSE;
-                dmgCtx.randomFactor = FALSE;
-                dmgCtx.updateFlags = TRUE;
-                dmgCtx.isSelfInflicted = TRUE;
-                dmgCtx.fixedBasePower = 40;
-                dmgCtx.abilities[gBattlerAttacker] = cv->abilities[gBattlerAttacker];
-                dmgCtx.holdEffects[gBattlerAttacker] = cv->holdEffects[gBattlerAttacker];
-                gBattleStruct->passiveHpUpdate[cv->battlerAtk] = CalculateMoveDamage(&dmgCtx);
-                gBattlescriptCurrInstr = BattleScript_MoveUsedIsConfused;
-                return CANCELER_RESULT_FAILURE;
-            }
-            else
-            {
-                gBattleCommunication[MULTISTRING_CHOOSER] = FALSE;
-                BattleScriptCall(BattleScript_MoveUsedIsConfused);
-                return CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
-            }
+            CancelMultiTurnMoves(cv->battlerAtk);
+            gBattlerTarget = cv->battlerAtk; // forcerandomswitch switches gBattlerTarget
+            gBattlescriptCurrInstr = BattleScript_FRFrightenedFlee;
+            return CANCELER_RESULT_FAILURE;
         }
-        else // snapped out of confusion
+
+        if (!hitsItself && confusionLevel >= 2 && RandomPercentage(RNG_STUPEFIED, STUPEFIED_CHANCE))
         {
-            BattleScriptCall(BattleScript_MoveUsedIsConfusedNoMore);
+            enum BattlerId ally = GetPartnerBattler(cv->battlerAtk);
+            if (IsDoubleBattle() && IsBattlerAlive(ally) && !IsBattleMoveStatus(cv->move))
+                gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect = TRUE; // CancelerSetTargets
+            else
+                hitsItself = TRUE;
+        }
+
+        // confusion dmg
+        if (hitsItself)
+        {
+            gBattleCommunication[MULTISTRING_CHOOSER] = TRUE;
+            gBattlerTarget = gBattlerAttacker;
+            struct DamageContext dmgCtx = {0};
+            dmgCtx.battlerAtk = dmgCtx.battlerDef = cv->battlerAtk;
+            dmgCtx.move = dmgCtx.chosenMove = dmgCtx.baseMove = MOVE_NONE;
+            dmgCtx.moveType = TYPE_MYSTERY;
+            dmgCtx.isCrit = FALSE;
+            dmgCtx.randomFactor = FALSE;
+            dmgCtx.updateFlags = TRUE;
+            dmgCtx.isSelfInflicted = TRUE;
+            dmgCtx.fixedBasePower = 40;
+            dmgCtx.abilities[gBattlerAttacker] = cv->abilities[gBattlerAttacker];
+            dmgCtx.holdEffects[gBattlerAttacker] = cv->holdEffects[gBattlerAttacker];
+            gBattleStruct->passiveHpUpdate[cv->battlerAtk] = CalculateMoveDamage(&dmgCtx);
+            gBattlescriptCurrInstr = BattleScript_MoveUsedIsConfused;
+            return CANCELER_RESULT_FAILURE;
+        }
+
+        if (gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect)
+        {
+            gBattleScripting.savedStringId = STRINGID_FRTURNEDONALLY;
+            BattleScriptCall(BattleScript_FRRailMessageRet);
             return CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
         }
+
+        gBattleCommunication[MULTISTRING_CHOOSER] = FALSE;
+        BattleScriptCall(BattleScript_MoveUsedIsConfused);
+        return CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
     }
     return CANCELER_RESULT_SUCCESS;
 }
@@ -927,6 +924,15 @@ static enum CancelerResult CancelerSetTargets(struct BattleCalcValues *cv)
     enum MoveTarget moveTarget = GetBattlerMoveTargetType(cv->battlerAtk, cv->move);
     bool32 isDoubleBattle = IsDoubleBattle();
 
+    // Fantasy Retold: Stupefied (CancelerConfused) turns a single-target move on the user's ally.
+    if (gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect)
+    {
+        gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect = FALSE;
+        if (!IsSpreadMove(moveTarget) && moveTarget != TARGET_FIELD && moveTarget != TARGET_OPPONENTS_FIELD
+         && IsBattlerAlive(GetPartnerBattler(cv->battlerAtk)))
+            cv->battlerDef = GetPartnerBattler(cv->battlerAtk);
+    }
+
     if (!HandleMoveTargetRedirection(cv, moveTarget))
     {
         if (isDoubleBattle && moveTarget == TARGET_RANDOM)
@@ -1051,13 +1057,9 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
             gBattleMons[cv->battlerAtk].pp[movePosition] = 0;
     }
 
-    // Fantasy Retold: Stamina action cost. Damaging: BP/10 + 2% BaseSta body tax. Status: flat 10.
+    // Fantasy Retold: Stamina action cost (GetMoveStaminaCost).
     {
-        u32 staCost;
-        if (IsBattleMoveStatus(cv->move))
-            staCost = 10;
-        else
-            staCost = (GetMovePower(cv->move) / 10) + ((GetBaseStamina(cv->battlerAtk) * 2) / 100);
+        u32 staCost = GetMoveStaminaCost(cv->battlerAtk, cv->move);
 
         if (gBattleStruct->battlerState[cv->battlerAtk].currentStamina > staCost)
             gBattleStruct->battlerState[cv->battlerAtk].currentStamina -= staCost;
@@ -4211,6 +4213,66 @@ static enum MoveEndResult MoveEndDefrost(struct BattleCalcValues *cv)
     return MOVEEND_RESULT_CONTINUE;
 }
 
+// Fantasy Retold: status rails after a damaging move (design.md §6). For the user and every battler it hit:
+// the type interaction (Fire thaws the Chill line, Water / Ice ease a Burn, Ground drains the Electric line),
+// a Water hit may Soak, and a hit takes a turn off the Sleep line. One message per call; railMoveEndStep walks
+// battler * 4 + step so nothing is applied twice.
+static enum MoveEndResult MoveEndStatusRails(struct BattleCalcValues *cv)
+{
+    enum Type moveType = GetBattleMoveType(cv->move);
+
+    if (IsBattleMoveStatus(cv->move) || gBattleStruct->unableToUseMove)
+        gBattleStruct->railMoveEndStep = gBattlersCount * 4; // nothing to do
+
+    while (gBattleStruct->railMoveEndStep < gBattlersCount * 4)
+    {
+        enum BattlerId battler = gBattleStruct->railMoveEndStep / 4;
+        u32 step = gBattleStruct->railMoveEndStep % 4;
+        bool32 isUser = (battler == cv->battlerAtk);
+        bool32 wasHit = !isUser && IsBattlerTurnDamaged(battler, EXCLUDING_SUBSTITUTES);
+        u32 stringId = 0;
+
+        gBattleStruct->railMoveEndStep++;
+        if (!IsBattlerAlive(battler))
+            continue;
+
+        switch (step)
+        {
+        case 0:
+            if (isUser || wasHit)
+                stringId = ApplyStatusRailTypeInteraction(battler, moveType);
+            break;
+        case 1:
+            if (wasHit && TrySoakFromHit(battler, moveType))
+                stringId = STRINGID_FRSOAKEDHIT;
+            break;
+        case 2:
+            if (wasHit && TrySleepRailValve(battler))
+            {
+                TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
+                gBattleMons[battler].volatiles.nightmare = FALSE;
+                stringId = STRINGID_FRWOKEUP;
+            }
+            break;
+        default:
+            break;
+        }
+
+        if (stringId != 0)
+        {
+            EmitStatusRailMirror(battler);
+            gBattleScripting.battler = battler;
+            gBattleScripting.savedStringId = stringId;
+            BattleScriptCall(BattleScript_FRRailMessageRet);
+            return MOVEEND_RESULT_RUN_SCRIPT;
+        }
+    }
+
+    gBattleStruct->railMoveEndStep = 0;
+    gBattleScripting.moveendState++;
+    return MOVEEND_RESULT_CONTINUE;
+}
+
 static enum MoveEndResult MoveEndMoveBlockRecoil(struct BattleCalcValues *cv)
 {
     enum MoveEndResult result = MOVEEND_RESULT_CONTINUE;
@@ -5446,6 +5508,7 @@ static enum MoveEndResult (*const sMoveEndHandlers[])(struct BattleCalcValues *c
     [MOVEEND_HP_THRESHOLD_ITEMS_TARGET] = MoveEndHpThresholdItemsTarget,
     [MOVEEND_MULTIHIT_MOVE] = MoveEndMultihitMove,
     [MOVEEND_DEFROST] = MoveEndDefrost,
+    [MOVEEND_STATUS_RAILS] = MoveEndStatusRails,
     [MOVEEND_MOVE_BLOCK_RECOIL] = MoveEndMoveBlockRecoil,
     [MOVEEND_SHEER_FORCE] = MoveEndSheerForce,
     [MOVEEND_MOVE_BLOCK] = MoveEndMoveBlock,

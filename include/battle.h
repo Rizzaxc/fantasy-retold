@@ -565,7 +565,8 @@ struct BattlerState
     u16 originalBattlerPartyId : 4;
     u16 isFirstTurn : 2;          // Starts at 2 on switch in and counts down during end turn
     u16 dodgeConsecutiveUses : 5; // Fantasy Retold: prior consecutive Dodge turns; drives the +20 escalation on the next Dodge.
-    u16 padding : 3;
+    u16 stupefiedRedirect : 1;    // Fantasy Retold: this move turns on the user's ally (Stupefied, design.md §6)
+    u16 padding : 2;
     // End of Word
 };
 
@@ -583,8 +584,9 @@ struct BattlerState
 // Fantasy Retold: per-rail status state (design.md §6). See enum StatusRail in constants/battle.h.
 struct StatusRailEntry
 {
-    u8 level;   // 0 = none; 1..3 (rail-specific max)
-    u8 counter; // rail-specific: Toxic escalation turns (RAIL_POISON); later sleep/confusion turns, burn stacks, etc.
+    u8 level;   // 0 = none; 1..3 (rail-specific max). For RAIL_BURN this is the stack count.
+    u8 counter; // rail-specific: Toxic escalation turns (RAIL_POISON); turns left (SOAK, CHILL, SLEEP, CONFUSION)
+    u8 branch;  // RAIL_CHILL only: CHILL_BRANCH_FROZEN / CHILL_BRANCH_FROSTBITTEN once at Lv2
 };
 
 struct PartyState
@@ -728,6 +730,8 @@ struct BattleStruct
     enum BattlerId soulheartBattlerId;
     struct LostItem itemLost[MAX_BATTLE_TRAINERS][PARTY_SIZE];
     u8 dodgeHalvedHit; // Fantasy Retold: battlers whose Dodge halved the current hit (for the result message)
+    u8 railMoveEndStep; // Fantasy Retold: progress through MoveEndStatusRails (battler * 4 + step)
+    u8 railsEndedMask;  // Fantasy Retold: status rails that ran out this end-turn tick, still to announce
     u8 blunderPolicy : 1; // should blunder policy activate
     u8 redCardActivated : 1;
     u8 snatchedMoveIsUsed : 1;

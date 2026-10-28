@@ -912,6 +912,24 @@ const u8 *const gBattleStringsTable[STRINGID_COUNT] =
     [STRINGID_FRSHOOKOFFAILMENT]                    = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} shook off a minor ailment!"), // Fantasy Retold
     [STRINGID_FRDODGEDATTACK]                       = COMPOUND_STRING("{B_DEF_NAME_WITH_PREFIX} dodged the attack!"), // Fantasy Retold
     [STRINGID_FRPARTLYDODGED]                       = COMPOUND_STRING("{B_DEF_NAME_WITH_PREFIX} partly dodged the attack!"), // Fantasy Retold
+    [STRINGID_FRSOAKEDHIT]                          = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} got soaked!"), // Fantasy Retold
+    [STRINGID_FRCHILLED]                            = COMPOUND_STRING("{B_EFF_NAME_WITH_PREFIX} is chilled!"), // Fantasy Retold
+    [STRINGID_FRBURNWORSE]                          = COMPOUND_STRING("{B_EFF_NAME_WITH_PREFIX}'s burn got worse!"), // Fantasy Retold
+    [STRINGID_FRDAZED]                              = COMPOUND_STRING("{B_EFF_NAME_WITH_PREFIX} is dazed!"), // Fantasy Retold
+    [STRINGID_FRSHOCKED]                            = COMPOUND_STRING("{B_EFF_NAME_WITH_PREFIX} is shocked!"), // Fantasy Retold
+    [STRINGID_FRDROWSY]                             = COMPOUND_STRING("{B_EFF_NAME_WITH_PREFIX} grew drowsy!"), // Fantasy Retold
+    [STRINGID_FRNIGHTMARE]                          = COMPOUND_STRING("{B_EFF_NAME_WITH_PREFIX} sank into a nightmare!"), // Fantasy Retold
+    [STRINGID_FRSTUPEFIED]                          = COMPOUND_STRING("{B_EFF_NAME_WITH_PREFIX} is stupefied!"), // Fantasy Retold
+    [STRINGID_FRFRIGHTENED]                         = COMPOUND_STRING("{B_EFF_NAME_WITH_PREFIX} is frightened!"), // Fantasy Retold
+    [STRINGID_FRDRIEDOFF]                           = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} dried off!"), // Fantasy Retold
+    [STRINGID_FRWARMEDUP]                           = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} warmed up!"), // Fantasy Retold
+    [STRINGID_FRWOKEUP]                             = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} woke up!"), // Fantasy Retold
+    [STRINGID_FRCALMEDDOWN]                         = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} snapped out of it!"), // Fantasy Retold
+    [STRINGID_FRBURNEASED]                          = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s burn eased!"), // Fantasy Retold
+    [STRINGID_FRSTATICFADED]                        = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} shook off some static!"), // Fantasy Retold
+    [STRINGID_FRPANICKED]                           = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} panicked and tried to flee!"), // Fantasy Retold
+    [STRINGID_FRNOWHERETORUN]                       = COMPOUND_STRING("But it had nowhere to run!"), // Fantasy Retold
+    [STRINGID_FRTURNEDONALLY]                       = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} is stupefied and turned on its ally!"), // Fantasy Retold
 };
 
 const u16 gTrainerUsedItemStringIds[] =

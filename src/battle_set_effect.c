@@ -19,6 +19,7 @@
 #include "move.h"
 #include "random.h"
 #include "string_util.h"
+#include "status_rail.h"
 #include "config/battle.h"
 
 static inline bool32 IgnoreTargetingForMoveEffect(enum MoveEffect moveEffect);
@@ -59,13 +60,29 @@ static void HandleSetEffectConfusion(struct BattleCalcValues *cv, struct SetEffe
 {
     if (!CanBeConfused(cv->battlerAtk, se->effectBattler))
     {
-        gBattlescriptCurrInstr = se->script;
+        // Fantasy Retold: a confusing status move on a Frightened target says so (the script no longer
+        // checks the volatile itself, since Confused / Stupefied can still advance).
+        if (se->primary && GetStatusRailLevel(se->effectBattler, RAIL_CONFUSION) >= GetStatusRailMaxLevel(RAIL_CONFUSION))
+            gBattlescriptCurrInstr = BattleScript_AlreadyConfused;
+        else
+            gBattlescriptCurrInstr = se->script;
     }
     else
     {
-        gBattleMons[se->effectBattler].volatiles.confusionTimer = RandomUniform(RNG_CONFUSION_TURNS, 2, B_CONFUSION_TURNS); // 2-5 turns
+        // Fantasy Retold: Confused (Lv1) -> Stupefied (Lv2) -> Frightened (Lv3); a status move starts at
+        // Stupefied, a secondary at Confused. 3 turns, kept when the line advances (design.md §6).
+        u8 level = ApplyStatusRail(se->effectBattler, RAIL_CONFUSION, se->primary ? 2 : 1);
+        gEffectBattler = se->effectBattler;
         BattleScriptPush(se->script);
-        gBattlescriptCurrInstr = BattleScript_MoveEffectConfusion;
+        if (level == 1)
+        {
+            gBattlescriptCurrInstr = BattleScript_MoveEffectConfusion;
+        }
+        else
+        {
+            gBattleScripting.savedStringId = (level == 2) ? STRINGID_FRSTUPEFIED : STRINGID_FRFRIGHTENED;
+            gBattlescriptCurrInstr = BattleScript_FRRailMessageRet;
+        }
     }
 }
 

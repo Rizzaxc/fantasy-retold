@@ -197,10 +197,37 @@ enum BattleSide
 // status icons / animations / messages / AI keep working (see SyncStatusRailBridge in status_rail.c).
 enum StatusRail
 {
-    RAIL_POISON, // Poison (Lv1) -> Toxic (Lv2)
-    // Future lines: RAIL_SLEEP, RAIL_ELECTRIC, RAIL_CHILL, RAIL_BURN, RAIL_SOAK, RAIL_CONFUSION
+    RAIL_POISON,    // Poison (Lv1) -> Toxic (Lv2)
+    RAIL_BURN,      // Burn stacks 1-3 (mirrored as STATUS1_BURN)
+    RAIL_CHILL,     // Chilled (Lv1) -> Frozen or Frostbitten (Lv2, random branch)
+    RAIL_ELECTRIC,  // Dazed (Lv1) -> Shocked (Lv2) -> Paralyzed (Lv3)
+    RAIL_SLEEP,     // Drowsy (Lv1) -> Asleep (Lv2) -> Nightmare (Lv3)
+    RAIL_CONFUSION, // Confused (Lv1) -> Stupefied (Lv2) -> Frightened (Lv3), mirrored as volatiles.confusionTimer
+    RAIL_SOAK,      // Soaked (Lv1 only)
     NUM_STATUS_RAILS,
 };
+
+// RAIL_CHILL's Lv2 branch (StatusRailEntry.branch).
+#define CHILL_BRANCH_FROZEN      0
+#define CHILL_BRANCH_FROSTBITTEN 1
+
+// Fantasy Retold: status rail tuning (design.md §6 / §11). Durations are end-of-turn ticks.
+#define STATUS_RAIL_SLOW_PERCENT         75  // Speed x0.75 each for Soaked, Chilled, Drowsy (they stack)
+#define STATUS_RAIL_STAMINA_SURCHARGE    5   // +5 Stamina on every move / Dodge while Chilled or Drowsy (each)
+#define SOAK_DURATION                    3
+#define SOAK_CHANCE                      20  // % for a damaging Water move to Soak (10% baseline, doubled)
+#define CHILL_DURATION                   2   // renewed by every Ice application
+#define SLEEP_DURATION                   3   // -1 per direct damaging hit; Nightmare inherits the count
+#define CONFUSION_DURATION               3   // advancing the line keeps the count
+#define BURN_PHYSICAL_PENALTY_PER_STACK  15  // physical damage -15% per Burn stack
+#define DAZED_ACCURACY_PERCENT           90
+#define SHOCKED_ACCURACY_PERCENT         80  // Shocked and Paralyzed
+#define SHOCKED_ELECTRIC_DAMAGE_PERCENT  125 // incoming Electric damage while Shocked or Paralyzed
+#define PARALYSIS_SPEED_DIVISOR          4
+#define NIGHTMARE_TRAUMA_DIVISOR         8   // Nightmare: maxHP/8 per turn, all of it Trauma
+#define FROSTBITE_TRAUMA_DIVISOR         16  // Frostbitten: maxHP/16 per turn, all of it Trauma
+#define STUPEFIED_CHANCE                 25  // % a Stupefied mon's move turns on itself / its ally
+#define FRIGHTENED_FLEE_CHANCE           20  // % a Frightened mon flees to a random party member instead of acting
 
 // Toxic (RAIL_POISON at Lv2) escalation cap: the per-turn unhealable (Trauma-logged) tick is
 // maxHP/16 * counter, with counter clamped here to prevent runaway lethality (design.md §6/§11).

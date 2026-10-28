@@ -620,6 +620,9 @@ static bool32 HandleEndTurnBurn(enum BattlerId battler)
      && !IsAbilityAndRecord(battler, ability, ABILITY_MAGIC_GUARD))
     {
         s32 burnDamage = GetNonDynamaxMaxHP(battler) / ((GetConfig(B_BURN_DAMAGE) >= GEN_7 || GetConfig(B_BURN_DAMAGE) == GEN_1) ? 16 : 8);
+        // Fantasy Retold: Burn stacks (design.md §6) — one tick per stack.
+        ReconcileStatusRailsFromBridge(battler);
+        burnDamage *= max(GetStatusRailLevel(battler, RAIL_BURN), 1);
         if (ability == ABILITY_HEATPROOF)
         {
             if (burnDamage > (burnDamage / 2) + 1) // Record ability if the burn takes less damage than it normally would.
@@ -644,7 +647,10 @@ static bool32 HandleEndTurnFrostbite(enum BattlerId battler)
      && IsBattlerPresent(battler)
      && !IsAbilityAndRecord(battler, GetBattlerAbility(battler), ABILITY_MAGIC_GUARD))
     {
-        SetPassiveDamageAmount(battler, GetNonDynamaxMaxHP(battler) / ((GetConfig(B_BURN_DAMAGE) >= GEN_7 || GetConfig(B_BURN_DAMAGE) == GEN_1) ? 16 : 8));
+        // Fantasy Retold: Frostbitten ticks straight into the Trauma pool (design.md §6).
+        u32 tick = max(GetNonDynamaxMaxHP(battler) / FROSTBITE_TRAUMA_DIVISOR, 1);
+        SetPassiveDamageAmount(battler, tick);
+        LogBattlerTrauma(battler, tick);
         BattleScriptCall(BattleScript_FrostbiteTurnDmg);
         effect = TRUE;
     }
@@ -657,6 +663,18 @@ static bool32 HandleEndTurnNightmare(enum BattlerId battler)
     bool32 effect = FALSE;
 
     gBattleStruct->eventState.endTurnBattler++;
+
+    // Fantasy Retold: Nightmare, the top of the Sleep line (design.md §6), drains health as Trauma.
+    if (GetStatusRailLevel(battler, RAIL_SLEEP) >= 3
+     && IsBattlerPresent(battler)
+     && !IsAbilityAndRecord(battler, GetBattlerAbility(battler), ABILITY_MAGIC_GUARD))
+    {
+        u32 tick = max(GetNonDynamaxMaxHP(battler) / NIGHTMARE_TRAUMA_DIVISOR, 1);
+        SetPassiveDamageAmount(battler, tick);
+        LogBattlerTrauma(battler, tick);
+        BattleScriptCall(BattleScript_NightmareTurnDmg);
+        return TRUE;
+    }
 
     if (gBattleMons[battler].volatiles.nightmare
      && IsBattlerPresent(battler)
@@ -675,6 +693,49 @@ static bool32 HandleEndTurnNightmare(enum BattlerId battler)
     }
 
     return effect;
+}
+
+// Fantasy Retold: status rail timers (design.md §6). SOAK / CHILL / SLEEP / CONFUSION count down once a turn;
+// each one that runs out is announced in turn. railsEndedMask holds the ones still to print, with
+// RAILS_TICK_DONE marking that this battler has already been ticked.
+#define RAILS_TICK_DONE (1u << 7)
+
+static bool32 HandleEndTurnStatusRails(enum BattlerId battler)
+{
+    enum StatusRail rail;
+
+    if (!(gBattleStruct->railsEndedMask & RAILS_TICK_DONE))
+    {
+        if (!IsBattlerPresent(battler) || !IsBattlerAlive(battler))
+        {
+            gBattleStruct->eventState.endTurnBattler++;
+            return FALSE;
+        }
+        gBattleStruct->railsEndedMask = TickStatusRailTimers(battler, GetBattlerAbility(battler) == ABILITY_EARLY_BIRD) | RAILS_TICK_DONE;
+        if (gBattleStruct->railsEndedMask & ~RAILS_TICK_DONE)
+            EmitStatusRailMirror(battler);
+        if (gBattleStruct->railsEndedMask & (1u << RAIL_SLEEP))
+        {
+            TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
+            gBattleMons[battler].volatiles.nightmare = FALSE;
+        }
+    }
+
+    for (rail = 0; rail < NUM_STATUS_RAILS; rail++)
+    {
+        if (gBattleStruct->railsEndedMask & (1u << rail))
+        {
+            gBattleStruct->railsEndedMask &= ~(1u << rail);
+            gBattleScripting.battler = battler;
+            gBattleScripting.savedStringId = GetStatusRailEndedStringId(rail);
+            BattleScriptCall(BattleScript_FRRailMessageRet);
+            return TRUE;
+        }
+    }
+
+    gBattleStruct->railsEndedMask = 0;
+    gBattleStruct->eventState.endTurnBattler++;
+    return FALSE;
 }
 
 static bool32 HandleEndTurnCurse(enum BattlerId battler)
@@ -1606,6 +1667,7 @@ static bool32 (*const sEndTurnEffectHandlers[])(enum BattlerId battler) =
     [ENDTURN_BURN] = HandleEndTurnBurn,
     [ENDTURN_FROSTBITE] = HandleEndTurnFrostbite,
     [ENDTURN_NIGHTMARE] = HandleEndTurnNightmare,
+    [ENDTURN_STATUS_RAILS] = HandleEndTurnStatusRails,
     [ENDTURN_CURSE] = HandleEndTurnCurse,
     [ENDTURN_WRAP] = HandleEndTurnWrap,
     [ENDTURN_SALT_CURE] = HandleEndTurnSaltCure,

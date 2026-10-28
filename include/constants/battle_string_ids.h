@@ -733,6 +733,24 @@ enum StringID
     STRINGID_FRSHOOKOFFAILMENT, // Fantasy Retold
     STRINGID_FRDODGEDATTACK, // Fantasy Retold
     STRINGID_FRPARTLYDODGED, // Fantasy Retold
+    STRINGID_FRSOAKEDHIT, // Fantasy Retold: status rails
+    STRINGID_FRCHILLED, // Fantasy Retold: status rails
+    STRINGID_FRBURNWORSE, // Fantasy Retold: status rails
+    STRINGID_FRDAZED, // Fantasy Retold: status rails
+    STRINGID_FRSHOCKED, // Fantasy Retold: status rails
+    STRINGID_FRDROWSY, // Fantasy Retold: status rails
+    STRINGID_FRNIGHTMARE, // Fantasy Retold: status rails
+    STRINGID_FRSTUPEFIED, // Fantasy Retold: status rails
+    STRINGID_FRFRIGHTENED, // Fantasy Retold: status rails
+    STRINGID_FRDRIEDOFF, // Fantasy Retold: status rails
+    STRINGID_FRWARMEDUP, // Fantasy Retold: status rails
+    STRINGID_FRWOKEUP, // Fantasy Retold: status rails
+    STRINGID_FRCALMEDDOWN, // Fantasy Retold: status rails
+    STRINGID_FRBURNEASED, // Fantasy Retold: status rails
+    STRINGID_FRSTATICFADED, // Fantasy Retold: status rails
+    STRINGID_FRPANICKED, // Fantasy Retold: status rails
+    STRINGID_FRNOWHERETORUN, // Fantasy Retold: status rails
+    STRINGID_FRTURNEDONALLY, // Fantasy Retold: status rails
     STRINGID_COUNT
 };
 

@@ -1715,26 +1715,35 @@ void TrySynchronizeActivation(enum BattlerId battlerAtk, enum BattlerId effectBa
 
 void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattler, enum MoveEffect effect, const u8 *battleScript, enum StatusTrigger trigger, u8 railMinLevel)
 {
-    gEffectBattler = effectBattler;
+    u8 level;
 
-    if (effect == MOVE_EFFECT_SLEEP || effect == MOVE_EFFECT_FREEZE)
-        CancelMultiTurnMoves(effectBattler);
+    gEffectBattler = effectBattler;
 
     BattleScriptPush(battleScript);
 
+    // Fantasy Retold: every non-volatile status runs on its rail (design.md §6); the rail level decides the
+    // message. Levels with a vanilla equivalent keep its script, the others print through
+    // BattleScript_FRRailEffectApplied with gBattleScripting.savedStringId.
     switch (effect)
     {
     case MOVE_EFFECT_SLEEP:
-        if (GetConfig(B_SLEEP_TURNS) >= GEN_CHAMPIONS)
-            gBattleMons[effectBattler].status1 |= STATUS1_SLEEP_TURN(RandomWeighted(RNG_SLEEP_TURNS, 0, 0, 1, 2));
-        else if (GetConfig(B_SLEEP_TURNS) >= GEN_5)
-            gBattleMons[effectBattler].status1 |= STATUS1_SLEEP_TURN(RandomUniform(RNG_SLEEP_TURNS, 2, 4));
-        else if (GetConfig(B_SLEEP_TURNS) >= GEN_3)
-            gBattleMons[effectBattler].status1 |= STATUS1_SLEEP_TURN(RandomUniform(RNG_SLEEP_TURNS, 2, 5));
+        level = ApplyStatusRail(effectBattler, RAIL_SLEEP, railMinLevel);
+        if (level == 1)
+        {
+            gBattleScripting.savedStringId = STRINGID_FRDROWSY;
+            gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied;
+        }
+        else if (level == 2)
+        {
+            CancelMultiTurnMoves(effectBattler);
+            TryActivateSleepClause(effectBattler, gBattlerPartyIndexes[effectBattler]);
+            gBattlescriptCurrInstr = BattleScript_MoveEffectSleep;
+        }
         else
-            gBattleMons[effectBattler].status1 |= STATUS1_SLEEP_TURN(RandomUniform(RNG_SLEEP_TURNS, 2, 8));
-        TryActivateSleepClause(effectBattler, gBattlerPartyIndexes[effectBattler]);
-        gBattlescriptCurrInstr = BattleScript_MoveEffectSleep;
+        {
+            gBattleScripting.savedStringId = STRINGID_FRNIGHTMARE;
+            gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied;
+        }
         break;
     case MOVE_EFFECT_POISON:
     case MOVE_EFFECT_TOXIC:
@@ -1749,21 +1758,50 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
             gBattlescriptCurrInstr = BattleScript_MoveEffectPoison;
         break;
     case MOVE_EFFECT_BURN:
-        gBattleMons[effectBattler].status1 |= STATUS1_BURN;
-        gBattlescriptCurrInstr = BattleScript_MoveEffectBurn;
+        // Stacks: a status move (Will-O-Wisp) lands 2, a secondary 1, each reapplication +1 (max 3).
+        if (ApplyStatusRail(effectBattler, RAIL_BURN, railMinLevel) == 1)
+        {
+            gBattlescriptCurrInstr = BattleScript_MoveEffectBurn;
+        }
+        else
+        {
+            gBattleScripting.savedStringId = STRINGID_FRBURNWORSE;
+            gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied;
+        }
         break;
     case MOVE_EFFECT_FREEZE:
-        GetBattlerPartyState(effectBattler)->freezeTurns = 2;
-        gBattleMons[effectBattler].status1 |= STATUS1_FREEZE;
-        gBattlescriptCurrInstr = BattleScript_MoveEffectFreeze;
+    case MOVE_EFFECT_FROSTBITE:
+        // Chilled first; the next Ice application turns it into Frozen or Frostbitten at random.
+        if (ApplyStatusRail(effectBattler, RAIL_CHILL, railMinLevel) == 1)
+        {
+            gBattleScripting.savedStringId = STRINGID_FRCHILLED;
+            gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied;
+        }
+        else if (GetStatusRailBranch(effectBattler, RAIL_CHILL) == CHILL_BRANCH_FROZEN)
+        {
+            CancelMultiTurnMoves(effectBattler);
+            gBattlescriptCurrInstr = BattleScript_MoveEffectFreeze;
+        }
+        else
+        {
+            gBattlescriptCurrInstr = BattleScript_MoveEffectFrostbite;
+        }
         break;
     case MOVE_EFFECT_PARALYSIS:
-        gBattleMons[effectBattler].status1 |= STATUS1_PARALYSIS;
-        gBattlescriptCurrInstr = BattleScript_MoveEffectParalysis;
-        break;
-    case MOVE_EFFECT_FROSTBITE:
-        gBattleMons[effectBattler].status1 |= STATUS1_FROSTBITE;
-        gBattlescriptCurrInstr = BattleScript_MoveEffectFrostbite;
+        switch (ApplyStatusRail(effectBattler, RAIL_ELECTRIC, railMinLevel))
+        {
+        case 1:
+            gBattleScripting.savedStringId = STRINGID_FRDAZED;
+            gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied;
+            break;
+        case 2:
+            gBattleScripting.savedStringId = STRINGID_FRSHOCKED;
+            gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied;
+            break;
+        default:
+            gBattlescriptCurrInstr = BattleScript_MoveEffectParalysis;
+            break;
+        }
         break;
     default:
         break;
@@ -6498,6 +6536,7 @@ static void Cmd_healpartystatus(void)
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_BELL;
         else
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_SOOTHING_AROMA;
+        ClearAllStatusRails(gBattlerAttacker); // Fantasy Retold: cures every line (design.md §6)
         gBattleMons[gBattlerAttacker].status1 = 0;
         gBattleMons[gBattlerAttacker].volatiles.nightmare = FALSE;
     }
@@ -6514,6 +6553,7 @@ static void Cmd_healpartystatus(void)
         if (GetConfig(B_HEAL_BELL_SOUNDPROOF) == GEN_5
          || !(isSoundMove && GetBattlerAbility(partner) == ABILITY_SOUNDPROOF))
         {
+            ClearAllStatusRails(partner); // Fantasy Retold
             gBattleMons[partner].status1 = 0;
             gBattleMons[partner].volatiles.nightmare = FALSE;
         }
@@ -7544,6 +7584,7 @@ static void Cmd_switchoutabilities(void)
         if (gBattleMons[battler].status1 & STATUS1_SLEEP)
             TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
 
+        ClearAllStatusRails(battler); // Fantasy Retold: every line, including the ones status1 doesn't show
         gBattleMons[battler].status1 = 0;
         BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE,
                                         1u << gBattlerPartyIndexes[battler],
@@ -8597,8 +8638,8 @@ void HandleBattleWindow(u8 xStart, u8 yStart, u8 xEnd, u8 yEnd, u8 flags)
 void BattleCreateYesNoCursorAt(u8 cursorPosition)
 {
     u16 src[2];
-    src[0] = 1;
-    src[1] = 2;
+    src[0] = 0x5001; // BG palette 5 (menu window text), not the dark textbox palette 0
+    src[1] = 0x5002;
 
     CopyToBgTilemapBufferRect_ChangePalette(0, src, 0x19, 9 + (2 * cursorPosition), 1, 2, 0x11);
     CopyBgTilemapBufferToVram(0);
@@ -12303,8 +12344,8 @@ void BS_HandleFailedVictoryCatch(void)
 static void BattleCreateCatchOrNotCursorAt(u32 cursorPosition)
 {
     u16 src[2];
-    src[0] = 1;
-    src[1] = 2;
+    src[0] = 0x5001; // BG palette 5 (menu window text), not the dark textbox palette 0
+    src[1] = 0x5002;
 
     CopyToBgTilemapBufferRect_ChangePalette(0, src, 0x14, 9 + (2 * cursorPosition), 1, 2, 0x11);
     CopyBgTilemapBufferToVram(0);

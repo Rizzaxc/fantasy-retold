@@ -125,18 +125,6 @@ static const u8 sText_InnateRecuperate[] = _("Recuperate");
 static const u8 sText_InnateStamina[] = _("STA");
 static const u8 sText_InnateDodgeInfo[] = _("Evade");
 static const u8 sText_InnateRecuperateInfo[] = _("Rest");
-// Description window above the menu (B_WIN_MOVE_DESCRIPTION, FONT_NARROW, 3 lines). Plain words, no numbers:
-// the Stamina cost / gain is already in the right-hand panel.
-static const u8 sText_InnateDodgeDesc[] = _(
-    "Slower foes miss you; faster\n"
-    "ones hit for half, no status.\n"
-    "Costs more if used in a row."
-);
-static const u8 sText_InnateRecuperateDesc[] = _(
-    "Restore Stamina, a little HP,\n"
-    "and cure one minor status.\n"
-    "Acts first unless exhausted."
-);
 // Unavailable entries: light grey with no outline (text palette slots 15 / 14), so they read as faded.
 static const u8 sText_InnateDisabledColor[] = _("{COLOR 15}{SHADOW 14}");
 
@@ -145,8 +133,6 @@ static u8 sInnateMenuCursor[MAX_BATTLERS_COUNT];
 
 static void HandleInputChooseInnate(enum BattlerId battler);
 static void OpenInnateMenu(enum BattlerId battler);
-static void PrintMoveDescriptionWindow(enum Move move, enum DamageCategory cat, u16 pwr, u16 acc);
-static void HideMoveDescriptionWindow(void);
 
 static void (*const sPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(enum BattlerId battler) =
 {
@@ -826,9 +812,9 @@ static void DisplayInnateMenuEntryInfo(enum BattlerId battler)
     }
     else
     {
-        // Same Stamina action cost as any move (design.md §2): BP/10 + 2% BaseSta body tax, or a flat 10.
+        // Same Stamina action cost as any move (design.md §2).
         enum Move move = GetInnateSignatureMove(battler);
-        u32 staCost = IsBattleMoveStatus(move) ? 10 : (GetMovePower(move) / 10) + ((GetBaseStamina(battler) * 2) / 100);
+        u32 staCost = GetMoveStaminaCost(battler, move);
         u8 *end;
 
         *txtPtr++ = CHAR_HYPHEN;
@@ -840,30 +826,6 @@ static void DisplayInnateMenuEntryInfo(enum BattlerId battler)
         PrependFontIdToFit(txtPtr, end, FONT_NORMAL, WindowWidthPx(B_WIN_MOVE_TYPE) - 25);
         BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MOVE_TYPE);
     }
-}
-
-// Description window for the highlighted entry; stays up while the innate menu is open. Dodge / Recuperate get
-// their own text; the Signature Move uses the normal move description (CAT / PWR / ACC + text).
-static void DisplayInnateMenuEntryDescription(enum BattlerId battler)
-{
-    u32 entry = sInnateMenuCursor[battler];
-
-    if (entry == INNATE_ENTRY_SIGNATURE)
-    {
-        enum Move move = GetInnateSignatureMove(battler);
-        PrintMoveDescriptionWindow(move, GetBattleMoveCategory(move), GetMovePower(move), GetMoveAccuracy(move));
-        return;
-    }
-
-    if (gCategoryIconSpriteId != 0xFF)
-    {
-        DestroySprite(&gSprites[gCategoryIconSpriteId]);
-        gCategoryIconSpriteId = 0xFF;
-    }
-    LoadMessageBoxAndBorderGfx();
-    DrawStdWindowFrame(B_WIN_MOVE_DESCRIPTION, FALSE);
-    BattlePutTextOnWindow(entry == INNATE_ENTRY_DODGE ? sText_InnateDodgeDesc : sText_InnateRecuperateDesc, B_WIN_MOVE_DESCRIPTION);
-    CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_FULL);
 }
 
 // A transformation gimmick (Mega, Ultra Burst, Dynamax, Tera) can go with Dodge / Recuperate; nothing goes with
@@ -912,7 +874,6 @@ static void OpenInnateMenu(enum BattlerId battler)
     }
     MoveSelectionCreateCursorAt(sInnateMenuCursor[battler], 0);
     DisplayInnateMenuEntryInfo(battler);
-    DisplayInnateMenuEntryDescription(battler);
     UpdateInnateGimmickTrigger(battler);
 }
 
@@ -920,7 +881,6 @@ static void OpenInnateMenu(enum BattlerId battler)
 static void CloseInnateMenu(enum BattlerId battler)
 {
     sInnateMenuActive[battler] = FALSE;
-    HideMoveDescriptionWindow();
     RestoreMoveGimmickTrigger(battler);
     MoveSelectionDisplayMoveNames(battler); // also clears every cursor
     MoveSelectionCreateCursorAt(gMoveSelectionCursor[battler], 0);
@@ -944,7 +904,6 @@ static void ShowInnateMenuMessage(enum BattlerId battler, const u8 *text, void (
 static void ConfirmInnateMenuEntry(enum BattlerId battler, u32 entry)
 {
     sInnateMenuActive[battler] = FALSE;
-    HideMoveDescriptionWindow();
     TryToHideMoveInfoWindow();
     HideGimmickTriggerSprite();
     TryHideLastUsedBall();
@@ -1017,7 +976,6 @@ static void HandleInputChooseInnate(enum BattlerId battler)
         sInnateMenuCursor[battler] = target;
         MoveSelectionCreateCursorAt(target, 0);
         DisplayInnateMenuEntryInfo(battler);
-        DisplayInnateMenuEntryDescription(battler);
         UpdateInnateGimmickTrigger(battler);
     }
 }
@@ -1238,7 +1196,15 @@ void HandleInputChooseMove(enum BattlerId battler)
         if (JOY_NEW(B_MOVE_DESCRIPTION_BUTTON) || JOY_NEW(A_BUTTON) || JOY_NEW(B_BUTTON))
         {
             gBattleStruct->descriptionSubmenu = FALSE;
-            HideMoveDescriptionWindow();
+            if (gCategoryIconSpriteId != 0xFF)
+            {
+                DestroySprite(&gSprites[gCategoryIconSpriteId]);
+                gCategoryIconSpriteId = 0xFF;
+            }
+
+            FillWindowPixelBuffer(B_WIN_MOVE_DESCRIPTION, PIXEL_FILL(0));
+            ClearStdWindowAndFrame(B_WIN_MOVE_DESCRIPTION, FALSE);
+            CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_GFX);
             PlaySE(SE_SELECT);
             if (B_SHOW_EFFECTIVENESS)
                 MoveSelectionDisplayMoveEffectiveness(CheckTargetTypeEffectiveness(battler), battler);
@@ -2110,13 +2076,6 @@ static void MoveSelectionDisplayMoveDescription(enum BattlerId battler)
         acc = 0;
     }
 
-    PrintMoveDescriptionWindow(move, cat, pwr, acc);
-}
-
-// Fantasy Retold: split out of MoveSelectionDisplayMoveDescription so the innate menu can show the Signature
-// Move's description too.
-static void PrintMoveDescriptionWindow(enum Move move, enum DamageCategory cat, u16 pwr, u16 acc)
-{
     u8 pwr_num[3], acc_num[3];
     u8 cat_desc[7] = _("CAT: ");
     u8 pwr_desc[7] = _("PWR: ");
@@ -2155,24 +2114,11 @@ static void PrintMoveDescriptionWindow(enum Move move, enum DamageCategory cat, 
     CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_FULL);
 }
 
-static void HideMoveDescriptionWindow(void)
-{
-    if (gCategoryIconSpriteId != 0xFF)
-    {
-        DestroySprite(&gSprites[gCategoryIconSpriteId]);
-        gCategoryIconSpriteId = 0xFF;
-    }
-
-    FillWindowPixelBuffer(B_WIN_MOVE_DESCRIPTION, PIXEL_FILL(0));
-    ClearStdWindowAndFrame(B_WIN_MOVE_DESCRIPTION, FALSE);
-    CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_GFX);
-}
-
 void MoveSelectionCreateCursorAt(u8 cursorPosition, u8 baseTileNum)
 {
     u16 src[2];
-    src[0] = baseTileNum + 1;
-    src[1] = baseTileNum + 2;
+    src[0] = 0x5000 + baseTileNum + 1; // BG palette 5 (menu window text), not the dark textbox palette 0
+    src[1] = 0x5000 + baseTileNum + 2;
 
     CopyToBgTilemapBufferRect_ChangePalette(0, src, 9 * (cursorPosition & 1) + 1, 55 + (cursorPosition & 2), 1, 2, 0x11);
     CopyBgTilemapBufferToVram(0);
@@ -2191,8 +2137,8 @@ void MoveSelectionDestroyCursorAt(u8 cursorPosition)
 void ActionSelectionCreateCursorAt(u8 cursorPosition, u8 baseTileNum)
 {
     u16 src[2];
-    src[0] = 1;
-    src[1] = 2;
+    src[0] = 0x5001; // BG palette 5 (menu window text), not the dark textbox palette 0
+    src[1] = 0x5002;
 
     CopyToBgTilemapBufferRect_ChangePalette(0, src, 7 * (cursorPosition & 1) + 16, 35 + (cursorPosition & 2), 1, 2, 0x11);
     CopyBgTilemapBufferToVram(0);
