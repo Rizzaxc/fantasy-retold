@@ -99,17 +99,33 @@ BattleScript_StatChangeFailed::
 	goto BattleScript_MoveEnd
 
 @ Fantasy Retold: innate command actions (Dodge / Recuperate). Reuses Double Team / Recover
-@ animations for feel; the actual effects are custom (resolved in C). MVP — no message yet (UI later).
+@ animations for feel; the actual effects are custom (resolved in C).
 BattleScript_FRDodge::
+	printstring STRINGID_FRDODGING
+	waitmessage B_WAIT_TIME_SHORT
 	playmoveanimation MOVE_DOUBLE_TEAM
 	waitanimation
 	finishaction
 
 BattleScript_FRRecuperate::
+	printstring STRINGID_FRRECUPERATING
+	waitmessage B_WAIT_TIME_SHORT
 	playmoveanimation MOVE_RECOVER
 	waitanimation
 	healthbarupdate BS_ATTACKER
 	datahpupdate BS_ATTACKER, ASSURANCE_IGNORE
+	finishaction
+
+@ Same, when Recuperate also purged a Level 1 status.
+BattleScript_FRRecuperateCured::
+	printstring STRINGID_FRRECUPERATING
+	waitmessage B_WAIT_TIME_SHORT
+	playmoveanimation MOVE_RECOVER
+	waitanimation
+	healthbarupdate BS_ATTACKER
+	datahpupdate BS_ATTACKER, ASSURANCE_IGNORE
+	printstring STRINGID_FRSHOOKOFFAILMENT
+	waitmessage B_WAIT_TIME_LONG
 	finishaction
 
 BattleScript_PlayMoveAnimAndChangeHP::
@@ -3873,6 +3889,12 @@ BattleScript_EnduredMsg::
 	waitmessage B_WAIT_TIME_LONG
 	return
 
+@ Fantasy Retold: the attacker acted first, so the Dodge only halved the hit.
+BattleScript_FRDodgeHalvedMsg::
+	printstring STRINGID_FRPARTLYDODGED
+	waitmessage B_WAIT_TIME_LONG
+	return
+
 BattleScript_SturdiedMsg::
 	pause B_WAIT_TIME_SHORTEST
 	call BattleScript_AbilityPopUpTarget
@@ -6368,6 +6390,14 @@ BattleScript_ForfeitBattleGaveMoney::
 	end
 
 BattleScript_Attackstring::
+	printattackstring
+	waitmessage B_WAIT_TIME_SHORT
+	return
+
+@ Fantasy Retold: the Signature Move is announced before the usual "X used Y!".
+BattleScript_SignatureAttackstring::
+	printstring STRINGID_SIGNATUREMOVE
+	waitmessage B_WAIT_TIME_LONG
 	printattackstring
 	waitmessage B_WAIT_TIME_SHORT
 	return

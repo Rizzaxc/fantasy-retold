@@ -906,6 +906,12 @@ const u8 *const gBattleStringsTable[STRINGID_COUNT] =
     [STRINGID_S]                                    = COMPOUND_STRING("s"),
     [STRINGID_LOSTSOMEOFITSHP]                      = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} lost some of its HP!"),
     [STRINGID_BELCHCANTUSE]                         = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} hasn't eaten any held Berries, so it can't possibly belch!\p"),
+    [STRINGID_SIGNATUREMOVE]                        = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} is using its Signature Move!"), // Fantasy Retold
+    [STRINGID_FRDODGING]                            = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} is dodging!"), // Fantasy Retold
+    [STRINGID_FRRECUPERATING]                       = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} is recuperating!"), // Fantasy Retold
+    [STRINGID_FRSHOOKOFFAILMENT]                    = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} shook off a minor ailment!"), // Fantasy Retold
+    [STRINGID_FRDODGEDATTACK]                       = COMPOUND_STRING("{B_DEF_NAME_WITH_PREFIX} dodged the attack!"), // Fantasy Retold
+    [STRINGID_FRPARTLYDODGED]                       = COMPOUND_STRING("{B_DEF_NAME_WITH_PREFIX} partly dodged the attack!"), // Fantasy Retold
 };
 
 const u16 gTrainerUsedItemStringIds[] =

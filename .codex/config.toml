@@ -1,0 +1,3 @@
+[mcp_servers.aseprite-mcp]
+command = "uvx"
+args = ["aseprite-mcp"]

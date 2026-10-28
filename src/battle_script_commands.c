@@ -1332,10 +1332,26 @@ static void Cmd_resultmessage(void)
     if (gBattleControllerExecFlags)
         return;
 
+    // Fantasy Retold: a hit halved by Dodge says so first, then the usual result message (this command
+    // runs again after the call returns; the flag is cleared so it only fires once).
+    // Mid multi-hit it stays set, so the message comes once with the final result like effectiveness does.
+    if ((gBattleStruct->dodgeHalvedHit & (1u << gBattlerTarget)) && !gMultiHitCounter)
+    {
+        gBattleStruct->dodgeHalvedHit &= ~(1u << gBattlerTarget);
+        if (!(*moveResultFlags & MOVE_RESULT_NO_EFFECT))
+        {
+            BattleScriptCall(BattleScript_FRDodgeHalvedMsg);
+            return;
+        }
+    }
+
     if (*moveResultFlags & MOVE_RESULT_MISSED && !(*moveResultFlags & MOVE_RESULT_DOESNT_AFFECT_FOE))
     {
         gBattleCommunication[MSG_DISPLAY] = MSG_DISPLAY_WAIT;
-        stringId = STRINGID_PKMNAVOIDEDATTACK;
+        if (IsMoveFullyDodged(gBattlerAttacker, gBattlerTarget, gCurrentMove)) // Fantasy Retold
+            stringId = STRINGID_FRDODGEDATTACK;
+        else
+            stringId = STRINGID_PKMNAVOIDEDATTACK;
     }
     else
     {

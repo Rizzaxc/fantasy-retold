@@ -55,6 +55,8 @@ void HandleAction_ThrowBall(void);
 void HandleAction_Dodge(void);       // Fantasy Retold: L innate command
 void HandleAction_Recuperate(void);  // Fantasy Retold: R innate command
 bool32 BattlerIsDodging(enum BattlerId battler);
+bool32 IsMoveFullyDodged(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move);
+bool32 IsMoveHalvedByDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef);
 enum BattleWeather GetBattleWeather(u32 weather);
 bool32 EndOrContinueWeather(void);
 enum DamageCategory GetReflectDamageMoveDamageCategory(enum BattlerId battler, enum Move move);

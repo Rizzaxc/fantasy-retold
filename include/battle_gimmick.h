@@ -30,6 +30,7 @@ struct GimmickInfo
 void AssignUsableGimmicks(void);
 bool32 CanActivateGimmick(enum BattlerId battler, enum Gimmick gimmick);
 bool32 IsGimmickSelected(enum BattlerId battler, enum Gimmick gimmick);
+bool32 CanUseGimmickWithInnateCommand(enum BattlerId battler);
 void SetActiveGimmick(enum BattlerId battler, enum Gimmick gimmick);
 enum Gimmick GetActiveGimmick(enum BattlerId battler);
 bool32 ShouldTrainerBattlerUseGimmick(enum BattlerId battler, enum Gimmick gimmick);

@@ -882,6 +882,21 @@ bool32 BattlerIsDodging(enum BattlerId battler)
     return gChosenActionByBattler[battler] == B_ACTION_DODGE;
 }
 
+// Dodge outcomes vs an offensive move (status moves bypass Dodge): the dodger acting first makes it miss
+// outright; the attacker acting first still lands it, at half damage.
+bool32 IsMoveFullyDodged(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move)
+{
+    return BattlerIsDodging(battlerDef)
+        && !IsBattleMoveStatus(move)
+        && GetBattlerTurnOrderNum(battlerDef) < GetBattlerTurnOrderNum(battlerAtk);
+}
+
+bool32 IsMoveHalvedByDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef)
+{
+    return BattlerIsDodging(battlerDef)
+        && GetBattlerTurnOrderNum(battlerAtk) < GetBattlerTurnOrderNum(battlerDef);
+}
+
 void HandleAction_Dodge(void)
 {
     enum BattlerId battler = gBattlerByTurnOrder[gCurrentTurnActionNumber];
@@ -950,9 +965,12 @@ void HandleAction_Recuperate(void)
     {
         BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[battler].status1), &gBattleMons[battler].status1);
         MarkBattlerForControllerExec(battler);
+        gBattlescriptCurrInstr = BattleScript_FRRecuperateCured;
     }
-
-    gBattlescriptCurrInstr = BattleScript_FRRecuperate;
+    else
+    {
+        gBattlescriptCurrInstr = BattleScript_FRRecuperate;
+    }
     gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
 }
 
@@ -7828,9 +7846,17 @@ s32 ApplyModifiersAfterDmgRoll(struct DamageContext *ctx, s32 dmg)
     // Fantasy Retold: Dodge (L command) — if the target is dodging and the attacker is FASTER (acts
     // first), the move can't be fully evaded but lands at 50% damage. (If the attacker were slower the
     // move would have missed outright in DoesMoveMissTarget.) Status moves don't reach this path.
-    if (BattlerIsDodging(ctx->battlerDef)
-     && GetBattlerTurnOrderNum(ctx->battlerAtk) < GetBattlerTurnOrderNum(ctx->battlerDef))
+    // On a real hit (not an AI estimate), remember it so the result message can say so.
+    if (IsMoveHalvedByDodge(ctx->battlerAtk, ctx->battlerDef))
+    {
         DAMAGE_APPLY_MODIFIER(UQ_4_12(0.5));
+        if (ctx->updateFlags)
+            gBattleStruct->dodgeHalvedHit |= 1u << ctx->battlerDef;
+    }
+    else if (ctx->updateFlags)
+    {
+        gBattleStruct->dodgeHalvedHit &= ~(1u << ctx->battlerDef);
+    }
 
     return dmg;
 }
@@ -10910,9 +10936,7 @@ bool32 DoesMoveMissTarget(struct BattleCalcValues *cv)
     // Fantasy Retold: Dodge (L command) — if the target is dodging and the attacker is SLOWER (the
     // dodger acts first this round), an offensive move misses entirely. If the attacker is faster the
     // move still lands but at 50% (applied in the damage modifier). Status moves bypass Dodge.
-    if (BattlerIsDodging(cv->battlerDef)
-     && !IsBattleMoveStatus(cv->move)
-     && GetBattlerTurnOrderNum(cv->battlerDef) < GetBattlerTurnOrderNum(cv->battlerAtk))
+    if (IsMoveFullyDodged(cv->battlerAtk, cv->battlerDef, cv->move))
         return TRUE;
 
     u32 accuracy = GetTotalAccuracy(cv, weather);

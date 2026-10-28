@@ -4243,11 +4243,13 @@ static void HandleTurnActionSelectionState(void)
                     gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
                     gBattleCommunication[battler]++;
                     break;
-                case B_ACTION_DODGE:      // Fantasy Retold: L innate command — nothing extra to confirm.
-                    gBattleCommunication[battler]++;
-                    break;
+                case B_ACTION_DODGE:      // Fantasy Retold: L innate command.
                 case B_ACTION_RECUPERATE: // Fantasy Retold: R innate command.
-                    gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
+                    if (gChosenActionByBattler[battler] == B_ACTION_RECUPERATE)
+                        gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
+                    // A transformation gimmick can ride along (design.md §3); it activates before moves as usual.
+                    if ((gBattleResources->bufferB[battler][2] & RET_GIMMICK) && CanUseGimmickWithInnateCommand(battler))
+                        gBattleStruct->gimmick.toActivate |= 1u << battler;
                     gBattleCommunication[battler]++;
                     break;
                 case B_ACTION_SAFARI_POKEBLOCK:

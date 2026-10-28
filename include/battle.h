@@ -727,6 +727,7 @@ struct BattleStruct
     struct Illusion illusion[MAX_BATTLERS_COUNT];
     enum BattlerId soulheartBattlerId;
     struct LostItem itemLost[MAX_BATTLE_TRAINERS][PARTY_SIZE];
+    u8 dodgeHalvedHit; // Fantasy Retold: battlers whose Dodge halved the current hit (for the result message)
     u8 blunderPolicy : 1; // should blunder policy activate
     u8 redCardActivated : 1;
     u8 snatchedMoveIsUsed : 1;

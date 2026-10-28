@@ -896,7 +896,12 @@ u32 BattleAI_ChooseMoveIndex(enum BattlerId battler)
         gAiBattleData->chosenAction[battler] = chosen.action;
 
     if (chosen.action != B_ACTION_USE_MOVE)
-        SetAIUsingGimmick(battler, NO_GIMMICK);
+    {
+        // Fantasy Retold: a transformation gimmick still goes with Dodge / Recuperate (design.md §3).
+        bool32 isInnate = chosen.action == B_ACTION_DODGE || chosen.action == B_ACTION_RECUPERATE;
+        if (!isInnate || !CanUseGimmickWithInnateCommand(battler))
+            SetAIUsingGimmick(battler, NO_GIMMICK);
+    }
     else if (gBattleStruct->gimmick.usableGimmick[battler] != GIMMICK_NONE)
         ReconsiderGimmick(battler, chosen.target, gBattleMons[battler].moves[chosen.moveIndex]);
 

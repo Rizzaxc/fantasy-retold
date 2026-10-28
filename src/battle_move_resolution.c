@@ -649,7 +649,13 @@ static enum CancelerResult CancelerAttackstring(struct BattleCalcValues *cv)
     if (gBattleMons[cv->battlerAtk].volatiles.bideTurns)
         return CANCELER_RESULT_SUCCESS;
 
-    BattleScriptCall(BattleScript_Attackstring);
+    // Fantasy Retold: announce the Signature Move first (not on a charge move's second turn, or a Dancer copy).
+    if (gCurrMovePos == SIGNATURE_MOVE_POSITION
+     && !gSpecialStatuses[gBattlerAttacker].dancerUsedMove
+     && !gBattleMons[cv->battlerAtk].volatiles.multipleTurns)
+        BattleScriptCall(BattleScript_SignatureAttackstring);
+    else
+        BattleScriptCall(BattleScript_Attackstring);
     if (!gSpecialStatuses[gBattlerAttacker].dancerUsedMove)
     {
         if (gCurrMovePos < MAX_MON_MOVES) // Fantasy Retold: not for the Signature Move (outside the slots)
@@ -5326,6 +5332,7 @@ static enum MoveEndResult MoveEndClearBits(struct BattleCalcValues *cv)
     gBattleStruct->toxicChainPriority = FALSE;
     gBattleStruct->flungItem = FLUNG_ITEM_NONE;
     gBattleStruct->blunderPolicy = FALSE;
+    gBattleStruct->dodgeHalvedHit = 0; // Fantasy Retold
     gBattleScripting.animTurn = 0;
     gBattleScripting.animTargetsHit = 0;
 

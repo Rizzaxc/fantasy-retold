@@ -494,6 +494,7 @@ extern const u8 BattleScript_QuestionForfeitBattle[];
 extern const u8 BattleScript_ForfeitBattleGaveMoney[];
 extern const u8 BattleScript_AbilityPopUp[];
 extern const u8 BattleScript_Attackstring[];
+extern const u8 BattleScript_SignatureAttackstring[]; // Fantasy Retold
 extern const u8 BattleScript_SubmoveAttackstring[];
 extern const u8 BattleScript_MetronomeAttackstring[];
 extern const u8 BattleScript_SleepTalkAttackstring[];
@@ -734,6 +735,8 @@ extern const u8 BattleScript_SilphScopeUnveiled[];
 extern const u8 BattleScript_StatChangeFailed[];
 extern const u8 BattleScript_FRDodge[];       // Fantasy Retold: L innate command
 extern const u8 BattleScript_FRRecuperate[];  // Fantasy Retold: R innate command
+extern const u8 BattleScript_FRDodgeHalvedMsg[]; // Fantasy Retold: hit halved by Dodge
+extern const u8 BattleScript_FRRecuperateCured[]; // Fantasy Retold: R innate command that purged a status
 extern const u8 BattleScript_ToxicThread[];
 extern const u8 BattleScript_PlayMoveAnim[];
 extern const u8 BattleScript_PlayTidyUp[];

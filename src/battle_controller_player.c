@@ -125,6 +125,18 @@ static const u8 sText_InnateRecuperate[] = _("Recuperate");
 static const u8 sText_InnateStamina[] = _("STA");
 static const u8 sText_InnateDodgeInfo[] = _("Evade");
 static const u8 sText_InnateRecuperateInfo[] = _("Rest");
+// Description window above the menu (B_WIN_MOVE_DESCRIPTION, FONT_NARROW, 3 lines). Plain words, no numbers:
+// the Stamina cost / gain is already in the right-hand panel.
+static const u8 sText_InnateDodgeDesc[] = _(
+    "Slower foes miss you; faster\n"
+    "ones hit for half, no status.\n"
+    "Costs more if used in a row."
+);
+static const u8 sText_InnateRecuperateDesc[] = _(
+    "Restore Stamina, a little HP,\n"
+    "and cure one minor status.\n"
+    "Acts first unless exhausted."
+);
 // Unavailable entries: light grey with no outline (text palette slots 15 / 14), so they read as faded.
 static const u8 sText_InnateDisabledColor[] = _("{COLOR 15}{SHADOW 14}");
 
@@ -133,6 +145,8 @@ static u8 sInnateMenuCursor[MAX_BATTLERS_COUNT];
 
 static void HandleInputChooseInnate(enum BattlerId battler);
 static void OpenInnateMenu(enum BattlerId battler);
+static void PrintMoveDescriptionWindow(enum Move move, enum DamageCategory cat, u16 pwr, u16 acc);
+static void HideMoveDescriptionWindow(void);
 
 static void (*const sPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(enum BattlerId battler) =
 {
@@ -828,6 +842,63 @@ static void DisplayInnateMenuEntryInfo(enum BattlerId battler)
     }
 }
 
+// Description window for the highlighted entry; stays up while the innate menu is open. Dodge / Recuperate get
+// their own text; the Signature Move uses the normal move description (CAT / PWR / ACC + text).
+static void DisplayInnateMenuEntryDescription(enum BattlerId battler)
+{
+    u32 entry = sInnateMenuCursor[battler];
+
+    if (entry == INNATE_ENTRY_SIGNATURE)
+    {
+        enum Move move = GetInnateSignatureMove(battler);
+        PrintMoveDescriptionWindow(move, GetBattleMoveCategory(move), GetMovePower(move), GetMoveAccuracy(move));
+        return;
+    }
+
+    if (gCategoryIconSpriteId != 0xFF)
+    {
+        DestroySprite(&gSprites[gCategoryIconSpriteId]);
+        gCategoryIconSpriteId = 0xFF;
+    }
+    LoadMessageBoxAndBorderGfx();
+    DrawStdWindowFrame(B_WIN_MOVE_DESCRIPTION, FALSE);
+    BattlePutTextOnWindow(entry == INNATE_ENTRY_DODGE ? sText_InnateDodgeDesc : sText_InnateRecuperateDesc, B_WIN_MOVE_DESCRIPTION);
+    CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_FULL);
+}
+
+// A transformation gimmick (Mega, Ultra Burst, Dynamax, Tera) can go with Dodge / Recuperate; nothing goes with
+// the Signature Move (design.md §3).
+static bool32 InnateEntryAllowsGimmick(enum BattlerId battler, u32 entry)
+{
+    return entry != INNATE_ENTRY_SIGNATURE && CanUseGimmickWithInnateCommand(battler);
+}
+
+// Shows the gimmick trigger, in its current on/off state, only while the highlighted entry can take the gimmick.
+// playerSelect itself is shared with the move screen and left alone.
+static void UpdateInnateGimmickTrigger(enum BattlerId battler)
+{
+    if (InnateEntryAllowsGimmick(battler, sInnateMenuCursor[battler]))
+    {
+        CreateGimmickTriggerSprite(battler);
+        if (gBattleStruct->gimmick.triggerSpriteId != 0xFF)
+            ChangeGimmickTriggerSprite(gBattleStruct->gimmick.triggerSpriteId, gBattleStruct->gimmick.playerSelect);
+    }
+    else
+    {
+        HideGimmickTriggerSprite();
+    }
+}
+
+// Puts the move screen's trigger back (same rule as PlayerHandleChooseMove: no trigger for a Z-Move with no Z-Move).
+static void RestoreMoveGimmickTrigger(enum BattlerId battler)
+{
+    if (gBattleStruct->gimmick.usableGimmick[battler] == GIMMICK_Z_MOVE && !gBattleStruct->zmove.viable)
+        return;
+    CreateGimmickTriggerSprite(battler);
+    if (gBattleStruct->gimmick.triggerSpriteId != 0xFF)
+        ChangeGimmickTriggerSprite(gBattleStruct->gimmick.triggerSpriteId, gBattleStruct->gimmick.playerSelect);
+}
+
 static void OpenInnateMenu(enum BattlerId battler)
 {
     u32 i;
@@ -841,12 +912,16 @@ static void OpenInnateMenu(enum BattlerId battler)
     }
     MoveSelectionCreateCursorAt(sInnateMenuCursor[battler], 0);
     DisplayInnateMenuEntryInfo(battler);
+    DisplayInnateMenuEntryDescription(battler);
+    UpdateInnateGimmickTrigger(battler);
 }
 
 // Back to the four moves; the move cursor is where it was before the menu opened.
 static void CloseInnateMenu(enum BattlerId battler)
 {
     sInnateMenuActive[battler] = FALSE;
+    HideMoveDescriptionWindow();
+    RestoreMoveGimmickTrigger(battler);
     MoveSelectionDisplayMoveNames(battler); // also clears every cursor
     MoveSelectionCreateCursorAt(gMoveSelectionCursor[battler], 0);
     if (B_SHOW_EFFECTIVENESS)
@@ -869,16 +944,15 @@ static void ShowInnateMenuMessage(enum BattlerId battler, const u8 *text, void (
 static void ConfirmInnateMenuEntry(enum BattlerId battler, u32 entry)
 {
     sInnateMenuActive[battler] = FALSE;
+    HideMoveDescriptionWindow();
     TryToHideMoveInfoWindow();
     HideGimmickTriggerSprite();
     TryHideLastUsedBall();
-    if (entry == INNATE_ENTRY_DODGE)
+    if (entry == INNATE_ENTRY_DODGE || entry == INNATE_ENTRY_RECUPERATE)
     {
-        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_DODGE, 0);
-    }
-    else if (entry == INNATE_ENTRY_RECUPERATE)
-    {
-        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_RECUPERATE, 0);
+        u32 action = (entry == INNATE_ENTRY_DODGE) ? B_ACTION_DODGE : B_ACTION_RECUPERATE;
+        u32 gimmickFlag = (gBattleStruct->gimmick.playerSelect && InnateEntryAllowsGimmick(battler, entry)) ? RET_GIMMICK : 0;
+        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, action, gimmickFlag);
     }
     else
     {
@@ -914,6 +988,18 @@ static void HandleInputChooseInnate(enum BattlerId battler)
         return;
     }
 
+    // START toggles the gimmick, as on the move screen, but only where it can be paired.
+    if (JOY_NEW(START_BUTTON))
+    {
+        if (InnateEntryAllowsGimmick(battler, cursor) && gBattleStruct->gimmick.triggerSpriteId != 0xFF)
+        {
+            gBattleStruct->gimmick.playerSelect ^= 1;
+            ChangeGimmickTriggerSprite(gBattleStruct->gimmick.triggerSpriteId, gBattleStruct->gimmick.playerSelect);
+            PlaySE(SE_SELECT);
+        }
+        return;
+    }
+
     // Same 2x2 grid as the moves: bit 0 = column, bit 1 = row.
     if (JOY_NEW(DPAD_LEFT) && (cursor & 1))
         target = cursor ^ 1;
@@ -931,6 +1017,8 @@ static void HandleInputChooseInnate(enum BattlerId battler)
         sInnateMenuCursor[battler] = target;
         MoveSelectionCreateCursorAt(target, 0);
         DisplayInnateMenuEntryInfo(battler);
+        DisplayInnateMenuEntryDescription(battler);
+        UpdateInnateGimmickTrigger(battler);
     }
 }
 
@@ -1150,15 +1238,7 @@ void HandleInputChooseMove(enum BattlerId battler)
         if (JOY_NEW(B_MOVE_DESCRIPTION_BUTTON) || JOY_NEW(A_BUTTON) || JOY_NEW(B_BUTTON))
         {
             gBattleStruct->descriptionSubmenu = FALSE;
-            if (gCategoryIconSpriteId != 0xFF)
-            {
-                DestroySprite(&gSprites[gCategoryIconSpriteId]);
-                gCategoryIconSpriteId = 0xFF;
-            }
-
-            FillWindowPixelBuffer(B_WIN_MOVE_DESCRIPTION, PIXEL_FILL(0));
-            ClearStdWindowAndFrame(B_WIN_MOVE_DESCRIPTION, FALSE);
-            CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_GFX);
+            HideMoveDescriptionWindow();
             PlaySE(SE_SELECT);
             if (B_SHOW_EFFECTIVENESS)
                 MoveSelectionDisplayMoveEffectiveness(CheckTargetTypeEffectiveness(battler), battler);
@@ -2030,6 +2110,13 @@ static void MoveSelectionDisplayMoveDescription(enum BattlerId battler)
         acc = 0;
     }
 
+    PrintMoveDescriptionWindow(move, cat, pwr, acc);
+}
+
+// Fantasy Retold: split out of MoveSelectionDisplayMoveDescription so the innate menu can show the Signature
+// Move's description too.
+static void PrintMoveDescriptionWindow(enum Move move, enum DamageCategory cat, u16 pwr, u16 acc)
+{
     u8 pwr_num[3], acc_num[3];
     u8 cat_desc[7] = _("CAT: ");
     u8 pwr_desc[7] = _("PWR: ");
@@ -2066,6 +2153,19 @@ static void MoveSelectionDisplayMoveDescription(enum BattlerId battler)
     StartSpriteAnim(&gSprites[gCategoryIconSpriteId], cat);
 
     CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_FULL);
+}
+
+static void HideMoveDescriptionWindow(void)
+{
+    if (gCategoryIconSpriteId != 0xFF)
+    {
+        DestroySprite(&gSprites[gCategoryIconSpriteId]);
+        gCategoryIconSpriteId = 0xFF;
+    }
+
+    FillWindowPixelBuffer(B_WIN_MOVE_DESCRIPTION, PIXEL_FILL(0));
+    ClearStdWindowAndFrame(B_WIN_MOVE_DESCRIPTION, FALSE);
+    CopyWindowToVram(B_WIN_MOVE_DESCRIPTION, COPYWIN_GFX);
 }
 
 void MoveSelectionCreateCursorAt(u8 cursorPosition, u8 baseTileNum)
