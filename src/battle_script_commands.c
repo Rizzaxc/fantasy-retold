@@ -1326,6 +1326,21 @@ static inline bool32 ShouldRelyOnTwoFoesMessage(u32 moveResult)
         && !(gBattleStruct->moveResultFlags[oppositeTarget] & MOVE_RESULT_AVOIDED_ATTACK);
 }
 
+// Fantasy Retold: a Dodge that resolves before the dodger's own action (the dodger is slower) has not been
+// seen yet, so show it ahead of the hit/miss message. Once per dodger per round; that action then skips it.
+static bool32 TryCallDodgeAnimation(void)
+{
+    u32 dodger = 1u << gBattlerTarget;
+
+    if ((gBattleStruct->dodgeAnimShown & dodger)
+     || GetBattlerTurnOrderNum(gBattlerTarget) < GetBattlerTurnOrderNum(gBattlerAttacker))
+        return FALSE;
+
+    gBattleStruct->dodgeAnimShown |= dodger;
+    BattleScriptCall(BattleScript_FRDodgeAnim);
+    return TRUE;
+}
+
 static void Cmd_resultmessage(void)
 {
     CMD_ARGS();
@@ -1342,9 +1357,17 @@ static void Cmd_resultmessage(void)
     // Mid multi-hit it stays set, so the message comes once with the final result like effectiveness does.
     if ((gBattleStruct->dodgeHalvedHit & (1u << gBattlerTarget)) && !gMultiHitCounter)
     {
-        gBattleStruct->dodgeHalvedHit &= ~(1u << gBattlerTarget);
-        if (!(*moveResultFlags & MOVE_RESULT_NO_EFFECT))
+        if (*moveResultFlags & MOVE_RESULT_NO_EFFECT)
         {
+            gBattleStruct->dodgeHalvedHit &= ~(1u << gBattlerTarget);
+        }
+        else if (TryCallDodgeAnimation())
+        {
+            return; // comes back here with the flag still set, to print the message
+        }
+        else
+        {
+            gBattleStruct->dodgeHalvedHit &= ~(1u << gBattlerTarget);
             BattleScriptCall(BattleScript_FRDodgeHalvedMsg);
             return;
         }
@@ -1352,6 +1375,9 @@ static void Cmd_resultmessage(void)
 
     if (*moveResultFlags & MOVE_RESULT_MISSED && !(*moveResultFlags & MOVE_RESULT_DOESNT_AFFECT_FOE))
     {
+        if (IsMoveFullyDodged(gBattlerAttacker, gBattlerTarget, gCurrentMove) && TryCallDodgeAnimation()) // Fantasy Retold
+            return;
+
         gBattleCommunication[MSG_DISPLAY] = MSG_DISPLAY_WAIT;
         if (IsMoveFullyDodged(gBattlerAttacker, gBattlerTarget, gCurrentMove)) // Fantasy Retold
             stringId = STRINGID_FRDODGEDATTACK;
@@ -4693,7 +4719,9 @@ static void InitLevelUpBanner(void)
     gBattle_BG2_Y = 0;
     gBattle_BG2_X = LEVEL_UP_BANNER_START;
 
-    LoadPalette(sLevelUpBanner_Pal, BG_PLTT_ID(6), sizeof(sLevelUpBanner_Pal));
+    // Fantasy Retold: the reskinned banner PNG is 8bpp with a 256-entry palette, so sizeof() would spill
+    // past BG palette 6 into the OBJ palettes and black out every sprite. Only the first 16 colors are used.
+    LoadPalette(sLevelUpBanner_Pal, BG_PLTT_ID(6), PLTT_SIZE_4BPP);
     CopyToWindowPixelBuffer(B_WIN_LEVEL_UP_BANNER, sLevelUpBanner_Gfx, 0, 0);
     PutWindowTilemap(B_WIN_LEVEL_UP_BANNER);
     CopyWindowToVram(B_WIN_LEVEL_UP_BANNER, COPYWIN_FULL);

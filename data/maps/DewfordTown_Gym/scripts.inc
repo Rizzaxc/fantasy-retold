@@ -137,6 +137,8 @@ DewfordTown_Gym_EventScript_Brawly::
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, DewfordTown_Gym_EventScript_BrawlyRematch
 	goto_if_unset FLAG_RECEIVED_TM_BULK_UP, DewfordTown_Gym_EventScript_GiveBulkUp2
+	setvar VAR_0x8008, 2
+	call Common_EventScript_GymReward
 	msgbox DewfordTown_Gym_Text_BrawlyPostBattle, MSGBOX_DEFAULT
 	release
 	end
@@ -172,6 +174,8 @@ DewfordTown_Gym_EventScript_GiveBulkUp::
 	goto_if_eq VAR_RESULT, 0, Common_EventScript_BagIsFull
 	msgbox DewfordTown_Gym_Text_ExplainBulkUp, MSGBOX_DEFAULT
 	setflag FLAG_RECEIVED_TM_BULK_UP
+	setvar VAR_0x8008, 2
+	call Common_EventScript_GymReward
 	return
 
 DewfordTown_Gym_EventScript_GiveBulkUp2:
@@ -179,6 +183,8 @@ DewfordTown_Gym_EventScript_GiveBulkUp2:
 	goto_if_eq VAR_RESULT, 0, Common_EventScript_ShowBagIsFull
 	msgbox DewfordTown_Gym_Text_ExplainBulkUp, MSGBOX_DEFAULT
 	setflag FLAG_RECEIVED_TM_BULK_UP
+	setvar VAR_0x8008, 2
+	call Common_EventScript_GymReward
 	release
 	end
 

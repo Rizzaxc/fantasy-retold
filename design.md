@@ -86,8 +86,8 @@ Every Pokémon possesses two innate mechanical actions, reached from the **innat
 
 When an attack meets a Dodge, the result says which outcome happened:
 
-* **Full dodge** (the dodger acted first): *"X dodged the attack!"* instead of the usual *"X avoided the attack!"* (`Cmd_resultmessage`).
-* **Half damage** (the attacker acted first): *"X partly dodged the attack!"* before the effectiveness message (`BattleScript_FRDodgeHalvedMsg`). The damage modifier marks a real hit in `gBattleStruct->dodgeHalvedHit` (never during AI estimates); the result message clears it, and so does move end. For a multi-hit move it prints only once, the same way effectiveness does.
+* **Full dodge** (the dodger acted first, or the attacker repeated its move): *"X dodged the attack!"* instead of the usual *"X avoided the attack!"* (`Cmd_resultmessage`).
+* **Half damage** (the attacker acted first): *"X partly dodged the attack!"* before the effectiveness message (`BattleScript_FRDodgeHalvedMsg`). The damage modifier marks a real hit in `gBattleStruct->dodgeHalvedHit` (never during AI estimates); the result message clears it, and so does move end. For a multi-hit move it prints only once, the same way effectiveness does. * **Animation order.** A slower dodger's own action comes after the attack, so whenever the attack resolves first (a halved hit, or a full dodge from a repeated move) `TryCallDodgeAnimation` plays the Dodge animation right there, ahead of the message (skipped if the dodger was KO'd). `dodgeAnimShown` makes the dodger's later action skip the replay (`BattleScript_FRDodgeShown`) and keeps a second attacker from replaying it; the flag resets at end of turn.
 * Both outcomes share one rule in `battle_util.c`: `IsMoveFullyDodged` / `IsMoveHalvedByDodge`.
 
 **Battle gimmicks and the innate menu.** The *transformation* gimmicks — Mega Evolution, Ultra Burst, Dynamax and Terastallization — can be paired with **Dodge or Recuperate**. Nothing else pairs with an innate entry: Z-Moves need a move, and the Signature Move never takes a gimmick.
@@ -105,8 +105,8 @@ An active maneuvering defense mechanism balanced by compounding resource taxes.
 * **Speed Tiers & Outcomes** (compared on **round-start Effective Speed order**):
   * **Attacker is Slower:** The move completely misses.
   * **Attacker is Faster, or Tie:** The move lands, but damage is mitigated by **50%** and cannot proc status effects.
-  * **Repeated Move Trapping:** If the user is dodging an identical move executed by the opponent on the immediate prior turn, the move completely misses, regardless of speed tiers. *(Not implemented yet; the AI does not count on it.)*
-* **Restrictions:** Status moves bypass Dodge checks entirely (but can still miss, via its Acc. check). Selection is blocked in the action selection UI if the Pokémon does not have enough Stamina to cover the cost.
+  * **Repeated Move Trapping:** If the user is dodging an identical move executed by the opponent on the immediate prior turn, the move completely misses, regardless of speed tiers — **status moves included** (using Stun Spore two turns running into a Dodge fails). Each battler records the move it used this turn (`moveUsedThisTurn`, set in `HandleAction_UseMove`); `BattleTurnPassed` rotates it into `moveUsedLastTurn`, so a turn without a move (Dodge, switch, item) breaks the chain, and leaving the field clears it. `IsMoveFullyDodged` / `IsMoveHalvedByDodge` apply it, and it only applies across sides (never to self/ally-targeted moves). *(The AI does not count on it yet.)*
+* **Restrictions:** Apart from Repeated Move Trapping, status moves bypass Dodge checks entirely (but can still miss, via its Acc. check). Selection is blocked in the action selection UI if the Pokémon does not have enough Stamina to cover the cost.
 
 #### Dodge Layering vs. Traditional Accuracy/Evasion
 
@@ -366,6 +366,12 @@ The honesty of the archetype rests on **setup-opportunity scarcity** — pivots,
 * **Choice Band, Specs**: vanilla, but choice-locked moves don't auto miss against Dodge. Disable L&R
 * **Choice Scarf**: vanilla, moves can't be Dodged, at worst still 50% damage. Signature moves deal 100%. Disable L&R
 
+### Competitive berries restore after battle
+
+Held items used up in battle come back when it ends (`B_RESTORE_HELD_BATTLE_ITEMS`, Gen 9). Gen 9 leaves out berries; here **every berry with a battle hold effect** (Sitrus, Lum, the cleansing / pinch / resist berries, ...) comes back too, so a berry is a reusable battle item, not a consumable. Berries with no hold effect (Razz, Pomeg, ...) are never eaten in battle anyway.
+
+* **Engine.** `IsItemRestoredAfterBattle` (`battle_util.c`) is the one rule, used by `TryRestoreHeldItems` (party after battle) and `RestoreCaughtWildMonHeldItem` (a caught wild mon gets back the berry it ate).
+
 ### Sp. Def items → Stamina (consequence of unified Defense)
 
 Items whose only job was boosting the (now-removed) Sp. Def mitigation stat are redirected onto the **Stamina pool** (`BaseSta`), keeping their "bulky" identity. Implemented via `GetBaseStamina()`:
@@ -411,6 +417,32 @@ EXP rewards fighting opponents near your own level and discourages both over-lev
 * **Why wild-only.** Trainer EXP is fixed and can't be farmed, so the bonus would only inflate the planned level curve. Wild battles are the grindable source, and the bonus there pays for catching up to the route's level rather than grinding weak encounters.
 * **Per earner.** The band is checked per Pokémon, so in one battle a Pokémon close in level can earn double while an over-levelled teammate or an Exp. Share holder earns half.
 * **Engine.** This is the last step of `ApplyExperienceMultipliers` (`battle_script_commands.c`). It runs after the vanilla multipliers (traded, Lucky Egg, Exp. Charm, affection, Gen 5+ level scaling), so it stacks with them.
+
+### Gym Leader Rewards
+
+After the badge and TM, each Hoenn gym leader offers **one extra reward, picked by the player**:
+
+* **A random competitive held item**, drawn evenly from one pool shared by every gym (`sGymRewardItems`, `src/gym_reward.c`), rolled when the player picks it (so backing out and talking again can't fish for a specific item):
+  * *Power:* Choice Band / Specs / Scarf, Life Orb, Expert Belt, Muscle Band, Wise Glasses, Scope Lens, Razor Claw, King's Rock, Wide Lens, Zoom Lens, Metronome, Loaded Dice, Punching Glove, Throat Spray, Weakness Policy, Blunder Policy, Power Herb.
+  * *Bulk / sustain:* Leftovers, Black Sludge, Shell Bell, Big Root, Assault Vest, Eviolite, Rocky Helmet, Focus Sash, Focus Band, Sitrus Berry, Lum Berry.
+  * *Utility:* Quick Claw, Bright Powder, Air Balloon, Heavy-Duty Boots, Safety Goggles, Protective Pads, Covert Cloak, Clear Amulet, Ability Shield, Utility Umbrella, Mental / White / Mirror Herb, Red Card, Eject Button, Eject Pack, Room Service, Adrenaline Orb, Shed Shell, Toxic Orb, Flame Orb, Iron Ball.
+  * *Field:* Light Clay, Terrain Extender, Binding Band, Grip Claw, Damp / Heat / Smooth / Icy Rock.
+
+  Type-boosting items, Plates, Mega Stones, Z-Crystals and species-only items (Light Ball, Thick Club, ...) are left out.
+
+* **The gym's type** (used by the Egg): Roxanne Rock, Brawly Fighting, Wattson Electric, Flannery Fire, Norman Normal, Winona Flying, Tate & Liza Psychic, Juan Water.
+
+* **Or an Egg** of a random species that shares the gym's type, rolled when the player picks it. The pool is every first-stage species (default form only, so no regional / Mega / battle forms) that:
+  * has the gym's type itself (the hatchling, not a later evolution);
+  * is not restricted / sub-legendary, mythical, an Ultra Beast or Paradox;
+  * is **not from Hoenn**: neither it nor anything it evolves into has a Hoenn Pokédex number (so Pichu is out, Pikachu being in the Hoenn dex);
+  * isn't an Undiscovered-group species that never evolves (Unown and the like; babies are allowed).
+
+  The species is hidden until it hatches. With a full party the Egg goes to the PC (and says so); only when the PC is full too is it refused.
+
+**Flow.** The offer is a two-option menu (`HELD ITEM` / `EGG`). A full bag, or a full party *and* PC, says so and returns to the menu; **B** puts it off, and the leader offers it again whenever talked to until it is claimed. It is offered once per gym (rematches don't repeat it).
+
+* **Engine.** `Common_EventScript_GymReward` (`data/scripts/gym_reward.inc`), called with `VAR_0x8008` = gym number at the end of each gym's give-TM scripts and in the leader's post-battle talk once the TM is owned. Specials: `GymReward_IsClaimed` / `GymReward_SetClaimed` (`FLAG_GYM_REWARD_1`–`_8`, the old unused flags 0x21–0x28), `GymReward_BufferType` (type name for the offer), `GymReward_RollItem`, `GymReward_GiveEgg` (`PickEggRewardSpecies`, then `ScriptGiveEgg`). Kanto (FRLG) gyms are not hooked.
 
 ### Infinite Repel (start menu)
 
@@ -473,6 +505,8 @@ EXP rewards fighting opponents near your own level and discourages both over-lev
 | Nature     | Relaxed / Lax                   | Regenerator (HP on switch-out)                                     |
 | Nature     | Sassy / Gentle                  | Natural Cure (status cleared on switch)                            |
 | EXP        | Level band                      | ×2 within ±3 levels (wild only; trainer ×1); ×0.5 outside          |
+| Items      | Restored after battle           | all held items, incl. berries with a battle hold effect            |
+| Gym reward | Choice per gym                  | random held item (shared pool), or Egg: random non-Hoenn, non-legendary, gym type |
 | Pacing     | Time-to-death (physical)        | frail 5–7 / mid 7–10 / giga 10+ turns                              |
 | Sweep      | Optimal-case trade              | 1 for 2–2.5                                                        |
 

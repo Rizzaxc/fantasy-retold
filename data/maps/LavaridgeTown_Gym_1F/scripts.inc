@@ -48,6 +48,8 @@ LavaridgeTown_Gym_1F_EventScript_Flannery::
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, LavaridgeTown_Gym_1F_EventScript_FlanneryRematch
 	goto_if_unset FLAG_RECEIVED_TM_OVERHEAT, LavaridgeTown_Gym_1F_EventScript_GiveOverheat2
+	setvar VAR_0x8008, 4
+	call Common_EventScript_GymReward
 	msgbox LavaridgeTown_Gym_1F_Text_FlanneryPostBattle, MSGBOX_DEFAULT
 	release
 	end
@@ -83,6 +85,8 @@ LavaridgeTown_Gym_1F_EventScript_GiveOverheat2::
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_ShowBagIsFull
 	msgbox LavaridgeTown_Gym_1F_Text_ExplainOverheat, MSGBOX_DEFAULT
 	setflag FLAG_RECEIVED_TM_OVERHEAT
+	setvar VAR_0x8008, 4
+	call Common_EventScript_GymReward
 	release
 	end
 
@@ -91,6 +95,8 @@ LavaridgeTown_Gym_1F_EventScript_GiveOverheat::
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_BagIsFull
 	msgbox LavaridgeTown_Gym_1F_Text_ExplainOverheat, MSGBOX_DEFAULT
 	setflag FLAG_RECEIVED_TM_OVERHEAT
+	setvar VAR_0x8008, 4
+	call Common_EventScript_GymReward
 	return
 
 LavaridgeTown_Gym_1F_EventScript_FlanneryRematch::

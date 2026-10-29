@@ -638,3 +638,8 @@ gSpecials::
 	def_special UpdateTrainerCardPhotoIcons
 	def_special StickerManGetBragFlags
 	def_special CheckAddCoins
+	def_special GymReward_IsClaimed
+	def_special GymReward_SetClaimed
+	def_special GymReward_BufferType
+	def_special GymReward_RollItem
+	def_special GymReward_GiveEgg

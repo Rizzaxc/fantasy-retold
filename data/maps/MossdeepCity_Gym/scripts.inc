@@ -58,6 +58,8 @@ MossdeepCity_Gym_EventScript_TateAndLiza::
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, MossdeepCity_Gym_EventScript_TateAndLizaRematch
 	goto_if_unset FLAG_RECEIVED_TM_CALM_MIND, MossdeepCity_Gym_EventScript_GiveCalmMind2
+	setvar VAR_0x8008, 7
+	call Common_EventScript_GymReward
 	msgbox MossdeepCity_Gym_Text_TateAndLizaPostBattle, MSGBOX_DEFAULT
 	release
 	end
@@ -99,6 +101,8 @@ MossdeepCity_Gym_EventScript_GiveCalmMind2::
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_ShowBagIsFull
 	msgbox MossdeepCity_Gym_Text_ExplainCalmMind, MSGBOX_DEFAULT
 	setflag FLAG_RECEIVED_TM_CALM_MIND
+	setvar VAR_0x8008, 7
+	call Common_EventScript_GymReward
 	release
 	end
 
@@ -107,6 +111,8 @@ MossdeepCity_Gym_EventScript_GiveCalmMind::
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_BagIsFull
 	msgbox MossdeepCity_Gym_Text_ExplainCalmMind, MSGBOX_DEFAULT
 	setflag FLAG_RECEIVED_TM_CALM_MIND
+	setvar VAR_0x8008, 7
+	call Common_EventScript_GymReward
 	return
 
 MossdeepCity_Gym_EventScript_TateAndLizaRematch::

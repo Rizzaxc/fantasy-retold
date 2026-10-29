@@ -793,13 +793,6 @@ static void (*const sTextPrinterTasks[])(u8 taskId) =
 #define TAG_MON_SHADOW 30010
 #define TAG_RELEARN_PROMPT 30011
 
-enum BWCategoryIcon
-{
-    CATEGORY_ICON_PHYSICAL,
-    CATEGORY_ICON_SPECIAL,
-    CATEGORY_ICON_STATUS,
-};
-
 static const struct OamData sOamData_CategoryIcons =
 {
     .size = SPRITE_SIZE(32x16),
@@ -840,9 +833,11 @@ static const union AnimCmd sSpriteAnim_CategoryStatus[] =
 
 static const union AnimCmd *const sSpriteAnimTable_CategoryIcons[] =
 {
-    [CATEGORY_ICON_PHYSICAL] = sSpriteAnim_CategoryPhysical,
-    [CATEGORY_ICON_SPECIAL] = sSpriteAnim_CategorySpecial,
-    [CATEGORY_ICON_STATUS] = sSpriteAnim_CategoryStatus,
+    // Indexed by enum DamageCategory (DAMAGE_CATEGORY_NONE is 0, so Physical starts at 1)
+    [DAMAGE_CATEGORY_NONE] = sSpriteAnim_CategoryStatus,
+    [DAMAGE_CATEGORY_PHYSICAL] = sSpriteAnim_CategoryPhysical,
+    [DAMAGE_CATEGORY_SPECIAL] = sSpriteAnim_CategorySpecial,
+    [DAMAGE_CATEGORY_STATUS] = sSpriteAnim_CategoryStatus,
 };
 
 static const struct SpriteTemplate sSpriteTemplate_CategoryIcons =

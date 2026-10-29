@@ -735,7 +735,9 @@ extern const u8 BattleScript_SilphScopeUnveiled[];
 extern const u8 BattleScript_StatChangeFailed[];
 extern const u8 BattleScript_FRDodge[];       // Fantasy Retold: L innate command
 extern const u8 BattleScript_FRRecuperate[];  // Fantasy Retold: R innate command
+extern const u8 BattleScript_FRDodgeAnim[];      // Fantasy Retold: Dodge animation ahead of the dodger's own action
 extern const u8 BattleScript_FRDodgeHalvedMsg[]; // Fantasy Retold: hit halved by Dodge
+extern const u8 BattleScript_FRDodgeShown[];     // Fantasy Retold: Dodge action whose animation already played
 extern const u8 BattleScript_FRRailEffectApplied[]; // Fantasy Retold: status rails
 extern const u8 BattleScript_FRRailMessageRet[];    // Fantasy Retold: status rails
 extern const u8 BattleScript_FRFrightenedFlee[];    // Fantasy Retold: status rails

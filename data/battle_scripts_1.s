@@ -107,6 +107,10 @@ BattleScript_FRDodge::
 	waitanimation
 	finishaction
 
+@ The Dodge was already shown when a faster attacker's hit was halved (BattleScript_FRDodgeHalvedMsg).
+BattleScript_FRDodgeShown::
+	finishaction
+
 BattleScript_FRRecuperate::
 	printstring STRINGID_FRRECUPERATING
 	waitmessage B_WAIT_TIME_SHORT
@@ -3904,6 +3908,17 @@ BattleScript_SnatchedMove::
 BattleScript_EnduredMsg::
 	printstring STRINGID_PKMNENDUREDHIT
 	waitmessage B_WAIT_TIME_LONG
+	return
+
+@ Fantasy Retold: a Dodge resolving before the dodger's own (later) action plays its animation here, ahead
+@ of the hit/miss message; that action then skips its replay (BattleScript_FRDodgeShown).
+BattleScript_FRDodgeAnim::
+	jumpifhasnohp BS_TARGET, BattleScript_FRDodgeAnimEnd
+	swapattackerwithtarget
+	playmoveanimation MOVE_DOUBLE_TEAM
+	waitanimation
+	swapattackerwithtarget
+BattleScript_FRDodgeAnimEnd:
 	return
 
 @ Fantasy Retold: the attacker acted first, so the Dodge only halved the hit.

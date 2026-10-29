@@ -541,6 +541,7 @@ void HandleAction_UseMove(void)
 
     SetTypeBeforeUsingMove(gChosenMove, gBattlerAttacker, GetBattlerAbility(gBattlerAttacker), GetBattlerHoldEffect(gBattlerAttacker));
     gBattleStruct->baseMove = gCurrentMove;
+    gBattleStruct->moveUsedThisTurn[gBattlerAttacker] = gCurrentMove; // Fantasy Retold: Dodge's Repeated Move Trapping
 
     // check Z-Move used
     if (GetActiveGimmick(gBattlerAttacker) == GIMMICK_Z_MOVE
@@ -892,18 +893,32 @@ bool32 BattlerIsDodging(enum BattlerId battler)
     return gChosenActionByBattler[battler] == B_ACTION_DODGE;
 }
 
-// Dodge outcomes vs an offensive move (status moves bypass Dodge): the dodger acting first makes it miss
-// outright; the attacker acting first still lands it, at half damage.
+// Repeated Move Trapping: the attacker is using the very move it used the turn before (recorded per
+// battler in HandleAction_UseMove, rotated in BattleTurnPassed). Only meaningful while that attacker's
+// action is resolving.
+static bool32 IsRepeatedMove(enum BattlerId battlerAtk)
+{
+    enum Move move = gBattleStruct->moveUsedThisTurn[battlerAtk];
+    return move != MOVE_NONE && move == gBattleStruct->moveUsedLastTurn[battlerAtk];
+}
+
+// Dodge outcomes vs a move aimed at the dodger's side: a repeated move misses outright whatever the speeds
+// (status moves included); otherwise an offensive move misses if the dodger acts first (status moves bypass
+// Dodge), and still lands at half damage if the attacker acts first.
 bool32 IsMoveFullyDodged(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move)
 {
-    return BattlerIsDodging(battlerDef)
-        && !IsBattleMoveStatus(move)
+    if (!BattlerIsDodging(battlerDef) || IsBattlerAlly(battlerAtk, battlerDef))
+        return FALSE;
+    if (IsRepeatedMove(battlerAtk))
+        return TRUE;
+    return !IsBattleMoveStatus(move)
         && GetBattlerTurnOrderNum(battlerDef) < GetBattlerTurnOrderNum(battlerAtk);
 }
 
 bool32 IsMoveHalvedByDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef)
 {
     return BattlerIsDodging(battlerDef)
+        && !IsRepeatedMove(battlerAtk)
         && GetBattlerTurnOrderNum(battlerAtk) < GetBattlerTurnOrderNum(battlerDef);
 }
 
@@ -932,7 +947,16 @@ void HandleAction_Dodge(void)
     if (battlerState->dodgeConsecutiveUses < 31)
         battlerState->dodgeConsecutiveUses++;
 
-    gBattlescriptCurrInstr = BattleScript_FRDodge;
+    // A faster attacker's halved hit already showed this Dodge (animation + message) when it landed.
+    if (gBattleStruct->dodgeAnimShown & (1u << battler))
+    {
+        gBattleStruct->dodgeAnimShown &= ~(1u << battler);
+        gBattlescriptCurrInstr = BattleScript_FRDodgeShown;
+    }
+    else
+    {
+        gBattlescriptCurrInstr = BattleScript_FRDodge;
+    }
     gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
 }
 
@@ -9598,6 +9622,13 @@ void SetItemsToRestoreAfterBattle(enum BattleTrainer trainer, u32 partySlot)
     lostItem->restoreAfterBattle = B_RESTORE_HELD_BATTLE_ITEMS >= GEN_9 || B_TRAINERS_KNOCK_OFF_ITEMS;
 }
 
+// Fantasy Retold: competitive berries (any with a battle hold effect) are restored after battle like other
+// held items (design.md §9). Gen 9 keeps every berry eaten.
+static bool32 IsItemRestoredAfterBattle(enum Item item)
+{
+    return GetItemPocket(item) != POCKET_BERRIES || GetItemHoldEffect(item) != HOLD_EFFECT_NONE;
+}
+
 void TryRestoreHeldItems(void)
 {
     for (enum BattleTrainer trainer = 0; trainer < gBattlersCount; trainer++)
@@ -9619,7 +9650,7 @@ void TryRestoreHeldItems(void)
             if (originaItem == ITEM_NONE)
                 continue;
 
-            if (GetItemPocket(originaItem) == POCKET_BERRIES)
+            if (!IsItemRestoredAfterBattle(originaItem))
                 continue;
 
             SetMonData(&gParties[trainer][partySlot], MON_DATA_HELD_ITEM, &originaItem);
@@ -9640,7 +9671,7 @@ void RestoreCaughtWildMonHeldItem(struct Pokemon *mon, enum BattlerId battler)
 
     bool32 shouldRestoreBattleItem = B_RESTORE_HELD_BATTLE_ITEMS >= GEN_9
                                   && itemToRestore != ITEM_NONE
-                                  && GetItemPocket(itemToRestore) != POCKET_BERRIES;
+                                  && IsItemRestoredAfterBattle(itemToRestore);
 
     if (lostItem->wildItemPending || shouldRestoreBattleItem)
     {
@@ -11017,7 +11048,8 @@ bool32 DoesMoveMissTarget(struct BattleCalcValues *cv)
 
     // Fantasy Retold: Dodge (L command) — if the target is dodging and the attacker is SLOWER (the
     // dodger acts first this round), an offensive move misses entirely. If the attacker is faster the
-    // move still lands but at 50% (applied in the damage modifier). Status moves bypass Dodge.
+    // move still lands but at 50% (applied in the damage modifier). Status moves bypass Dodge, except that
+    // any move the attacker repeats from the turn before always misses (Repeated Move Trapping).
     if (IsMoveFullyDodged(cv->battlerAtk, cv->battlerDef, cv->move))
         return TRUE;
 

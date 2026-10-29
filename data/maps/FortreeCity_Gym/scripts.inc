@@ -22,6 +22,8 @@ FortreeCity_Gym_EventScript_Winona::
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, FortreeCity_Gym_EventScript_WinonaRematch
 	goto_if_unset FLAG_RECEIVED_TM_AERIAL_ACE, FortreeCity_Gym_EventScript_GiveAerialAce2
+	setvar VAR_0x8008, 6
+	call Common_EventScript_GymReward
 	msgbox FortreeCity_Gym_Text_WinonaPostBattle, MSGBOX_DEFAULT
 	release
 	end
@@ -54,6 +56,8 @@ FortreeCity_Gym_EventScript_GiveAerialAce2::
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_ShowBagIsFull
 	msgbox FortreeCity_Gym_Text_ExplainAerialAce, MSGBOX_DEFAULT
 	setflag FLAG_RECEIVED_TM_AERIAL_ACE
+	setvar VAR_0x8008, 6
+	call Common_EventScript_GymReward
 	release
 	end
 
@@ -62,6 +66,8 @@ FortreeCity_Gym_EventScript_GiveAerialAce::
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_BagIsFull
 	msgbox FortreeCity_Gym_Text_ExplainAerialAce, MSGBOX_DEFAULT
 	setflag FLAG_RECEIVED_TM_AERIAL_ACE
+	setvar VAR_0x8008, 6
+	call Common_EventScript_GymReward
 	return
 
 FortreeCity_Gym_EventScript_WinonaRematch::

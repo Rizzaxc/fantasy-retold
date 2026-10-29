@@ -2976,6 +2976,8 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
         else
             gBattleStruct->battlerState[battler].currentStamina = baseSta;
         gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
+        gBattleStruct->moveUsedLastTurn[battler] = MOVE_NONE;
+        gBattleStruct->moveUsedThisTurn[battler] = MOVE_NONE;
 
         // Fantasy Retold: status rails (design.md §6). The rail in PartyState is authoritative and persists
         // across switches (Lv2+; Lv1 was dropped on switch-out). On a mon's first send-out (storedStamina
@@ -3101,6 +3103,8 @@ void FaintClearSetData(enum BattlerId battler)
     for (enum Stat i = 0; i < NUM_BATTLE_STATS; i++)
         gBattleMons[battler].statStages[i] = DEFAULT_STAT_STAGE;
     gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
+    gBattleStruct->moveUsedLastTurn[battler] = MOVE_NONE;
+    gBattleStruct->moveUsedThisTurn[battler] = MOVE_NONE;
 
     bool32 keepTransformed = gBattleMons[battler].volatiles.transformed;
     enum Species originalSpecies = gBattleMons[battler].volatiles.transformedMonSpecies;
@@ -3659,12 +3663,20 @@ void SetBattleCallback(void (*func)(void))
 
 void BattleTurnPassed(void)
 {
+    // Fantasy Retold: Repeated Move Trapping only looks back one turn (a turn without a move clears it).
+    for (enum BattlerId battler = 0; battler < gBattlersCount; battler++)
+    {
+        gBattleStruct->moveUsedLastTurn[battler] = gBattleStruct->moveUsedThisTurn[battler];
+        gBattleStruct->moveUsedThisTurn[battler] = MOVE_NONE;
+    }
+
     BattleScriptExecute(BattleScript_EndTurnEvents);
 }
 
 bool32 EndTurnEvents(void) // Called from Battle Script
 {
     gBattleStruct->speedTieBreaks = RandomUniform(RNG_SPEED_TIE, 0, Factorial(MAX_BATTLERS_COUNT) - 1);
+    gBattleStruct->dodgeAnimShown = 0; // Fantasy Retold
 
     TurnValuesCleanUp(TRUE);
 

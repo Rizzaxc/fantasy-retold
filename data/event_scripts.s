@@ -1201,6 +1201,7 @@ EventScript_BackupMrBrineyLocation::
 	.include "data/scripts/surf.inc"
 	.include "data/scripts/rival_graphics.inc"
 	.include "data/scripts/set_gym_trainers.inc"
+	.include "data/scripts/gym_reward.inc"
 
 EventScript_CancelMessageBox::
 	special UseBlankMessageToCancelPokemonPic
