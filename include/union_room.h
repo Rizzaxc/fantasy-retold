@@ -158,5 +158,7 @@ void CreateTask_LinkMysteryGiftOverWireless(u32 activity);
 void CreateTask_SendMysteryGift(u32 activity);
 u8 CreateTask_ListenToWireless(void);
 void StartUnionRoomBattle(u16 battleFlags);
+bool32 IsUnionRoomPassiveScanActive(void);
+void StopUnionRoomPassiveScan(void);
 
 #endif //GUARD_UNION_ROOM_H

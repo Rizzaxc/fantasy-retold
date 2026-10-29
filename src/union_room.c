@@ -195,6 +195,7 @@ enum {
 };
 
 static EWRAM_DATA u8 sUnionRoomPlayerName[12] = {};
+static EWRAM_DATA bool8 sPassiveScanLinkOpen = FALSE;
 EWRAM_DATA u8 gPlayerCurrActivity = 0;
 static EWRAM_DATA u8 sPlayerActivityGroupSize = 0;
 static EWRAM_DATA union
@@ -3321,6 +3322,7 @@ static void Task_InitUnionRoom(u8 taskId)
         OpenLink();
         InitializeRfuLinkManager_EnterUnionRoom();
         RfuSetIgnoreError(TRUE);
+        sPassiveScanLinkOpen = TRUE;
         data->state = 2;
         break;
     case 2:
@@ -3371,6 +3373,26 @@ static void Task_InitUnionRoom(u8 taskId)
         DestroyTask(taskId);
         break;
     }
+}
+
+// The Pokémon Center 1F background scan (InitUnionRoom) holds the wireless link open
+// without any partner; the main loop's overworld speed-up must not treat it as a link.
+bool32 IsUnionRoomPassiveScanActive(void)
+{
+    return sPassiveScanLinkOpen;
+}
+
+// Task_InitUnionRoom never reaches its shutdown state: a map load or menu wipes it with
+// ResetTasks, leaving gWirelessCommType stuck at 1. Called right before that reset;
+// the Center's OnResume script restarts the scan if the player is still inside.
+void StopUnionRoomPassiveScan(void)
+{
+    if (!sPassiveScanLinkOpen)
+        return;
+
+    sPassiveScanLinkOpen = FALSE;
+    LinkRfu_Shutdown();
+    SetWirelessCommType0();
 }
 
 bool16 BufferUnionRoomPlayerName(void)

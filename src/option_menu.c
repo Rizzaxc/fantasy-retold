@@ -22,6 +22,7 @@
 #define tSound data[4]
 #define tButtonMode data[5]
 #define tWindowFrameType data[6]
+#define tSpeedUp data[7]
 
 enum
 {
@@ -31,6 +32,7 @@ enum
     MENUITEM_SOUND,
     MENUITEM_BUTTONMODE,
     MENUITEM_FRAMETYPE,
+    MENUITEM_SPEEDUP,
     MENUITEM_CANCEL,
     MENUITEM_COUNT,
 };
@@ -46,6 +48,7 @@ enum
 #define YPOS_SOUND        (MENUITEM_SOUND * 16)
 #define YPOS_BUTTONMODE   (MENUITEM_BUTTONMODE * 16)
 #define YPOS_FRAMETYPE    (MENUITEM_FRAMETYPE * 16)
+#define YPOS_SPEEDUP      (MENUITEM_SPEEDUP * 16)
 
 static void Task_OptionMenuFadeIn(u8 taskId);
 static void Task_OptionMenuProcessInput(u8 taskId);
@@ -62,6 +65,8 @@ static u8 FrameType_ProcessInput(u8 selection);
 static void FrameType_DrawChoices(u8 selection);
 static u8 ButtonMode_ProcessInput(u8 selection);
 static void ButtonMode_DrawChoices(u8 selection);
+static u8 SpeedUp_ProcessInput(u8 selection);
+static void SpeedUp_DrawChoices(u8 selection);
 static void DrawHeaderText(void);
 static void DrawOptionMenuTexts(void);
 static void DrawBgWindowFrames(void);
@@ -81,6 +86,9 @@ static const u8 gText_FrameTypeNumber[]    = _("{COLOR GREEN}{SHADOW LIGHT_GREEN
 static const u8 gText_ButtonTypeNormal[]   = _("{COLOR GREEN}{SHADOW LIGHT_GREEN}NORMAL");
 static const u8 gText_ButtonTypeLR[]       = _("{COLOR GREEN}{SHADOW LIGHT_GREEN}LR");
 static const u8 gText_ButtonTypeLEqualsA[] = _("{COLOR GREEN}{SHADOW LIGHT_GREEN}L=A");
+static const u8 gText_SpeedUpOff[]         = _("{COLOR GREEN}{SHADOW LIGHT_GREEN}OFF");
+static const u8 gText_SpeedUp2x[]          = _("{COLOR GREEN}{SHADOW LIGHT_GREEN}2X");
+static const u8 gText_SpeedUp4x[]          = _("{COLOR GREEN}{SHADOW LIGHT_GREEN}4X");
 
 static const u16 sOptionMenuText_Pal[] = INCGFX_U16("graphics/interface/option_menu_text.pal", ".gbapal");
 // note: this is only used in the Japanese release
@@ -93,6 +101,7 @@ static const u8 *const sOptionMenuItemsNames[MENUITEM_COUNT] =
     [MENUITEM_SOUND]       = COMPOUND_STRING("SOUND"),
     [MENUITEM_BUTTONMODE]  = COMPOUND_STRING("BUTTON MODE"),
     [MENUITEM_FRAMETYPE]   = COMPOUND_STRING("FRAME"),
+    [MENUITEM_SPEEDUP]     = COMPOUND_STRING("SPEED UP"),
     [MENUITEM_CANCEL]      = COMPOUND_STRING("CANCEL"),
 };
 
@@ -242,12 +251,14 @@ void CB2_InitOptionMenu(void)
         gTasks[taskId].tSound = gSaveBlock2Ptr->optionsSound;
         gTasks[taskId].tButtonMode = gSaveBlock2Ptr->optionsButtonMode;
         gTasks[taskId].tWindowFrameType = gSaveBlock2Ptr->optionsWindowFrameType;
+        gTasks[taskId].tSpeedUp = gSaveBlock2Ptr->optionsSpeedUp;
 
         TextSpeed_DrawChoices(gTasks[taskId].tTextSpeed);
         BattleScene_DrawChoices(gTasks[taskId].tBattleSceneOff);
         Sound_DrawChoices(gTasks[taskId].tSound);
         ButtonMode_DrawChoices(gTasks[taskId].tButtonMode);
         FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
+        SpeedUp_DrawChoices(gTasks[taskId].tSpeedUp);
         HighlightOptionMenuItem(gTasks[taskId].tMenuSelection);
 
         CopyWindowToVram(WIN_OPTIONS, COPYWIN_FULL);
@@ -336,6 +347,13 @@ static void Task_OptionMenuProcessInput(u8 taskId)
             if (previousOption != gTasks[taskId].tWindowFrameType)
                 FrameType_DrawChoices(gTasks[taskId].tWindowFrameType);
             break;
+        case MENUITEM_SPEEDUP:
+            previousOption = gTasks[taskId].tSpeedUp;
+            gTasks[taskId].tSpeedUp = SpeedUp_ProcessInput(gTasks[taskId].tSpeedUp);
+
+            if (previousOption != gTasks[taskId].tSpeedUp)
+                SpeedUp_DrawChoices(gTasks[taskId].tSpeedUp);
+            break;
         default:
             return;
         }
@@ -356,6 +374,7 @@ static void Task_OptionMenuSave(u8 taskId)
     gSaveBlock2Ptr->optionsSound = gTasks[taskId].tSound;
     gSaveBlock2Ptr->optionsButtonMode = gTasks[taskId].tButtonMode;
     gSaveBlock2Ptr->optionsWindowFrameType = gTasks[taskId].tWindowFrameType;
+    gSaveBlock2Ptr->optionsSpeedUp = gTasks[taskId].tSpeedUp;
 
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     gTasks[taskId].func = Task_OptionMenuFadeOut;
@@ -590,6 +609,52 @@ static void ButtonMode_DrawChoices(u8 selection)
     DrawOptionMenuChoice(gText_ButtonTypeLR, xLR, YPOS_BUTTONMODE, styles[1]);
 
     DrawOptionMenuChoice(gText_ButtonTypeLEqualsA, GetStringRightAlignXOffset(FONT_NORMAL, gText_ButtonTypeLEqualsA, 198), YPOS_BUTTONMODE, styles[2]);
+}
+
+static u8 SpeedUp_ProcessInput(u8 selection)
+{
+    if (JOY_NEW(DPAD_RIGHT))
+    {
+        if (selection < OPTIONS_SPEED_UP_4X)
+            selection++;
+        else
+            selection = OPTIONS_SPEED_UP_OFF;
+
+        sArrowPressed = TRUE;
+    }
+    if (JOY_NEW(DPAD_LEFT))
+    {
+        if (selection != OPTIONS_SPEED_UP_OFF)
+            selection--;
+        else
+            selection = OPTIONS_SPEED_UP_4X;
+
+        sArrowPressed = TRUE;
+    }
+    return selection;
+}
+
+static void SpeedUp_DrawChoices(u8 selection)
+{
+    s32 widthOff, width2x, width4x, x2x;
+    u8 styles[3];
+
+    styles[0] = 0;
+    styles[1] = 0;
+    styles[2] = 0;
+    styles[selection] = 1;
+
+    DrawOptionMenuChoice(gText_SpeedUpOff, 104, YPOS_SPEEDUP, styles[OPTIONS_SPEED_UP_OFF]);
+
+    widthOff = GetStringWidth(FONT_NORMAL, gText_SpeedUpOff, 0);
+    width2x = GetStringWidth(FONT_NORMAL, gText_SpeedUp2x, 0);
+    width4x = GetStringWidth(FONT_NORMAL, gText_SpeedUp4x, 0);
+
+    width2x -= 94;
+    x2x = (widthOff - width2x - width4x) / 2 + 104;
+    DrawOptionMenuChoice(gText_SpeedUp2x, x2x, YPOS_SPEEDUP, styles[OPTIONS_SPEED_UP_2X]);
+
+    DrawOptionMenuChoice(gText_SpeedUp4x, GetStringRightAlignXOffset(FONT_NORMAL, gText_SpeedUp4x, 198), YPOS_SPEEDUP, styles[OPTIONS_SPEED_UP_4X]);
 }
 
 static void DrawHeaderText(void)

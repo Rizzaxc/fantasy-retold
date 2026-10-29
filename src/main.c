@@ -24,6 +24,7 @@
 #include "main.h"
 #include "trainer_hill.h"
 #include "test_runner.h"
+#include "union_room.h"
 #include "constants/rgb.h"
 
 static void VBlankIntr(void);
@@ -78,6 +79,7 @@ static EWRAM_DATA u16 sTrainerId = 0;
 
 static void UpdateLinkAndCallCallbacks(void);
 static void RunMainLoopCallbacks(void);
+static u32 GetOverworldLogicUpdatesPerFrame(void);
 static bool8 ShouldRunSecondMainLoopUpdate(void);
 static bool8 ShouldRunExtraBattleVisualUpdate(void);
 static void ClearNewKeyPresses(void);
@@ -92,8 +94,15 @@ static void WaitForVBlank(void);
 void EnableVCountIntrAtLine150(void);
 
 #define B_START_SELECT (B_BUTTON | START_BUTTON | SELECT_BUTTON)
-#define OVERWORLD_LOGIC_UPDATES_PER_FRAME 4
 #define BATTLE_VISUAL_UPDATES_PER_FRAME 3
+
+// SPEED UP option: overworld logic updates per rendered frame.
+static const u8 sOverworldLogicUpdatesPerFrame[] =
+{
+    [OPTIONS_SPEED_UP_OFF] = 1,
+    [OPTIONS_SPEED_UP_2X]  = 2,
+    [OPTIONS_SPEED_UP_4X]  = 4,
+};
 
 void AgbMain(void)
 {
@@ -154,11 +163,15 @@ void AgbMainLoop(void)
 
         RunMainLoopCallbacks();
 
-        for (u8 i = 1; i < OVERWORLD_LOGIC_UPDATES_PER_FRAME && ShouldRunSecondMainLoopUpdate(); i++)
+        for (u8 i = 1; i < GetOverworldLogicUpdatesPerFrame() && ShouldRunSecondMainLoopUpdate(); i++)
         {
             // Keep held input advancing faster without double-firing edge-triggered inputs.
             ClearNewKeyPresses();
-            RunMainLoopCallbacks();
+            // A passive Union Room scan keeps the RFU link open; leave link servicing at 1x.
+            if (gWirelessCommType != 0)
+                CallCallbacks();
+            else
+                RunMainLoopCallbacks();
         }
 
         for (u8 i = 1; i < BATTLE_VISUAL_UPDATES_PER_FRAME && ShouldRunExtraBattleVisualUpdate(); i++)
@@ -194,6 +207,15 @@ static void RunMainLoopCallbacks(void)
     }
 }
 
+static u32 GetOverworldLogicUpdatesPerFrame(void)
+{
+    u32 speedUp = gSaveBlock2Ptr->optionsSpeedUp;
+
+    if (speedUp >= ARRAY_COUNT(sOverworldLogicUpdatesPerFrame))
+        return 1;
+    return sOverworldLogicUpdatesPerFrame[speedUp];
+}
+
 static bool8 ShouldRunSecondMainLoopUpdate(void)
 {
     // Link / wireless / test flows are timing-sensitive, so keep them on the original cadence.
@@ -203,7 +225,12 @@ static bool8 ShouldRunSecondMainLoopUpdate(void)
     if (gMain.inBattle)
         return FALSE;
 
-    if (gWirelessCommType != 0 || gReceivedRemoteLinkPlayers)
+    if (gReceivedRemoteLinkPlayers)
+        return FALSE;
+
+    // Pokémon Center 1F starts a background Union Room scan that sets gWirelessCommType
+    // with no partner; only a real wireless session should drop back to 1x.
+    if (gWirelessCommType != 0 && !IsUnionRoomPassiveScanActive())
         return FALSE;
 
     if (Overworld_SendKeysToLinkIsRunning() == TRUE || Overworld_RecvKeysFromLinkIsRunning() == TRUE)

@@ -611,6 +611,8 @@ struct PartyState
     u16 storedStamina;                              // Fantasy Retold: CurrentSta banked at switch-out (+ rest bonus), restored on the mon's next switch-in. Read only when sentOut is set.
     u16 trauma;                                     // Fantasy Retold: permanent Trauma. Reduces effective max HP; persists across switches for the whole battle.
     struct StatusRailEntry rails[NUM_STATUS_RAILS]; // Fantasy Retold: multi-stage status rails (design.md §6). Lv1 cleared on switch-out; Lv2+ persists.
+    u16 itemizedMove;                               // Fantasy Retold: the held-TM move itemizedMovePP belongs to; a different TM starts at full PP.
+    u8 itemizedMovePP;                              // Fantasy Retold: PP left on the Itemized Move this battle (design.md §10).
 };
 
 struct EventStates
@@ -1256,14 +1258,22 @@ static inline bool32 IsSpreadMove(enum MoveTarget moveTarget)
     return moveTarget == TARGET_BOTH || moveTarget == TARGET_FOES_AND_ALLY;
 }
 
-// Fantasy Retold: the Signature Move lives outside the four move slots (design.md §10). It is chosen with
-// this extra move position; it has no PP and is never stored in gBattleMons[].moves / .pp, so anything that
-// indexes those arrays by a chosen/current move position must check `position < MAX_MON_MOVES` first.
+// Fantasy Retold: the Signature Move and the Itemized Move (a held TM's move) live outside the four move slots
+// (design.md §10). They are chosen with these extra move positions and are never stored in gBattleMons[].moves /
+// .pp, so anything that indexes those arrays by a chosen/current move position must check
+// `position < MAX_MON_MOVES` first. Their PP is read / taken with Get / DeductBattlerExtraMovePP: the Signature
+// Move's lives on the party mon (persists), the Itemized Move's in PartyState (per battle).
 #define SIGNATURE_MOVE_POSITION MAX_MON_MOVES
+#define ITEMIZED_MOVE_POSITION (MAX_MON_MOVES + 1)
 enum Move GetBattlerSignatureMove(enum BattlerId battler);
+enum Move GetBattlerItemizedMove(enum BattlerId battler);
+u32 GetBattlerExtraMovePP(enum BattlerId battler, u32 position);
+void DeductBattlerExtraMovePP(enum BattlerId battler, u32 position, u32 amount);
 
 static inline enum Move GetBattlerMoveAtPosition(enum BattlerId battler, u32 position)
 {
+    if (position == ITEMIZED_MOVE_POSITION)
+        return GetBattlerItemizedMove(battler);
     if (position >= MAX_MON_MOVES)
         return GetBattlerSignatureMove(battler);
     return gBattleMons[battler].moves[position];

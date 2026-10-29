@@ -1,4 +1,5 @@
 #include "global.h"
+#include "item.h"
 #include "pokemon.h"
 #include "signature_move.h"
 #include "constants/species.h"
@@ -124,7 +125,10 @@ void TryDetermineSignatureMove(struct Pokemon *mon, u8 partySlot)
         enum Move move = GetMonData(mon, MON_DATA_MOVE1 + bestSlot);
         if (move != MOVE_NONE)
         {
+            u8 pp = SIGNATURE_MOVE_PP;
+
             SetMonData(mon, MON_DATA_SIGNATURE_MOVE, &move);
+            SetMonData(mon, MON_DATA_SIGNATURE_PP, &pp);
             RemoveMoveSlot(mon, partySlot, bestSlot); // the signature leaves the moveset, freeing the slot
         }
     }
@@ -147,4 +151,16 @@ bool32 IsSignatureMove(struct Pokemon *mon, enum Move move)
     if (move == MOVE_NONE)
         return FALSE;
     return GetMonData(mon, MON_DATA_SIGNATURE_MOVE) == move;
+}
+
+enum Move GetItemizedMove(enum Species species, enum Item item)
+{
+    enum Move move;
+
+    if (item == ITEM_NONE || GetItemPocket(item) != POCKET_TM_HM)
+        return MOVE_NONE;
+    move = GetItemTMHMMoveId(item);
+    if (move == MOVE_NONE || !CanLearnTeachableMove(species, move))
+        return MOVE_NONE;
+    return move;
 }

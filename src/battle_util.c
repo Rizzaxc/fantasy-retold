@@ -531,6 +531,14 @@ void HandleAction_UseMove(void)
         gCurrentMove = gChosenMove = GetBattlerMoveAtPosition(gBattlerAttacker, gCurrMovePos);
     }
 
+    // Fantasy Retold: the held TM was lost between choosing the Itemized Move and acting (design.md §10).
+    if (gCurrentMove == MOVE_NONE && gCurrMovePos == ITEMIZED_MOVE_POSITION)
+    {
+        gBattlescriptCurrInstr = BattleScript_FRItemizedMoveLost;
+        gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+        return;
+    }
+
     if (IsBattlerAlive(gBattlerAttacker))
     {
         if (IsOnPlayerSide(gBattlerAttacker))
@@ -1581,11 +1589,56 @@ enum Move GetBattlerSignatureMove(enum BattlerId battler)
     return GetSignatureMove(GetBattlerMon(battler));
 }
 
+// Fantasy Retold: the move of the battler's held TM, or MOVE_NONE (design.md §10). Read live, so losing the TM
+// (Knock Off, Trick, ...) takes the move away.
+enum Move GetBattlerItemizedMove(enum BattlerId battler)
+{
+    return GetItemizedMove(gBattleMons[battler].species, gBattleMons[battler].item);
+}
+
+// PP left on the Itemized Move: ITEMIZED_MOVE_PP the first time a TM's move is seen this battle, per party mon
+// (it survives switching), and full again when the mon holds a different TM.
+static u32 GetBattlerItemizedMovePP(enum BattlerId battler)
+{
+    struct PartyState *state = &gBattleStruct->partyState[GetBattlerTrainer(battler)][gBattlerPartyIndexes[battler]];
+    enum Move move = GetBattlerItemizedMove(battler);
+
+    if (move == MOVE_NONE)
+        return 0;
+    if (state->itemizedMove != move)
+    {
+        state->itemizedMove = move;
+        state->itemizedMovePP = ITEMIZED_MOVE_PP;
+    }
+    return state->itemizedMovePP;
+}
+
+// PP left on the Signature / Itemized Move (position SIGNATURE_ / ITEMIZED_MOVE_POSITION).
+u32 GetBattlerExtraMovePP(enum BattlerId battler, u32 position)
+{
+    if (position == ITEMIZED_MOVE_POSITION)
+        return GetBattlerItemizedMovePP(battler);
+    if (GetBattlerSignatureMove(battler) == MOVE_NONE)
+        return 0;
+    return GetMonData(GetBattlerMon(battler), MON_DATA_SIGNATURE_PP);
+}
+
+void DeductBattlerExtraMovePP(enum BattlerId battler, u32 position, u32 amount)
+{
+    u32 ppLeft = GetBattlerExtraMovePP(battler, position);
+    u8 pp = (ppLeft > amount) ? ppLeft - amount : 0;
+
+    if (position == ITEMIZED_MOVE_POSITION)
+        gBattleStruct->partyState[GetBattlerTrainer(battler)][gBattlerPartyIndexes[battler]].itemizedMovePP = pp;
+    else
+        SetMonData(GetBattlerMon(battler), MON_DATA_SIGNATURE_PP, &pp);
+}
+
 u32 TrySetCantSelectMoveBattleScript(enum BattlerId battler)
 {
     u32 limitations = 0;
     u8 moveId = gBattleResources->bufferB[battler][2] & ~RET_GIMMICK;
-    enum Move move = GetBattlerMoveAtPosition(battler, moveId); // Fantasy Retold: moveId may be SIGNATURE_MOVE_POSITION
+    enum Move move = GetBattlerMoveAtPosition(battler, moveId); // Fantasy Retold: moveId may be SIGNATURE_ / ITEMIZED_MOVE_POSITION
     enum HoldEffect holdEffect = GetBattlerHoldEffect(battler);
     u16 *choicedMove = &gBattleStruct->choicedMove[battler];
     enum BattleMoveEffects moveEffect = GetMoveEffect(move);
@@ -1744,7 +1797,8 @@ u32 TrySetCantSelectMoveBattleScript(enum BattlerId battler)
             limitations++;
     }
 
-    if (moveId < MAX_MON_MOVES && gBattleMons[battler].pp[moveId] == 0) // the Signature Move has no PP
+    if (moveId < MAX_MON_MOVES ? gBattleMons[battler].pp[moveId] == 0
+                               : GetBattlerExtraMovePP(battler, moveId) == 0) // Signature / Itemized Move
     {
         if (gBattleTypeFlags & BATTLE_TYPE_PALACE)
         {

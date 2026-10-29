@@ -767,6 +767,7 @@ enum StringID
     STRINGID_FRTOOCOLDTOBURN, // Fantasy Retold: status rails
     STRINGID_FRTOOHOTTOCHILL, // Fantasy Retold: status rails
     STRINGID_FRPOISONBLOCKSHEAL, // Fantasy Retold: status rails
+    STRINGID_FRITEMIZEDMOVELOST, // Fantasy Retold: Itemized Move
     STRINGID_COUNT
 };
 

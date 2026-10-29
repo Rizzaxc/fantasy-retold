@@ -34,6 +34,7 @@
 #include "item_icon.h"
 #include "line_break.h"
 #include "link.h"
+#include "union_room.h"
 #include "link_rfu.h"
 #include "load_save.h"
 #include "main.h"
@@ -2585,6 +2586,7 @@ static void InitOverworldGraphicsRegistersCreditsFrlg(void)
 
 static void ResumeMap(bool32 a1)
 {
+    StopUnionRoomPassiveScan();
     ResetTasks();
     ResetSpriteData();
     ResetPaletteFade();

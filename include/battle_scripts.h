@@ -743,6 +743,7 @@ extern const u8 BattleScript_FRRailMessageRet[];    // Fantasy Retold: status ra
 extern const u8 BattleScript_FRFrightenedFlee[];    // Fantasy Retold: status rails
 extern const u8 BattleScript_FRStupefiedSelfHitRet[]; // Fantasy Retold: status rails
 extern const u8 BattleScript_FRFrightenedRefusedSwitch[]; // Fantasy Retold: status rails
+extern const u8 BattleScript_FRItemizedMoveLost[]; // Fantasy Retold: Itemized Move
 extern const u8 BattleScript_FRStatusBlocked[];          // Fantasy Retold: status rails
 extern const u8 BattleScript_FRMoveUsedInNightmare[];    // Fantasy Retold: status rails
 extern const u8 BattleScript_FRRecuperatePoisoned[];     // Fantasy Retold: R innate command while poisoned

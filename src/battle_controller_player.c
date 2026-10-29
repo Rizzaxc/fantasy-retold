@@ -112,12 +112,15 @@ static const u8 sText_DodgeCostThreshold[] = _(
 );
 
 // Fantasy Retold: innate command menu (design.md §3). L (R in L=A mode) swaps the four move slots for
-// Dodge / Recuperate / the Signature Move; L or B swaps back.
+// Dodge / Recuperate / the Signature Move / the Itemized Move; L or B swaps back. Dodge and Recuperate always
+// take slots 0 and 1; the two moves fill slots 2 and 3 in that order, only when the mon has them.
 enum InnateMenuEntry
 {
     INNATE_ENTRY_DODGE,
     INNATE_ENTRY_RECUPERATE,
     INNATE_ENTRY_SIGNATURE,
+    INNATE_ENTRY_ITEMIZED,
+    INNATE_ENTRY_NONE,
 };
 
 static const u8 sText_InnateDodge[] = _("Dodge");
@@ -125,6 +128,7 @@ static const u8 sText_InnateRecuperate[] = _("Recuperate");
 static const u8 sText_InnateStamina[] = _("STA");
 static const u8 sText_InnateDodgeInfo[] = _("Evade");
 static const u8 sText_InnateRecuperateInfo[] = _("Rest");
+static const u8 sText_InnateNoPP[] = _("There's no PP left for\nthis move!\p");
 // Unavailable entries: light grey with no outline (text palette slots 15 / 14), so they read as faded.
 static const u8 sText_InnateDisabledColor[] = _("{COLOR 15}{SHADOW 14}");
 
@@ -747,14 +751,51 @@ static enum Move GetInnateSignatureMove(enum BattlerId battler)
     return GetSignatureMove(GetBattlerMon(battler));
 }
 
-static u32 GetInnateMenuEntryCount(enum BattlerId battler)
+// Fantasy Retold: the held TM's move (design.md §10); MOVE_NONE if the mon holds no TM it can learn.
+static enum Move GetInnateItemizedMove(enum BattlerId battler)
 {
-    return GetInnateSignatureMove(battler) != MOVE_NONE ? INNATE_ENTRY_SIGNATURE + 1 : INNATE_ENTRY_SIGNATURE;
+    return GetBattlerItemizedMove(battler);
 }
 
-// The Signature Move has no PP, so it is always selectable here (Taunt, Disable etc. are still checked by the
-// engine once it is chosen).
-static bool32 IsInnateMenuEntryUsable(enum BattlerId battler, u32 entry)
+// Which entry sits in a slot of the 2x2 grid.
+static enum InnateMenuEntry GetInnateMenuEntry(enum BattlerId battler, u32 slot)
+{
+    bool32 hasSignature = GetInnateSignatureMove(battler) != MOVE_NONE;
+    bool32 hasItemized = GetInnateItemizedMove(battler) != MOVE_NONE;
+
+    switch (slot)
+    {
+    case 0:
+        return INNATE_ENTRY_DODGE;
+    case 1:
+        return INNATE_ENTRY_RECUPERATE;
+    case 2:
+        if (hasSignature)
+            return INNATE_ENTRY_SIGNATURE;
+        return hasItemized ? INNATE_ENTRY_ITEMIZED : INNATE_ENTRY_NONE;
+    case 3:
+        return (hasSignature && hasItemized) ? INNATE_ENTRY_ITEMIZED : INNATE_ENTRY_NONE;
+    }
+    return INNATE_ENTRY_NONE;
+}
+
+static enum Move GetInnateEntryMove(enum BattlerId battler, enum InnateMenuEntry entry)
+{
+    if (entry == INNATE_ENTRY_SIGNATURE)
+        return GetInnateSignatureMove(battler);
+    if (entry == INNATE_ENTRY_ITEMIZED)
+        return GetInnateItemizedMove(battler);
+    return MOVE_NONE;
+}
+
+static u32 GetInnateEntryMovePosition(enum InnateMenuEntry entry)
+{
+    return (entry == INNATE_ENTRY_ITEMIZED) ? ITEMIZED_MOVE_POSITION : SIGNATURE_MOVE_POSITION;
+}
+
+// The Signature / Itemized Move needs PP left (Taunt, Disable etc. are still checked by the engine once either
+// is chosen).
+static bool32 IsInnateMenuEntryUsable(enum BattlerId battler, enum InnateMenuEntry entry)
 {
     switch (entry)
     {
@@ -763,17 +804,20 @@ static bool32 IsInnateMenuEntryUsable(enum BattlerId battler, u32 entry)
     case INNATE_ENTRY_RECUPERATE:
         return CanUseRecuperate(battler);
     case INNATE_ENTRY_SIGNATURE:
-        return TRUE;
+    case INNATE_ENTRY_ITEMIZED:
+        return GetBattlerExtraMovePP(battler, GetInnateEntryMovePosition(entry)) != 0;
+    default:
+        return FALSE;
     }
-    return FALSE;
 }
 
-static void PrintInnateMenuEntry(enum BattlerId battler, u32 entry)
+static void PrintInnateMenuEntry(enum BattlerId battler, u32 slot)
 {
+    enum InnateMenuEntry entry = GetInnateMenuEntry(battler, slot);
     u8 *txtPtr = gDisplayedStringBattle;
 
     *txtPtr = EOS;
-    if (entry < GetInnateMenuEntryCount(battler))
+    if (entry != INNATE_ENTRY_NONE)
     {
         if (!IsInnateMenuEntryUsable(battler, entry))
             txtPtr = StringCopy(txtPtr, sText_InnateDisabledColor);
@@ -782,18 +826,37 @@ static void PrintInnateMenuEntry(enum BattlerId battler, u32 entry)
         else if (entry == INNATE_ENTRY_RECUPERATE)
             StringCopy(txtPtr, sText_InnateRecuperate);
         else
-            StringCopy(txtPtr, GetMoveName(GetInnateSignatureMove(battler)));
+            StringCopy(txtPtr, GetMoveName(GetInnateEntryMove(battler, entry)));
     }
     // Prints on windows B_WIN_MOVE_NAME_1..4, in the same 2x2 grid as the moves.
-    BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MOVE_NAME_1 + entry);
+    BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MOVE_NAME_1 + slot);
 }
 
-// Right-hand panel for the highlighted entry: Stamina cost / gain in the PP slot, and what it does (or the
-// Signature Move's type) in the type slot.
+// Right-hand panel for the highlighted entry. Dodge / Recuperate: Stamina cost / gain in the PP slot and what it
+// does in the type slot. The Signature / Itemized Move: PP and type, as on the move screen.
 static void DisplayInnateMenuEntryInfo(enum BattlerId battler)
 {
-    u32 entry = sInnateMenuCursor[battler];
+    enum InnateMenuEntry entry = GetInnateMenuEntry(battler, sInnateMenuCursor[battler]);
     u8 *txtPtr = gDisplayedStringBattle;
+
+    if (entry == INNATE_ENTRY_SIGNATURE || entry == INNATE_ENTRY_ITEMIZED)
+    {
+        enum Move move = GetInnateEntryMove(battler, entry);
+        u32 maxPP = (entry == INNATE_ENTRY_ITEMIZED) ? ITEMIZED_MOVE_PP : SIGNATURE_MOVE_PP;
+        u8 *end;
+
+        MoveSelectionDisplayPPString(battler);
+        txtPtr = ConvertIntToDecimalStringN(txtPtr, GetBattlerExtraMovePP(battler, GetInnateEntryMovePosition(entry)), STR_CONV_MODE_RIGHT_ALIGN, 2);
+        *txtPtr++ = CHAR_SLASH;
+        ConvertIntToDecimalStringN(txtPtr, maxPP, STR_CONV_MODE_RIGHT_ALIGN, 2);
+        BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_PP_REMAINING);
+
+        txtPtr = StringCopy(gDisplayedStringBattle, gText_MoveInterfaceType);
+        end = StringCopy(txtPtr, gTypesInfo[GetMoveType(move)].name);
+        PrependFontIdToFit(txtPtr, end, FONT_NORMAL, WindowWidthPx(B_WIN_MOVE_TYPE) - 25);
+        BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MOVE_TYPE);
+        return;
+    }
 
     BattlePutTextOnWindow(sText_InnateStamina, B_WIN_PP);
     if (entry == INNATE_ENTRY_DODGE)
@@ -810,29 +873,13 @@ static void DisplayInnateMenuEntryInfo(enum BattlerId battler)
         BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_PP_REMAINING);
         BattlePutTextOnWindow(sText_InnateRecuperateInfo, B_WIN_MOVE_TYPE);
     }
-    else
-    {
-        // Same Stamina action cost as any move (design.md §2).
-        enum Move move = GetInnateSignatureMove(battler);
-        u32 staCost = GetMoveStaminaCost(battler, move);
-        u8 *end;
-
-        *txtPtr++ = CHAR_HYPHEN;
-        ConvertIntToDecimalStringN(txtPtr, staCost, STR_CONV_MODE_LEFT_ALIGN, 3);
-        BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_PP_REMAINING);
-
-        txtPtr = StringCopy(gDisplayedStringBattle, gText_MoveInterfaceType);
-        end = StringCopy(txtPtr, gTypesInfo[GetMoveType(move)].name);
-        PrependFontIdToFit(txtPtr, end, FONT_NORMAL, WindowWidthPx(B_WIN_MOVE_TYPE) - 25);
-        BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MOVE_TYPE);
-    }
 }
 
-// A transformation gimmick (Mega, Ultra Burst, Dynamax, Tera) can go with Dodge / Recuperate; nothing goes with
-// the Signature Move (design.md §3).
-static bool32 InnateEntryAllowsGimmick(enum BattlerId battler, u32 entry)
+// A transformation gimmick (Mega, Ultra Burst, Dynamax, Tera) can go with Dodge / Recuperate / the Itemized Move;
+// nothing goes with the Signature Move (design.md §3).
+static bool32 InnateEntryAllowsGimmick(enum BattlerId battler, u32 slot)
 {
-    return entry != INNATE_ENTRY_SIGNATURE && CanUseGimmickWithInnateCommand(battler);
+    return GetInnateMenuEntry(battler, slot) != INNATE_ENTRY_SIGNATURE && CanUseGimmickWithInnateCommand(battler);
 }
 
 // Shows the gimmick trigger, in its current on/off state, only while the highlighted entry can take the gimmick.
@@ -899,10 +946,13 @@ static void ShowInnateMenuMessage(enum BattlerId battler, const u8 *text, void (
     gBattlerControllerFuncs[battler] = waitFunc;
 }
 
-// Hands the turn to the engine. Dodge / Recuperate are their own actions; the Signature Move is a move choice
-// with SIGNATURE_MOVE_POSITION and its default target (no manual target pick yet in doubles).
-static void ConfirmInnateMenuEntry(enum BattlerId battler, u32 entry)
+// Hands the turn to the engine. Dodge / Recuperate are their own actions; the Signature / Itemized Move is a move
+// choice with SIGNATURE_ / ITEMIZED_MOVE_POSITION and its default target (no manual target pick yet in doubles).
+static void ConfirmInnateMenuEntry(enum BattlerId battler, u32 slot)
 {
+    enum InnateMenuEntry entry = GetInnateMenuEntry(battler, slot);
+    u32 gimmickFlag = (gBattleStruct->gimmick.playerSelect && InnateEntryAllowsGimmick(battler, slot)) ? RET_GIMMICK : 0;
+
     sInnateMenuActive[battler] = FALSE;
     TryToHideMoveInfoWindow();
     HideGimmickTriggerSprite();
@@ -910,14 +960,14 @@ static void ConfirmInnateMenuEntry(enum BattlerId battler, u32 entry)
     if (entry == INNATE_ENTRY_DODGE || entry == INNATE_ENTRY_RECUPERATE)
     {
         u32 action = (entry == INNATE_ENTRY_DODGE) ? B_ACTION_DODGE : B_ACTION_RECUPERATE;
-        u32 gimmickFlag = (gBattleStruct->gimmick.playerSelect && InnateEntryAllowsGimmick(battler, entry)) ? RET_GIMMICK : 0;
         BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, action, gimmickFlag);
     }
     else
     {
-        enum MoveTarget moveTarget = GetBattlerMoveSelectionTargetType(battler, GetInnateSignatureMove(battler));
+        u32 position = GetInnateEntryMovePosition(entry) | ((entry == INNATE_ENTRY_ITEMIZED) ? gimmickFlag : 0);
+        enum MoveTarget moveTarget = GetBattlerMoveSelectionTargetType(battler, GetInnateEntryMove(battler, entry));
         enum BattlerId target = GetDefaultSelectionTarget(battler, moveTarget);
-        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, SIGNATURE_MOVE_POSITION | (target << 8));
+        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, position | (target << 8));
     }
     BtlController_Complete(battler);
 }
@@ -930,13 +980,17 @@ static void HandleInputChooseInnate(enum BattlerId battler)
 
     if (JOY_NEW(A_BUTTON))
     {
+        enum InnateMenuEntry entry = GetInnateMenuEntry(battler, cursor);
+
         PlaySE(SE_SELECT);
-        if (IsInnateMenuEntryUsable(battler, cursor))
+        if (IsInnateMenuEntryUsable(battler, entry))
             ConfirmInnateMenuEntry(battler, cursor);
-        else if (cursor == INNATE_ENTRY_DODGE)
+        else if (entry == INNATE_ENTRY_DODGE)
             ShowInnateMenuMessage(battler, sText_DodgeCostThreshold, WaitForDodgeSelectionMessage);
-        else
+        else if (entry == INNATE_ENTRY_RECUPERATE)
             ShowInnateMenuMessage(battler, sText_RecuperateThreshold, WaitForRecuperateSelectionMessage);
+        else
+            ShowInnateMenuMessage(battler, sText_InnateNoPP, WaitForRecuperateSelectionMessage);
         return;
     }
 
@@ -969,7 +1023,7 @@ static void HandleInputChooseInnate(enum BattlerId battler)
     else if (JOY_NEW(DPAD_DOWN) && !(cursor & 2))
         target = cursor ^ 2;
 
-    if (target != cursor && target < GetInnateMenuEntryCount(battler))
+    if (target != cursor && GetInnateMenuEntry(battler, target) != INNATE_ENTRY_NONE)
     {
         PlaySE(SE_SELECT);
         MoveSelectionDestroyCursorAt(cursor);

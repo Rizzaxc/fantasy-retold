@@ -32,6 +32,7 @@
 #include "palette.h"
 #include "pokeball.h"
 #include "pokemon.h"
+#include "signature_move.h"
 #include "pokemon_sprite_visualizer.h"
 #include "pokemon_storage_system.h"
 #include "pokemon_summary_screen.h"
@@ -191,6 +192,7 @@ static EWRAM_DATA struct PokemonSummaryScreenData
         u32 OTID; // 0x48  
         u8 teraType;
         u16 signatureMove; // Fantasy Retold: lives outside the four move slots (design.md §10)
+        u8 signaturePP;
         u8 mintNature;
         u8 ivHp;
         u8 ivAtk;
@@ -2197,6 +2199,7 @@ static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
         }
         sum->ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
         sum->signatureMove = GetMonData(mon, MON_DATA_SIGNATURE_MOVE);
+        sum->signaturePP = GetMonData(mon, MON_DATA_SIGNATURE_PP);
         break;
     case 2:
         if (sMonSummaryScreen->monList.mons == gPlayerParty || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->handleDeoxys == TRUE)
@@ -4832,11 +4835,10 @@ static void PrintMoveDetails(u16 move)
 }
 
 // Fantasy Retold: the row below the four moves (where a move being learned or "Cancel" goes) shows the
-// Signature Move while browsing: name, type icon and "Signature" in place of PP (it has no PP). It gives the
+// Signature Move while browsing: name, type icon and its PP (out of SIGNATURE_MOVE_PP, no PP Ups). It gives the
 // row back while that row is in use, and is redrawn when the move details close.
 #define SIGNATURE_ROW_CLEAR_Y      112
 #define SIGNATURE_ROW_CLEAR_HEIGHT 32
-static const u8 sText_SignatureMoveTag[] = _("Signature");
 
 static bool32 ShouldShowSignatureMoveRow(void)
 {
@@ -4855,7 +4857,13 @@ static void PrintSignatureMoveRow(void)
 
     FillWindowPixelRect(windowId, PIXEL_FILL(0), 0, SIGNATURE_ROW_CLEAR_Y, WindowWidthPx(windowId), SIGNATURE_ROW_CLEAR_HEIGHT);
     PrintTextOnWindowToFitPx_WithFont(windowId, GetMoveName(move), 3, 114, 0, 12, FONT_SMALL, WindowWidthPx(windowId) - 3);
-    PrintTextOnWindowWithFont(windowId, sText_SignatureMoveTag, 8, 128, 0, 12, FONT_SMALL);
+    ConvertIntToDecimalStringN(gStringVar1, sMonSummaryScreen->summary.signaturePP, STR_CONV_MODE_RIGHT_ALIGN, 2);
+    ConvertIntToDecimalStringN(gStringVar2, SIGNATURE_MOVE_PP, STR_CONV_MODE_RIGHT_ALIGN, 2);
+    DynamicPlaceholderTextUtil_Reset();
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, gStringVar1);
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(1, gStringVar2);
+    DynamicPlaceholderTextUtil_ExpandPlaceholders(gStringVar4, sMovesPPLayout);
+    PrintTextOnWindowWithFont(windowId, gStringVar4, 8, 128, 0, GetCurrentPPToMaxPPState(sMonSummaryScreen->summary.signaturePP, SIGNATURE_MOVE_PP) + 9, FONT_SMALL);
 }
 
 static void SetSignatureMoveTypeIcon(void)

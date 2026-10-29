@@ -120,6 +120,12 @@ BattleScript_FRRecuperate::
 	datahpupdate BS_ATTACKER, ASSURANCE_IGNORE
 	finishaction
 
+@ Itemized Move: the held TM was lost (Knock Off, Trick, ...) after the move was chosen; the turn is lost (design.md §10).
+BattleScript_FRItemizedMoveLost::
+	printstring STRINGID_FRITEMIZEDMOVELOST
+	waitmessage B_WAIT_TIME_LONG
+	finishaction
+
 @ Poisoned: Recuperate restores Stamina but no HP (design.md §6).
 BattleScript_FRRecuperatePoisoned::
 	printstring STRINGID_FRRECUPERATING

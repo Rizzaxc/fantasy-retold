@@ -39,6 +39,7 @@
 #include "pokedex.h"
 #include "pokeblock.h"
 #include "pokemon.h"
+#include "signature_move.h"
 #include "pokemon_animation.h"
 #include "pokemon_icon.h"
 #include "pokemon_summary_screen.h"
@@ -2438,6 +2439,12 @@ u32 GetBoxMonData3(struct BoxPokemon *boxMon, s32 field, u8 *data)
                        | (substruct0->signatureMoveHi << 9);
             }
             break;
+        case MON_DATA_SIGNATURE_PP:
+            {
+                u32 used = GetSubstruct1(boxMon)->signaturePPUsed;
+                retVal = (used < SIGNATURE_MOVE_PP) ? SIGNATURE_MOVE_PP - used : 0;
+            }
+            break;
         default:
             break;
         }
@@ -2878,6 +2885,13 @@ void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)
             substruct0->signatureMoveLo = move & 0x3F;
             substruct0->signatureMoveMid = (move >> 6) & 0x7;
             substruct0->signatureMoveHi = (move >> 9) & 0x3;
+            break;
+        }
+        case MON_DATA_SIGNATURE_PP:
+        {
+            u8 pp;
+            SET8(pp);
+            GetSubstruct1(boxMon)->signaturePPUsed = (pp < SIGNATURE_MOVE_PP) ? SIGNATURE_MOVE_PP - pp : 0;
             break;
         }
         default:
@@ -5367,6 +5381,7 @@ void MonRestorePP(struct Pokemon *mon)
 void BoxMonRestorePP(struct BoxPokemon *boxMon)
 {
     int i;
+    u8 signaturePP = SIGNATURE_MOVE_PP;
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
@@ -5378,6 +5393,7 @@ void BoxMonRestorePP(struct BoxPokemon *boxMon)
             SetBoxMonData(boxMon, MON_DATA_PP1 + i, &pp);
         }
     }
+    SetBoxMonData(boxMon, MON_DATA_SIGNATURE_PP, &signaturePP); // Fantasy Retold (design.md §10)
 }
 
 void SetMonPreventsSwitchingString(void)

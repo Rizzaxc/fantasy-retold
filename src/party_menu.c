@@ -345,6 +345,9 @@ static void CB2_GiveHoldItem(void);
 static void CB2_WriteMailToGiveMon(void);
 static void Task_SwitchHoldItemsPrompt(u8);
 static void Task_GiveHoldItem(u8);
+static void Task_CantHoldTM(u8);
+static bool32 CanMonHoldTM(struct Pokemon *, enum Item);
+static void DisplayCantHoldTMMessage(struct Pokemon *, enum Item);
 static void Task_SwitchItemsYesNo(u8);
 static void Task_HandleSwitchItemsYesNoInput(u8);
 static void Task_WriteMailToGiveMonAfterText(u8);
@@ -511,6 +514,7 @@ static const u8 sText_askText[] = _("Would you like to change {STR_VAR_1}'s\nabi
 static const u8 sText_doneText[] = _("{STR_VAR_1}'s ability became\n{STR_VAR_2}!{PAUSE_UNTIL_PRESS}");
 static const u8 sText_BasePointsResetToZero[] = _("{STR_VAR_1}'s base points\nwere all reset to zero!{PAUSE_UNTIL_PRESS}");
 static const u8 sText_CannotSendMonToBoxHM[] = _("Cannot send that mon to the box,\nbecause it knows a HM move.{PAUSE_UNTIL_PRESS}");
+static const u8 sText_CantHoldTM[] = _("{STR_VAR_1} can't learn\n{STR_VAR_2}, so it can't\lhold this TM.{PAUSE_UNTIL_PRESS}");
 static const u8 sText_CannotSendMonToBoxPartner[] = _("Cannot send a mon that doesn't\nbelong to you to the box.{PAUSE_UNTIL_PRESS}");
 
 // static const data
@@ -3622,8 +3626,13 @@ static void CB2_GiveHoldItem(void)
     {
         sPartyMenuItemId = GetMonData(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], MON_DATA_HELD_ITEM);
 
+        // Fantasy Retold: a TM it can't learn
+        if (!CanMonHoldTM(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], gSpecialVar_ItemId))
+        {
+            InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_CantHoldTM, gPartyMenu.exitCallback);
+        }
         // Already holding item
-        if (sPartyMenuItemId != ITEM_NONE)
+        else if (sPartyMenuItemId != ITEM_NONE)
         {
             InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_SwitchHoldItemsPrompt, gPartyMenu.exitCallback);
         }
@@ -3639,6 +3648,32 @@ static void CB2_GiveHoldItem(void)
         {
             InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_GiveHoldItem, gPartyMenu.exitCallback);
         }
+    }
+}
+
+// Fantasy Retold: a held TM gives its move as the Itemized Move (design.md §10), so only a mon that can learn the
+// move may hold it. Any other item is unaffected.
+static bool32 CanMonHoldTM(struct Pokemon *mon, enum Item item)
+{
+    if (GetItemPocket(item) != POCKET_TM_HM)
+        return TRUE;
+    return GetItemizedMove(GetMonData(mon, MON_DATA_SPECIES_OR_EGG), item) != MOVE_NONE;
+}
+
+static void DisplayCantHoldTMMessage(struct Pokemon *mon, enum Item item)
+{
+    GetMonNickname(mon, gStringVar1);
+    StringCopy(gStringVar2, GetMoveName(ItemIdToBattleMoveId(item)));
+    StringExpandPlaceholders(gStringVar4, sText_CantHoldTM);
+    DisplayPartyMenuMessage(gStringVar4, FALSE);
+}
+
+static void Task_CantHoldTM(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        DisplayCantHoldTMMessage(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], gSpecialVar_ItemId);
+        gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
     }
 }
 
@@ -7274,7 +7309,12 @@ void CB2_ChooseMonToGiveItem(void)
 static void TryGiveItemOrMailToSelectedMon(u8 taskId)
 {
     sPartyMenuItemId = GetMonData(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], MON_DATA_HELD_ITEM);
-    if (sPartyMenuItemId == ITEM_NONE)
+    if (!CanMonHoldTM(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], gPartyMenu.bagItem)) // Fantasy Retold
+    {
+        DisplayCantHoldTMMessage(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], gPartyMenu.bagItem);
+        gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
+    }
+    else if (sPartyMenuItemId == ITEM_NONE)
     {
         GiveItemOrMailToSelectedMon(taskId);
     }
@@ -8489,12 +8529,20 @@ void CursorCb_MoveItemCallback(u8 taskId)
             return;
         }
 
-        PlaySE(SE_SELECT);
-        gPartyMenu.action = PARTY_ACTION_CHOOSE_MON;
-
         // look up held items
         item1 = GetMonData(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], MON_DATA_HELD_ITEM);
         item2 = GetMonData(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId2], MON_DATA_HELD_ITEM);
+
+        // Fantasy Retold: a TM only goes to a mon that can learn its move
+        if (!CanMonHoldTM(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId2], item1)
+         || !CanMonHoldTM(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], item2))
+        {
+            PlaySE(SE_FAILURE);
+            return;
+        }
+
+        PlaySE(SE_SELECT);
+        gPartyMenu.action = PARTY_ACTION_CHOOSE_MON;
 
         // swap the held items
         SetMonData(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], MON_DATA_HELD_ITEM, &item2);

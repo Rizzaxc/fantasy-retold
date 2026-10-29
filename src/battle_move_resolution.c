@@ -228,8 +228,8 @@ static enum CancelerResult CancelerObedience(struct BattleCalcValues *cv)
 
 static enum CancelerResult CancelerPowerPoints(struct BattleCalcValues *cv)
 {
-    if (gCurrMovePos < MAX_MON_MOVES // Fantasy Retold: the Signature Move has no PP
-     && gBattleMons[cv->battlerAtk].pp[gCurrMovePos] == 0
+    if ((gCurrMovePos < MAX_MON_MOVES ? gBattleMons[cv->battlerAtk].pp[gCurrMovePos] == 0
+                                      : GetBattlerExtraMovePP(cv->battlerAtk, gCurrMovePos) == 0) // Fantasy Retold: Signature / Itemized Move
      && cv->move != MOVE_STRUGGLE
      && !gSpecialStatuses[cv->battlerAtk].dancerUsedMove
      && !gBattleMons[cv->battlerAtk].volatiles.multipleTurns)
@@ -1072,13 +1072,17 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
     if (cv->move != gLastResultingMoves[cv->battlerAtk] || gBattleStruct->unableToUseMove)
         gBattleMons[cv->battlerAtk].volatiles.metronomeItemCounter = 0;
 
-    // Fantasy Retold: the Signature Move has no PP (it only pays the Stamina cost below).
+    // Fantasy Retold: the Signature / Itemized Move's PP is kept outside gBattleMons (design.md §10).
     if (movePosition < MAX_MON_MOVES)
     {
         if (gBattleMons[cv->battlerAtk].pp[movePosition] > ppToDeduct)
             gBattleMons[cv->battlerAtk].pp[movePosition] -= ppToDeduct;
         else
             gBattleMons[cv->battlerAtk].pp[movePosition] = 0;
+    }
+    else
+    {
+        DeductBattlerExtraMovePP(cv->battlerAtk, movePosition, ppToDeduct);
     }
 
     // Fantasy Retold: Stamina action cost (GetMoveStaminaCost).
@@ -3835,15 +3839,23 @@ static enum MoveEndResult MoveEndFaintBlock(struct BattleCalcValues *cv)
              && !IsBattlerAlly(cv->battlerAtk, cv->battlerDef)
              && !IsZMove(cv->move)
              && cv->move != MOVE_STRUGGLE
-             && cv->moveEffect != EFFECT_FUTURE_SIGHT
-             && gBattleStruct->chosenMovePositions[cv->battlerAtk] < MAX_MON_MOVES) // Fantasy Retold: Signature Move has no PP to take
+             && cv->moveEffect != EFFECT_FUTURE_SIGHT)
             {
                 u32 moveIndex = gBattleStruct->chosenMovePositions[cv->battlerAtk];
 
-                gBattleMons[cv->battlerAtk].pp[moveIndex] = 0;
-                BtlController_EmitSetMonData(cv->battlerAtk, B_COMM_TO_CONTROLLER, moveIndex + REQUEST_PPMOVE1_BATTLE, 0, sizeof(gBattleMons[cv->battlerAtk].pp[moveIndex]), &gBattleMons[cv->battlerAtk].pp[moveIndex]);
-                MarkBattlerForControllerExec(cv->battlerAtk);
-                PREPARE_MOVE_BUFFER(gBattleTextBuff1, gBattleMons[cv->battlerAtk].moves[moveIndex])
+                if (moveIndex >= MAX_MON_MOVES)
+                {
+                    // Fantasy Retold: the Signature / Itemized Move's PP lives outside gBattleMons (design.md §10).
+                    DeductBattlerExtraMovePP(cv->battlerAtk, moveIndex, GetBattlerExtraMovePP(cv->battlerAtk, moveIndex));
+                    PREPARE_MOVE_BUFFER(gBattleTextBuff1, GetBattlerMoveAtPosition(cv->battlerAtk, moveIndex))
+                }
+                else
+                {
+                    gBattleMons[cv->battlerAtk].pp[moveIndex] = 0;
+                    BtlController_EmitSetMonData(cv->battlerAtk, B_COMM_TO_CONTROLLER, moveIndex + REQUEST_PPMOVE1_BATTLE, 0, sizeof(gBattleMons[cv->battlerAtk].pp[moveIndex]), &gBattleMons[cv->battlerAtk].pp[moveIndex]);
+                    MarkBattlerForControllerExec(cv->battlerAtk);
+                    PREPARE_MOVE_BUFFER(gBattleTextBuff1, gBattleMons[cv->battlerAtk].moves[moveIndex])
+                }
                 BattleScriptCall(BattleScript_GrudgeTakesPP);
                 result = MOVEEND_RESULT_RUN_SCRIPT;
             }
