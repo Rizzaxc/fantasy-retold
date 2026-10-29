@@ -78,7 +78,7 @@ These bands assume physical pressure. Against a **special** attacker, Stamina dr
 
 ---
 
-## 3. Innate System Commands (L/R Shoulder Buttons)
+## 3. Innate System Commands
 
 Every Pokémon possesses two innate mechanical actions, reached from the **innate menu**. On the move selection screen, **L** (R in the L=A button mode, where L acts as A) swaps the four move slots for **Dodge**, **Recuperate** and the mon's **Signature Move** (if it has one); L or B swaps back. An entry that can't be used this turn is drawn faded (not enough Stamina for Dodge, above the 40% gate for Recuperate) and picking it shows why. The right-hand panel shows the highlighted entry's Stamina cost (`STA -n`) or gain (`STA +n`), or the Signature Move's Stamina cost and type (it has no PP). The innate menu has no description panel. The `L / MOVE INFO` tab above the menu is relabelled `L / INNATE` (upstream's move-description viewer is no longer reachable). Recuperate executes with high-priority sequencing, in the item usage window ahead of all moves, **unless the user is at 0 Stamina**: an exhausted Recuperate loses that priority and resolves in normal speed order (an exhausted mon is also slow, so a fast attacker gets its auto-crit in first). Dodge keeps its normal speed slot in the turn order, because its outcome (below) is decided by who acts first. **Selecting an Innate Command consumes the Pokémon's action for that turn** (it does not attack).
 
@@ -198,11 +198,11 @@ Walls get the same breadth as attackers: four abilities, each answering one of a
 
 ### Notes
 
-* **Meaningful trade, not an upgrade:** Adamant (Sheer Force: power, no status) vs a +Atk Reckless nature (Super Luck: crit/Trauma, keeps status). Each wall ability likewise answers one threat while leaving the others open — Resilient blunts Trauma but not status; Natural Cure cleanses status but not a Trauma nuke; Battle Armor stops crits but not Toxic.
-* **Off-meta uplift:** handing Regenerator / Natural Cure to the off-meta walls (Relaxed, Lax, Sassy, Gentle) gives them a reason to see play, diversifying the wall pool.
+* **Meaningful trade, not an upgrade:** Adamant (Sheer Force: power, no status) vs a +Atk Reckless nature (Super Luck: crit/Trauma, keeps status). Each wall ability likewise answers one threat while leaving the others open — Resilient blunts Trauma but not status; Natural Cure cleanses status but not a Trauma nuke; Battle Armor stops crits but not statuses.
+* **Off-meta uplift:** handing Regenerator / Natural Cure to the off-meta walls (Relaxed, Lax, Sassy, Gentle) gives them a reason to see play.
 * **[Alt — Jolly/Timid]** On-KO snowball (Moxie / Grim Neigh, +1 Atk/SpA per KO) remains an offense-flavored option, naturally capped by halved damage.
 * **[Alt — Modest]** Tinted Lens (ignore one resistance step) if Adamant/Modest should differ.
-* **[Tune]** Resilient's Trauma fraction and Regenerator's heal amount are designer-side; player text stays plain ("halves Trauma," "heals on switch").
+* **[Tune]** Resilient's Trauma fraction and Regenerator's heal amount are designer-side; player text stays plain ("halves Trauma," "heals on switch"). [TODO: redesign; Trau resistence is too opaque behind Stamina]
 
 ---
 
@@ -214,7 +214,8 @@ Walls get the same breadth as attackers: four abilities, each answering one of a
 * **Lines coexist.** Unlike vanilla, a mon can carry several lines at once (only Burn excludes Soaked and the Chill line). Applying a line only fails when that line is already at its top level ("already burned / asleep / ...").
 * **Persistence.** **Level 1 is volatile** (clears automatically on switch-out). **Level 2 and above are persistent** (require active curing or mechanical expiration; survive switches). This includes the Confusion line.
 * **Proc rates.** Status effect triggers on all attacking moves have their baseline application probabilities **doubled**.
-* **Cleansing.** Recuperate purges 1 random **Level 1** condition only. Full cures (Full Heal-type items, Heal Bell / Aromatherapy, Natural Cure) clear **every** line.
+* **Cleansing.** Recuperate purges 1 random **Level 1** condition only. Full cures (Full Heal-type items, Heal Bell / Aromatherapy, Natural Cure) ~~clear **every** line~~ clear every non-lv3 status. Lv3 ones are downgraded to Lv1. (clear on switch mechanic will have to keep these lv1). Cleansing berries ignore Lv1 statues.
+* **Synchronize** has no exeptions and sync the whole rail.
 * **UI.** Every active line gets a cell in the healthbox **status column** (see "Healthbox layout" under §12, Battle UI graphics folder): its icon plus one pip per stage the line can reach, lit up to the current stage.
 
 ### The Condition Core
@@ -223,27 +224,27 @@ Numbers below are the current defaults (`include/constants/battle.h`, "status ra
 
 **Soaked** *(Lv1, single-stack)*
 
-* Speed ×0.75. Incoming Fire damage ×0.5; incoming Electric and Ice damage ×1.5.
-* **Source:** a damaging Water move has a **20%** chance to Soak each target it hits (10% baseline, doubled like every status proc). Fails on a burned target.
-* **Duration:** 3 turns.
+* Speed ×0.85. Incoming Fire damage ×0.5; incoming Electric and Ice damage ×1.5.
+* **Source:** every damaging Water move has a **20%** chance to Soak each target it hits. Neutralized a burned target.
+* **Duration:** 3 turns. Resets on reapplication.
 * Water-type immune.
 
 **Chilled → Frozen ‖ Frostbitten**
 
 * **Progression:** Any Ice application (secondary or status move) lands **Chilled** (Lv1); the next one advances it into a **random** branch — either **Frozen** or **Frostbitten** (Lv2). There is no direct way to apply the Lv2 forms.
 * **Chilled:** Speed ×0.75 and **+5 Stamina** on every move and Dodge.
-* **Frozen:** forces a complete loss of turn actions (no random thaw). **Frostbitten:** ticks **maxHP/16** each turn, all of it Trauma (it no longer weakens special attacks).
-* **Removal:** Expires after **2 turns** if not renewed (every Ice application resets it to 2). **Instantly thaws if hit by, or executing, a Fire-type move** (the whole line, Chilled included).
+* **Frozen:** forces a complete loss of turn actions (no random thaw). **Frostbitten:** ticks **maxHP/8** each turn, all of it Trauma (it no longer weakens special attacks). Both Frozen and Frostbitten still have Chilled effects.
+* **Removal:** Expires after **2 turns** if not renewed (every Ice *damage* resets it to 2[meaning skipping an Ice move releases the target from Chilled]). **Instantly thaws if hit by, or executing, a Fire-type move** (the whole line, Chilled included). Frozen is not renewed on Ice damage.
 * Ice-type immune. Mutually exclusive with Burn.
 
 **Burned** *(stacks up to 3)*
 
 * **Stacks:** a secondary adds 1 stack, a status move (Will-O-Wisp) lands at 2, each reapplication adds 1.
-* **Modifiers:** End-of-turn tick of **maxHP/16 per stack**; physical damage **−15% per stack** (×0.85 / ×0.70 / ×0.55; Guts still ignores it).
+* **Modifiers:** End-of-turn tick of **maxHP/16 per stack**; physical damage **−10% per stack** (×0.90 / ×0.80 / ×0.70; Guts still ignores it).
 * **Exclusions:** Can't apply to a Soaked or chilled target. **Loses a stack** whenever the burned mon uses, or is hit by, a Water or Ice move.
 * Fire-type immune.
 
-**Poison → Toxic**
+**Poison → Toxic**: Cannot heal from Recuperate, Leftover, or any heal 1/16HP or smaller (e.g a small giga drain)
 
 * **Progression:** Baseline Poison rules govern Level 1; status-driven application upgrades to Toxic (Level 2).
 * **Modifiers:** Toxic ticks increase each consecutive turn and **bypass HP mitigation, carving directly into the Trauma pool** (capped at 8 turns of escalation). Toxic is the primary hard-counter to pure Recuperate-stalling walls (Recuperate cannot cleanse a Lv2).
@@ -251,24 +252,28 @@ Numbers below are the current defaults (`include/constants/battle.h`, "status ra
 
 **Dazed → Shocked → Paralyzed** *(Electric line)*
 
-* **Dazed** (Lv1): accuracy ×0.9.
-* **Shocked** (Lv2): accuracy ×0.8, incoming Electric damage ×1.25, and Electric secondary effects are twice as likely to land on it. Thunder Wave and other paralysis status moves land here.
+* **Dazed** (Lv1): accuracy ×0.9. TODO: Incoming hits gain x1.1 accuracy. Upgrades directly to Paralyzed if the target is also Soaked
+* **Shocked** (Lv2): TODO: Dazed's effects, incoming Electric damage ×1.25, getting hit by an Electric move has a separate 25% to get Paralyzed. Thunder Wave and other paralysis status moves land here.
 * **Paralyzed** (Lv3): Speed ÷4 and the vanilla 25% chance to lose the turn; keeps Shocked's penalties.
 * **Downgrades** one level when the mon uses, or is hit by, a Ground move.
 * Electric-type immune.
 
 **Drowsy → Asleep → Nightmare** *(Sleep line)*
 
-* **Drowsy** (Lv1): Speed ×0.75 and **+5 Stamina** on every move and Dodge. **Asleep** (Lv2): can't act (Snore / Sleep Talk still work). **Nightmare** (Lv3): can't act, and loses **maxHP/8** each turn, all of it Trauma.
-* **Duration & Valve:** Base duration **3 turns**, counted down at end of turn (Early Bird counts 2). Reduced by **1 turn each time the target is struck by a direct damaging attack** (valve applies across the whole rail); reaching 0 wakes it at once. A fresh Drowsy, or falling asleep, starts the 3 turns; advancing to Nightmare inherits the remaining count (no reset, no refresh).
+* **Drowsy** (Lv1): Speed ×0.75 and **+5 Stamina** on every move and Dodge.
+* **Asleep** (Lv2): can't act (Snore / Sleep Talk still work).
+* **Nightmare** (Lv3): can't act, and loses **maxHP/8** each turn, all of it Trauma. Snore/ Sleep Talk dont work.
+* **Duration & Valve:** Base duration **3 turns**, counted down at end of turn (Early Bird counts 2). 50% to be reduced by **1 turn each time the target is struck by a direct damaging attack** (valve applies across the whole rail), unless the move is Ghost-type. A critical ghost-type move on a Drowsy/ Sleeping target upgrades the status to Nightmare; reaching 0 wakes it at once. A fresh Drowsy, or falling asleep, starts the 3 turns; advancing to Nightmare inherits the remaining count (no reset, no refresh).
+* Ghost-type immune.
 
 **Confused → Stupefied → Frightened** *(Confusion line)*
 
 * **Confused** (Lv1): 33% chance to hit itself instead of acting (vanilla).
-* **Stupefied** (Lv2): additionally, **25%** chance its move turns on its ally (doubles, single-target damaging moves); in singles, or with no ally, it hits itself instead.
-* **Frightened** (Lv3): additionally, **20%** chance at the start of its action to panic and flee to a random party member instead of acting (trainer battles; not while rooted, Dynamaxed or commanding). With nowhere to run it still loses the turn.
-* Effects are cumulative. Confuse Ray-type status moves land at Stupefied; secondary confusion, Outrage fatigue and confusing berries at Confused.
-* Lasts **3 turns** (end-of-turn count). Advancing the line keeps the current count (turn 1 Confused, turn 2 Stupefied → the line still has 2 turns).
+* **Stupefied** (Lv2): Confused effects, plus **25%** chance its move turns on its ally (doubles, single-target damaging moves); in singles, or with no ally, it hits itself instead. If the action is not a damaging move and this procs, it hits itself. The damage if this procs is the vanilla self hit + the move's (so this effect is never worse than lv1)
+* **Frightened** (Lv3): Stupefied effects, plus **25%** chance to panic and flee to a random party member(trainer battles; not while rooted, Dynamaxed or commanding). With nowhere to run it still loses the turn. The panic can proc from bench, meaning the pokemon can refuse the switch-in and its trainer loses the turn.
+* Effects are cumulative. Confuse Ray-type status moves land at Stupefied; secondary confusion, Outrage fatigue and confusing berries at Confused. 
+* Lasts **3 turns** (end-of-turn count). Advancing the line keeps the current count (turn 1 Confused, turn 2 Stupefied → the line still has 2 turns). Do not count down while benched. A critical Pyshic-type move on a Confused/ Stupefied target upgrades status to Frightened.
+* Psychic-type immune
 
 ### Implementation
 

@@ -4039,7 +4039,7 @@ static const u8 *const sNatureInnateDescs[] = {
     [INNATE_SHEER_FORCE]  = COMPOUND_STRING("+30% power, no Lv1 secondaries."),
     [INNATE_QUICK_START]  = COMPOUND_STRING("+1 Speed on switch-in."),
     [INNATE_BATTLE_ARMOR] = COMPOUND_STRING("Immune to critical hits."),
-    [INNATE_RESILIENT]    = COMPOUND_STRING("Trauma resistance on switch-in."),
+    [INNATE_RESILIENT]    = COMPOUND_STRING("+1 Stamina on switch-in."),
     [INNATE_REGENERATOR]  = COMPOUND_STRING("Restores HP on switch-out."),
     [INNATE_NATURAL_CURE] = COMPOUND_STRING("Cured of status on switch-out."),
 };
