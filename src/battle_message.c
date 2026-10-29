@@ -929,7 +929,23 @@ const u8 *const gBattleStringsTable[STRINGID_COUNT] =
     [STRINGID_FRSTATICFADED]                        = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} shook off some static!"), // Fantasy Retold
     [STRINGID_FRPANICKED]                           = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} panicked and tried to flee!"), // Fantasy Retold
     [STRINGID_FRNOWHERETORUN]                       = COMPOUND_STRING("But it had nowhere to run!"), // Fantasy Retold
-    [STRINGID_FRTURNEDONALLY]                       = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} is stupefied and turned on its ally!"), // Fantasy Retold
+    [STRINGID_FRTURNEDONALLY]                       = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} turned on its ally!"), // Fantasy Retold
+    [STRINGID_FRBURNDOUSED]                         = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s burn was doused!"), // Fantasy Retold
+    [STRINGID_FRREFUSEDSWITCH]                      = COMPOUND_STRING("{B_BUFF1} is too frightened to come out!"), // Fantasy Retold
+    [STRINGID_FRISSTUPEFIEDATK]                     = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} is stupefied!"), // Fantasy Retold
+    [STRINGID_FRISFRIGHTENEDATK]                    = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} is frightened!"), // Fantasy Retold
+    [STRINGID_FRTURNEDONSELF]                       = COMPOUND_STRING("It turned its own attack on itself!"), // Fantasy Retold
+    [STRINGID_FRTRAPPEDINNIGHTMARE]                 = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} is trapped in a nightmare!"), // Fantasy Retold
+    [STRINGID_FRSHOCKPARALYZED]                     = COMPOUND_STRING("The shock left {B_SCR_NAME_WITH_PREFIX} paralyzed!"), // Fantasy Retold
+    [STRINGID_FRSOAKEDPARALYZED]                    = COMPOUND_STRING("The water conducted the shock! {B_EFF_NAME_WITH_PREFIX} is paralyzed!"), // Fantasy Retold
+    [STRINGID_FRGHOSTNIGHTMARE]                     = COMPOUND_STRING("The ghastly blow plunged {B_SCR_NAME_WITH_PREFIX} into a nightmare!"), // Fantasy Retold
+    [STRINGID_FRPSYCHICFRIGHT]                      = COMPOUND_STRING("The psychic blow terrified {B_SCR_NAME_WITH_PREFIX}!"), // Fantasy Retold
+    [STRINGID_FRALREADYFROZEN]                      = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} is already frozen solid!"), // Fantasy Retold
+    [STRINGID_FRALREADYFROSTBITTEN]                 = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} is already frostbitten!"), // Fantasy Retold
+    [STRINGID_FRTOOWETTOBURN]                       = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} is too wet to be burned!"), // Fantasy Retold
+    [STRINGID_FRTOOCOLDTOBURN]                      = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} is too cold to be burned!"), // Fantasy Retold
+    [STRINGID_FRTOOHOTTOCHILL]                      = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s burn keeps the cold away!"), // Fantasy Retold
+    [STRINGID_FRPOISONBLOCKSHEAL]                   = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX}'s poison kept it from healing!"), // Fantasy Retold
 };
 
 const u16 gTrainerUsedItemStringIds[] =
@@ -1462,6 +1478,7 @@ const u16 gCureStatusStringIds[] =
     [B_MSG_CURED_CONFUSION] = STRINGID_SCRCUREDCONFUSION,
     [B_MSG_CURED_INFATUATION] = STRINGID_PKMNGOTOVERITSINFATUATION,
     [B_MSG_CURED_TAUNT] = STRINGID_PKMNSHOOKOFFTHETAUNT,
+    [B_MSG_CURED_PROBLEM] = STRINGID_FRDRIEDOFF, // Fantasy Retold: a cure that only removed Soaked
 };
 
 const u16 gPartyCureStatusStringIds[] =

@@ -11,6 +11,10 @@
 // Every function that changes a rail first reconciles from the mirror (so a status written straight to
 // status1 by vanilla code, e.g. Toxic Orb, Rest or a cure, is picked up) and then syncs back.
 
+#define STATUS_RAIL_BIT(rail)        (1u << (rail))
+#define STATUS_RAILS_ALL             ((1u << NUM_STATUS_RAILS) - 1)
+#define STATUS_RAILS_NON_VOLATILE    (STATUS_RAILS_ALL & ~STATUS_RAIL_BIT(RAIL_CONFUSION))
+
 u8 GetStatusRailMaxLevel(enum StatusRail rail);
 u8 GetStatusRailLevel(enum BattlerId battler, enum StatusRail rail);
 u8 GetStatusRailCounter(enum BattlerId battler, enum StatusRail rail);
@@ -21,13 +25,40 @@ void SetStatusRailCounter(enum BattlerId battler, enum StatusRail rail, u8 count
 // status-move/primary application, 1 for an attacking-move secondary / ability / protect effect.
 // RAIL_CHILL always starts at Lv1 (its Lv2 forms can't be applied directly). Returns the new level.
 u8 ApplyStatusRail(enum BattlerId battler, enum StatusRail rail, u8 minLevel);
+// ApplyStatusRail, unless this is a Synchronize passing a status back: then the rail jumps to the
+// synchronizer's level.
+u8 ApplyStatusRailOrSynchronize(enum BattlerId battler, enum StatusRail rail, u8 minLevel);
+// Raise a rail straight to level (Synchronize, crit upgrades); never lowers it. branch is the Chill Lv2 form.
+u8 RaiseStatusRailTo(enum BattlerId battler, enum StatusRail rail, u8 level, u8 branch);
 
 // Drop a rail one level (Water/Ice on Burn, Ground on the Electric line). Returns the new level.
 u8 LowerStatusRail(enum BattlerId battler, enum StatusRail rail);
 void ClearStatusRail(enum BattlerId battler, enum StatusRail rail);
 void ClearAllStatusRails(enum BattlerId battler);
 
-// Clear every rail currently at Level 1 (volatile). Called on switch-out.
+// Full cures (Full Heal, Heal Bell, Natural Cure): every rail below Lv3 clears, a Lv3 drops to Lv1. That Lv1 is
+// volatile as usual, except with keepOnSwitch (Natural Cure, which cures on switch-out): then it survives that
+// switch-out. The party form works on a benched mon's rails.
+void CureAllStatusRails(enum BattlerId battler, bool32 keepOnSwitch);
+bool32 CurePartyStatusRails(struct StatusRailEntry *rails, bool32 keepOnSwitch); // TRUE if any line was active
+// Other status cures (Shed Skin, Hydration, Healer, Purify, Jungle Healing, Smelling Salts, ...): the lines in
+// railMask clear below Lv3, a Lv3 drops to a volatile Lv1. Returns TRUE if any of them was active.
+bool32 CureStatusRails(enum BattlerId battler, u32 railMask);
+bool32 HasAnyStatusRail(enum BattlerId battler, u32 railMask);
+// B_MSG_CURED_* for the first active line in railMask (B_MSG_CURED_PROBLEM for Soaked alone).
+u32 GetStatusRailCureMessage(enum BattlerId battler, u32 railMask);
+// "Has a status" for Guts, Facade, Hex, catch bonuses, ...: Lv2+ of any line, or Soaked.
+bool32 HasStatusRailCondition(enum BattlerId battler);
+// The same for the lines behind some vanilla status1 bits (Lv2+ of those lines; STATUS1_ANY = any line or Soaked).
+bool32 HasStatusRailConditionForStatus1(enum BattlerId battler, u32 status1Mask);
+enum StatusRail GetStatusRailFromStatus1(u32 status1);
+// The party status1 to keep after battle: the mirror of the Lv2+ lines (Lv1 drops).
+u32 GetStatusRailPartyStatusAfterBattle(const struct StatusRailEntry *rails);
+// A cleansing berry's line: only acts on Lv2+ (Lv3 drops to a volatile Lv1). Returns TRUE if it did.
+bool32 CureStatusRailWithBerry(enum BattlerId battler, enum StatusRail rail);
+
+// Clear every rail currently at Level 1 (volatile), except a Natural Cure leftover (kept this once). Called on
+// switch-out.
 void ClearVolatileStatusRails(enum BattlerId battler);
 
 // Mirror rail state into the legacy status1 bits and confusionTimer (rail -> mirror).
@@ -47,6 +78,8 @@ bool32 PurgeRandomLevel1StatusRail(enum BattlerId battler);
 u32 GetStatusRailSpeedPercent(enum BattlerId battler);
 u32 GetStatusRailStaminaSurcharge(enum BattlerId battler);
 u32 GetStatusRailAccuracyPercent(enum BattlerId battler);
+u32 GetStatusRailIncomingAccuracyPercent(enum BattlerId battlerDef);
+bool32 IsHealBlockedByStatusRails(enum BattlerId battler, u32 healAmount);
 uq4_12_t GetStatusRailIncomingDamageModifier(enum BattlerId battlerDef, enum Type moveType);
 uq4_12_t GetBurnRailPhysicalModifier(enum BattlerId battler);
 bool32 IsBurnBlockedByStatusRails(enum BattlerId battler);
@@ -59,9 +92,20 @@ u32 GetStatusRailEndedStringId(enum StatusRail rail);
 // After a damaging move: the type interaction for a battler that used it or was hit by it (Fire thaws the
 // Chill line, Water/Ice ease a Burn, Ground drains the Electric line). Returns the message, or 0.
 u32 ApplyStatusRailTypeInteraction(enum BattlerId battler, enum Type moveType);
-// A damaging Water hit may Soak the target. Returns TRUE if it did.
-bool32 TrySoakFromHit(enum BattlerId battler, enum Type moveType);
-// Sleep valve: a direct damaging hit takes a turn off the Sleep line. Returns TRUE if that woke the battler.
-bool32 TrySleepRailValve(enum BattlerId battler);
+// A damaging Water hit may Soak the target (or put out its Burn). Returns the message, or 0.
+u32 TrySoakFromHit(enum BattlerId battler, enum Type moveType);
+// Ice damage renews the Chill line's timer (not Frozen's).
+void TryRenewChillFromHit(enum BattlerId battler, enum Type moveType);
+// Both respect the usual status immunities (abilities, Safeguard, terrains).
+// An Electric hit may paralyze a Shocked battler. Returns TRUE if it did.
+bool32 TryShockedParalysisFromHit(enum BattlerId battlerAtk, enum BattlerId battler, enum Type moveType);
+// A critical Ghost hit turns Drowsy / Asleep into Nightmare, a critical Psychic hit turns Confused / Stupefied
+// into Frightened. Returns the message, or 0.
+u32 TryCritStatusRailUpgrade(enum BattlerId battlerAtk, enum BattlerId battler, enum Type moveType);
+// The "X got <status>!" message (B_EFF_NAME) for a line reaching level.
+u32 GetStatusRailAppliedStringId(enum StatusRail rail, u8 level, u8 branch);
+// Sleep valve: a direct non-Ghost damaging hit may take a turn off the Sleep line. Returns TRUE if that woke
+// the battler.
+bool32 TrySleepRailValve(enum BattlerId battler, enum Type moveType);
 
 #endif // GUARD_STATUS_RAIL_H

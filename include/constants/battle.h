@@ -212,22 +212,26 @@ enum StatusRail
 #define CHILL_BRANCH_FROSTBITTEN 1
 
 // Fantasy Retold: status rail tuning (design.md §6 / §11). Durations are end-of-turn ticks.
-#define STATUS_RAIL_SLOW_PERCENT         75  // Speed x0.75 each for Soaked, Chilled, Drowsy (they stack)
-#define STATUS_RAIL_STAMINA_SURCHARGE    5   // +5 Stamina on every move / Dodge while Chilled or Drowsy (each)
-#define SOAK_DURATION                    3
-#define SOAK_CHANCE                      20  // % for a damaging Water move to Soak (10% baseline, doubled)
-#define CHILL_DURATION                   2   // renewed by every Ice application
-#define SLEEP_DURATION                   3   // -1 per direct damaging hit; Nightmare inherits the count
-#define CONFUSION_DURATION               3   // advancing the line keeps the count
-#define BURN_PHYSICAL_PENALTY_PER_STACK  15  // physical damage -15% per Burn stack
-#define DAZED_ACCURACY_PERCENT           90
-#define SHOCKED_ACCURACY_PERCENT         80  // Shocked and Paralyzed
+#define STATUS_RAIL_SLOW_PERCENT         75  // Speed x0.75 each for the Chill line and Drowsy (they stack)
+#define SOAK_SPEED_PERCENT               85  // Speed x0.85 while Soaked
+#define STATUS_RAIL_STAMINA_SURCHARGE    5   // +5 Stamina on every move / Dodge for the Chill line and Drowsy (each)
+#define SOAK_DURATION                    3   // reset by every new Soak
+#define SOAK_CHANCE                      20  // % for a damaging Water move to Soak
+#define CHILL_DURATION                   2   // renewed by Ice damage (not on Frozen)
+#define SLEEP_DURATION                   3   // Nightmare inherits the count
+#define SLEEP_VALVE_CHANCE               50  // % a direct non-Ghost damaging hit takes a turn off the Sleep line
+#define CONFUSION_DURATION               3   // advancing the line keeps the count; no countdown on the bench
+#define BURN_PHYSICAL_PENALTY_PER_STACK  10  // physical damage -10% per Burn stack
+#define DAZED_ACCURACY_PERCENT           90  // the whole Electric line
+#define DAZED_INCOMING_ACCURACY_PERCENT  110 // moves aimed at any level of the Electric line
 #define SHOCKED_ELECTRIC_DAMAGE_PERCENT  125 // incoming Electric damage while Shocked or Paralyzed
+#define SHOCKED_PARALYSIS_CHANCE         25  // % an Electric hit on a Shocked mon paralyzes it
 #define PARALYSIS_SPEED_DIVISOR          4
 #define NIGHTMARE_TRAUMA_DIVISOR         8   // Nightmare: maxHP/8 per turn, all of it Trauma
-#define FROSTBITE_TRAUMA_DIVISOR         16  // Frostbitten: maxHP/16 per turn, all of it Trauma
-#define STUPEFIED_CHANCE                 25  // % a Stupefied mon's move turns on itself / its ally
-#define FRIGHTENED_FLEE_CHANCE           20  // % a Frightened mon flees to a random party member instead of acting
+#define FROSTBITE_TRAUMA_DIVISOR         8   // Frostbitten: maxHP/8 per turn, all of it Trauma
+#define STUPEFIED_CHANCE                 25  // % a Stupefied mon's move turns on its ally / itself
+#define FRIGHTENED_FLEE_CHANCE           25  // % a Frightened mon flees (in battle) or refuses to come out (bench)
+#define POISON_HEAL_BLOCK_DIVISOR        16  // a poisoned mon can't receive heals of maxHP/16 or less (or Recuperate's)
 
 // Toxic (RAIL_POISON at Lv2) escalation cap: the per-turn unhealable (Trauma-logged) tick is
 // maxHP/16 * counter, with counter clamped here to prevent runaway lethality (design.md §6/§11).

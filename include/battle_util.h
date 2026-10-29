@@ -248,6 +248,7 @@ u32 GetBattlerGender(enum BattlerId battler);
 bool32 AreBattlersOfOppositeGender(enum BattlerId battler1, enum BattlerId battler2);
 bool32 AreBattlersOfSameGender(enum BattlerId battler1, enum BattlerId battler2);
 u32 CalcSecondaryEffectChance(enum BattlerId battler, enum Ability battlerAbility, const struct AdditionalEffect *additionalEffect);
+bool32 RollSecondaryEffect(enum BattlerId battler, enum Ability battlerAbility, const struct AdditionalEffect *additionalEffect, u32 percentChance, u32 rngTag);
 bool32 MoveEffectIsGuaranteed(enum BattlerId battler, enum Ability battlerAbility, const struct AdditionalEffect *additionalEffect);
 void GetBattlerTypes(enum BattlerId battler, bool32 ignoreTera, enum Type types[static 3]);
 bool32 CanMonParticipateInSkyBattle(struct Pokemon *mon);

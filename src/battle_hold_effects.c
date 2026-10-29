@@ -8,6 +8,7 @@
 #include "battle_stat_change.h"
 #include "battle_scripts.h"
 #include "item.h"
+#include "status_rail.h"
 #include "string_util.h"
 #include "data/hold_effects.h"
 #include "constants/berry.h"
@@ -604,7 +605,8 @@ static enum ItemEffect TryLeftovers(enum BattlerId battler, enum HoldEffect hold
     enum ItemEffect effect = ITEM_NO_EFFECT;
 
     if (gBattleMons[battler].hp < gBattleMons[battler].maxHP
-     && !(GetConfig(B_HEAL_BLOCKING) >= GEN_5 && gBattleMons[battler].volatiles.healBlockTimer))
+     && !(GetConfig(B_HEAL_BLOCKING) >= GEN_5 && gBattleMons[battler].volatiles.healBlockTimer)
+     && !IsHealBlockedByStatusRails(battler, GetNonDynamaxMaxHP(battler) / 16)) // Fantasy Retold
     {
         SetHealAmount(battler, GetNonDynamaxMaxHP(battler) / 16);
         RecordItemEffectBattle(battler, holdEffect);
@@ -630,13 +632,14 @@ static enum ItemEffect TryBlackSludgeDamage(enum BattlerId battler, enum HoldEff
     return effect;
 }
 
+// Fantasy Retold: cleansing berries work on the status rails (design.md §6). They ignore Lv1, clear Lv2 and
+// drop Lv3 to a Lv1 that survives switch-out.
 static enum ItemEffect TryCureParalysis(enum BattlerId battler)
 {
     enum ItemEffect effect = ITEM_NO_EFFECT;
 
-    if (gBattleMons[battler].status1 & STATUS1_PARALYSIS)
+    if (CureStatusRailWithBerry(battler, RAIL_ELECTRIC))
     {
-        gBattleMons[battler].status1 &= ~STATUS1_PARALYSIS;
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_PARALYSIS;
         BattleScriptCall(BattleScript_BerryCureStatusRet);
         effect = ITEM_STATUS_CHANGE;
@@ -649,9 +652,8 @@ static enum ItemEffect TryCurePoison(enum BattlerId battler)
 {
     enum ItemEffect effect = ITEM_NO_EFFECT;
 
-    if (gBattleMons[battler].status1 & STATUS1_PSN_ANY)
+    if (CureStatusRailWithBerry(battler, RAIL_POISON))
     {
-        gBattleMons[battler].status1 &= ~(STATUS1_PSN_ANY | STATUS1_TOXIC_COUNTER);
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_POISON;
         BattleScriptCall(BattleScript_BerryCureStatusRet);
         effect = ITEM_STATUS_CHANGE;
@@ -664,9 +666,8 @@ static enum ItemEffect TryCureBurn(enum BattlerId battler)
 {
     enum ItemEffect effect = ITEM_NO_EFFECT;
 
-    if (gBattleMons[battler].status1 & STATUS1_BURN)
+    if (CureStatusRailWithBerry(battler, RAIL_BURN))
     {
-        gBattleMons[battler].status1 &= ~STATUS1_BURN;
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_BURN;
         BattleScriptCall(BattleScript_BerryCureStatusRet);
         effect = ITEM_STATUS_CHANGE;
@@ -678,24 +679,14 @@ static enum ItemEffect TryCureBurn(enum BattlerId battler)
 static enum ItemEffect TryCureFreezeOrFrostbite(enum BattlerId battler)
 {
     enum ItemEffect effect = ITEM_NO_EFFECT;
+    bool32 frostbitten = (GetStatusRailBranch(battler, RAIL_CHILL) == CHILL_BRANCH_FROSTBITTEN);
 
-    if (gBattleMons[battler].status1 & STATUS1_FREEZE)
+    if (CureStatusRailWithBerry(battler, RAIL_CHILL))
     {
-        gBattleMons[battler].status1 &= ~STATUS1_FREEZE;
-        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FREEZE;
-        effect = ITEM_STATUS_CHANGE;
-    }
-    else if (gBattleMons[battler].status1 & STATUS1_FROSTBITE)
-    {
-        gBattleMons[battler].status1 &= ~STATUS1_FROSTBITE;
-        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FROSTBITE;
-        effect = ITEM_STATUS_CHANGE;
-    }
-
-    if (effect == ITEM_STATUS_CHANGE)
-    {
+        gBattleCommunication[MULTISTRING_CHOOSER] = frostbitten ? B_MSG_CURED_FROSTBITE : B_MSG_CURED_FREEZE;
         GetBattlerPartyState(battler)->freezeTurns = 0;
         BattleScriptCall(BattleScript_BerryCureStatusRet);
+        effect = ITEM_STATUS_CHANGE;
     }
 
     return effect;
@@ -705,9 +696,8 @@ static enum ItemEffect TryCureSleep(enum BattlerId battler)
 {
     enum ItemEffect effect = ITEM_NO_EFFECT;
 
-    if (gBattleMons[battler].status1 & STATUS1_SLEEP)
+    if (CureStatusRailWithBerry(battler, RAIL_SLEEP))
     {
-        gBattleMons[battler].status1 &= ~STATUS1_SLEEP;
         gBattleMons[battler].volatiles.nightmare = FALSE;
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_SLEEP;
         TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
@@ -722,9 +712,8 @@ static enum ItemEffect TryCureConfusion(enum BattlerId battler)
 {
     enum ItemEffect effect = ITEM_NO_EFFECT;
 
-    if (gBattleMons[battler].volatiles.confusionTimer > 0)
+    if (CureStatusRailWithBerry(battler, RAIL_CONFUSION))
     {
-        gBattleMons[battler].volatiles.confusionTimer = 0;
         BattleScriptCall(BattleScript_BerryCureConfusionRet);
         effect = ITEM_EFFECT_OTHER;
     }
@@ -737,45 +726,40 @@ static enum ItemEffect TryCureAnyStatus(enum BattlerId battler)
     enum ItemEffect effect = ITEM_NO_EFFECT;
     bool32 curedStatus = FALSE;
     bool32 curedConfusion = FALSE;
+    bool32 frostbitten = (GetStatusRailBranch(battler, RAIL_CHILL) == CHILL_BRANCH_FROSTBITTEN);
 
-    if (gBattleMons[battler].status1 & STATUS1_ANY || gBattleMons[battler].volatiles.confusionTimer > 0)
+    if (CureStatusRailWithBerry(battler, RAIL_POISON))
     {
-        if (gBattleMons[battler].status1 & STATUS1_PSN_ANY)
-        {
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_POISON;
-            curedStatus = TRUE;
-        }
-        if (gBattleMons[battler].status1 & STATUS1_SLEEP)
-        {
-            gBattleMons[battler].volatiles.nightmare = FALSE;
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_SLEEP;
-            TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
-            curedStatus = TRUE;
-        }
-        if (gBattleMons[battler].status1 & STATUS1_PARALYSIS)
-        {
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_PARALYSIS;
-            curedStatus = TRUE;
-        }
-        if (gBattleMons[battler].status1 & STATUS1_BURN)
-        {
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_BURN;
-            curedStatus = TRUE;
-        }
-        if (gBattleMons[battler].status1 & STATUS1_FREEZE)
-        {
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FREEZE;
-            curedStatus = TRUE;
-        }
-        if (gBattleMons[battler].status1 & STATUS1_FROSTBITE)
-        {
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FROSTBITE;
-            curedStatus = TRUE;
-        }
-        if (gBattleMons[battler].volatiles.confusionTimer > 0)
-            curedConfusion = TRUE;
-        gBattleMons[battler].status1 = 0;
-        gBattleMons[battler].volatiles.confusionTimer = 0;
+        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_POISON;
+        curedStatus = TRUE;
+    }
+    if (CureStatusRailWithBerry(battler, RAIL_SLEEP))
+    {
+        gBattleMons[battler].volatiles.nightmare = FALSE;
+        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_SLEEP;
+        TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
+        curedStatus = TRUE;
+    }
+    if (CureStatusRailWithBerry(battler, RAIL_ELECTRIC))
+    {
+        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_PARALYSIS;
+        curedStatus = TRUE;
+    }
+    if (CureStatusRailWithBerry(battler, RAIL_BURN))
+    {
+        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_BURN;
+        curedStatus = TRUE;
+    }
+    if (CureStatusRailWithBerry(battler, RAIL_CHILL))
+    {
+        gBattleCommunication[MULTISTRING_CHOOSER] = frostbitten ? B_MSG_CURED_FROSTBITE : B_MSG_CURED_FREEZE;
+        curedStatus = TRUE;
+    }
+    if (CureStatusRailWithBerry(battler, RAIL_CONFUSION))
+        curedConfusion = TRUE;
+
+    if (curedStatus || curedConfusion)
+    {
         if (curedStatus && curedConfusion)
             BattleScriptCall(BattleScript_BerryCureStatusAndConfusionRet);
         else if (curedConfusion)

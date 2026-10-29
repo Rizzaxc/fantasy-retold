@@ -213,9 +213,29 @@ Walls get the same breadth as attackers: four abilities, each answering one of a
 * **Multi-stage rails.** A condition advances through levels. Applying the **same kind** again stacks it upward (Lv1 → Lv2 → Lv3). **Status moves apply directly at Level 2**; **attacking-move secondary effects, abilities and self-inflicted effects apply at Level 1**. (Exception: the Chill line always starts at Chilled.)
 * **Lines coexist.** Unlike vanilla, a mon can carry several lines at once (only Burn excludes Soaked and the Chill line). Applying a line only fails when that line is already at its top level ("already burned / asleep / ...").
 * **Persistence.** **Level 1 is volatile** (clears automatically on switch-out). **Level 2 and above are persistent** (require active curing or mechanical expiration; survive switches). This includes the Confusion line.
-* **Proc rates.** Status effect triggers on all attacking moves have their baseline application probabilities **doubled**.
-* **Cleansing.** Recuperate purges 1 random **Level 1** condition only. Full cures (Full Heal-type items, Heal Bell / Aromatherapy, Natural Cure) ~~clear **every** line~~ clear every non-lv3 status. Lv3 ones are downgraded to Lv1. (clear on switch mechanic will have to keep these lv1). Cleansing berries ignore Lv1 statues.
-* **Synchronize** has no exeptions and sync the whole rail.
+* **Proc rates.** Status effect triggers on all attacking moves have their baseline application probabilities **doubled**. This is applied when the chance is rolled (`CalcSecondaryEffectChance`), not in the move data, so move descriptions still show the vanilla number. It covers every status line, and random picks from a list of statuses (Tri Attack, Dire Claw).
+* **Serene Grace and Rainbow** don't raise a status chance (they still give ×1.5 to other secondary effects, e.g. flinch). Instead each adds **one more roll**: the status only fails if every roll fails (`RollSecondaryEffect`). E.g. a doubled 20% becomes 1 − 0.8² = 36% with one of them, 1 − 0.8³ ≈ 49% with both.
+* **Cleansing.**
+  * Recuperate purges 1 random **Level 1** condition only.
+  * **Full cures** (Full Heal-type items, Heal Bell / Aromatherapy, Natural Cure) clear every line **below Lv3**. A **Lv3 line drops to Lv1** instead (Paralyzed → Dazed, Nightmare → Drowsy, Frightened → Confused, Burn ×3 → Burn ×1). Clearing a Lv3 therefore takes two turns: the cure, then a switch-out (or Recuperate), since that leftover Lv1 is volatile as usual.
+  * **Natural Cure** (ability or innate) fires on switch-out and cures like the above, but the Lv1 it makes from a Lv3 is **not cleared by that same switch-out** (otherwise it would clear a Lv3 in one free step). Any Lv1 the mon already had is cleared as usual. On the next switch-out the leftover is an ordinary Lv1 (and Natural Cure clears it anyway). Full cures also reach benched mons' rails (Heal Bell, a Full Heal used on a benched mon).
+  * **Cleansing berries** (Cheri, Chesto, Pecha, Rawst, Aspear, Persim, Lum) **ignore Lv1**: they only trigger on a Lv2+ line, and then cure it like a move (Lv2 clears, Lv3 → a volatile Lv1).
+  * **Other generic cures** — Shed Skin, Hydration, Healer, Purify, Jungle Healing, Pastel Veil — see every non-volatile line (Soaked included, Confusion not) and cure the same way: below Lv3 clears, Lv3 → a volatile Lv1.
+  * **Refresh** wipes its own lines outright, at every level: Poison, Burn, Electric and Chill.
+  * **Hit cures** — Smelling Salts, Wake-Up Slap, Sparkling Aria (and other "cure the target's X" moves) — cure their line like a full cure, at any level.
+  * **Immunity abilities** (Limber, Insomnia / Vital Spirit, Immunity / Pastel Veil, Water Veil / Water Bubble / Thermal Exchange, Magma Armor, Own Tempo) wipe their whole line at every level when the mon has, or gains, the ability.
+* **Hit-triggered advances respect immunities.** Shocked → Paralyzed on an Electric hit and the Ghost / Psychic crit upgrades are blocked by the same things as a normal application (abilities, types, Safeguard, Misty / Electric Terrain, ...).
+* **"Has a status".** Effects that check for a status — Guts, Marvel Scale, Quick Feet, Facade, Hex / Infernal Parade, the catch-rate bonus — count **Lv2+ of any line, or Soaked**; Lv1 doesn't count. Line-specific ones read their own line at Lv2+: Toxic Boost, Venoshock, Barb Barrage, Merciless (Poison), Flare Boost (Burn), Smelling Salts (Electric), Wake-Up Slap and the Dream Ball (Sleep). Catch rate: Asleep+ or Frozen gives the big bonus, any other qualifying status the small one.
+* **Moving lines.** **Psycho Shift** moves the user's first line the target can take (Poison, Burn, Electric, Sleep, Chill, in that order), at the same level, and cures the user of that line; other lines don't block it. **Baton Pass** hands the whole Confusion line (level and turns left) to the incoming mon, and the passer loses it.
+* **Yawn** makes the target **Drowsy at once**; if it is still Drowsy at the end of the next turn it falls Asleep. Only an Asleep / Nightmare target makes Yawn fail (other lines don't).
+* **After battle.** Lv1 is volatile, so the battle ending drops it like a switch-out; Lv2+ stays on the party (e.g. Toxic keeps poisoning in the overworld). Contact abilities (Static, Flame Body, Poison Point, Effect Spore) land at Lv1 at their normal chance; one layer of Toxic Spikes gives a volatile Poison ×1, two give Toxic.
+* **Synchronize** has no exceptions: every line (Poison, Burn, Chill, Electric, Sleep, Confusion) is passed back, and the attacker's line jumps to the **synchronizer's level** (Frozen / Frostbitten keep their branch). If the attacker is already that deep, the line just advances one step.
+* **Messages.** Every level and proc has its own line:
+  * *Applied:* Drowsy / Dazed / Shocked / Chilled / Stupefied / Frightened / Nightmare have FR messages ("X grew drowsy!", "X is dazed!", ...), "X's burn got worse!" for extra stacks, vanilla messages where a vanilla status exists. Dazed + Soaked → "The water conducted the shock! X is paralyzed!".
+  * *Procs on a hit:* "X got soaked!", "X's burn was doused!", "The shock left X paralyzed!" (Shocked), "The ghastly blow plunged X into a nightmare!" / "The psychic blow terrified X!" (crits), "X woke up!" (valve), "X warmed up!" / "X's burn eased!" / "X shook off some static!" (type interactions).
+  * *Acting:* the confusion line opens with "X is confused! / stupefied! / frightened!" by level; a Stupefied proc adds "X turned on its ally!" or "It turned its own attack on itself!"; Frightened adds "X panicked and tried to flee!" or, from the bench, "X is too frightened to come out!". Nightmare: "X is trapped in a nightmare!".
+  * *Blocked:* "X is too wet / too cold to be burned!", "X's burn keeps the cold away!", "X is already frozen solid! / frostbitten!", "It doesn't affect X" for a Psychic-type hit by a confusing status move, and "X's poison kept it from healing!" when Recuperate is poisoned.
+  * *Ending / cures:* "X dried off!", "X warmed up!", "X woke up!", "X snapped out of it!"; a cure that only removed Soaked prints "X dried off!". Psycho Shift prints the message for the level it moved.
 * **UI.** Every active line gets a cell in the healthbox **status column** (see "Healthbox layout" under §12, Battle UI graphics folder): its icon plus one pip per stage the line can reach, lit up to the current stage.
 
 ### The Condition Core
@@ -225,35 +245,36 @@ Numbers below are the current defaults (`include/constants/battle.h`, "status ra
 **Soaked** *(Lv1, single-stack)*
 
 * Speed ×0.85. Incoming Fire damage ×0.5; incoming Electric and Ice damage ×1.5.
-* **Source:** every damaging Water move has a **20%** chance to Soak each target it hits. Neutralized a burned target.
-* **Duration:** 3 turns. Resets on reapplication.
+* **Source:** every damaging Water move has a **20%** chance to Soak each target it hits. On a **burned** target the Soak **douses the Burn** (all stacks) instead of soaking it.
+* **Duration:** 3 turns. A new Soak on a Soaked mon resets the count to 3.
 * Water-type immune.
 
 **Chilled → Frozen ‖ Frostbitten**
 
 * **Progression:** Any Ice application (secondary or status move) lands **Chilled** (Lv1); the next one advances it into a **random** branch — either **Frozen** or **Frostbitten** (Lv2). There is no direct way to apply the Lv2 forms.
-* **Chilled:** Speed ×0.75 and **+5 Stamina** on every move and Dodge.
-* **Frozen:** forces a complete loss of turn actions (no random thaw). **Frostbitten:** ticks **maxHP/8** each turn, all of it Trauma (it no longer weakens special attacks). Both Frozen and Frostbitten still have Chilled effects.
-* **Removal:** Expires after **2 turns** if not renewed (every Ice *damage* resets it to 2[meaning skipping an Ice move releases the target from Chilled]). **Instantly thaws if hit by, or executing, a Fire-type move** (the whole line, Chilled included). Frozen is not renewed on Ice damage.
+* **Chilled:** Speed ×0.75 and **+5 Stamina** on every move and Dodge. **Frozen and Frostbitten keep Chilled's effects.**
+* **Frozen:** forces a complete loss of turn actions (no random thaw). **Frostbitten:** ticks **maxHP/8** each turn, all of it Trauma (it no longer weakens special attacks).
+* **Removal:** Expires after **2 turns**. Every **Ice damage** taken resets it to 2, so a target that isn't hit by Ice again shakes it off. **Frozen is never renewed** (it always ends after 2 turns). **Instantly thaws if hit by, or executing, a Fire-type move** (the whole line, Chilled included).
 * Ice-type immune. Mutually exclusive with Burn.
 
 **Burned** *(stacks up to 3)*
 
 * **Stacks:** a secondary adds 1 stack, a status move (Will-O-Wisp) lands at 2, each reapplication adds 1.
 * **Modifiers:** End-of-turn tick of **maxHP/16 per stack**; physical damage **−10% per stack** (×0.90 / ×0.80 / ×0.70; Guts still ignores it).
-* **Exclusions:** Can't apply to a Soaked or chilled target. **Loses a stack** whenever the burned mon uses, or is hit by, a Water or Ice move.
+* **Exclusions:** Can't apply to a Soaked or chilled target. **Loses a stack** whenever the burned mon uses, or is hit by, a Water or Ice move (and a Soak proc douses it entirely, above).
 * Fire-type immune.
 
-**Poison → Toxic**: Cannot heal from Recuperate, Leftover, or any heal 1/16HP or smaller (e.g a small giga drain)
+**Poison → Toxic**
 
 * **Progression:** Baseline Poison rules govern Level 1; status-driven application upgrades to Toxic (Level 2).
+* **Heal block (whole line):** a poisoned mon **can't heal from Recuperate, Leftovers, or any heal of maxHP/16 or less** (a weak drain, Aqua Ring, Rain Dish, ...). Recuperate still restores Stamina.
 * **Modifiers:** Toxic ticks increase each consecutive turn and **bypass HP mitigation, carving directly into the Trauma pool** (capped at 8 turns of escalation). Toxic is the primary hard-counter to pure Recuperate-stalling walls (Recuperate cannot cleanse a Lv2).
 * Poison-type immune.
 
 **Dazed → Shocked → Paralyzed** *(Electric line)*
 
-* **Dazed** (Lv1): accuracy ×0.9. TODO: Incoming hits gain x1.1 accuracy. Upgrades directly to Paralyzed if the target is also Soaked
-* **Shocked** (Lv2): TODO: Dazed's effects, incoming Electric damage ×1.25, getting hit by an Electric move has a separate 25% to get Paralyzed. Thunder Wave and other paralysis status moves land here.
+* **Dazed** (Lv1): accuracy ×0.9, and moves aimed at it get accuracy ×1.1. A mon that is **both Dazed and Soaked** skips Shocked: its next Electric application goes **straight to Paralyzed**.
+* **Shocked** (Lv2): Dazed's effects, incoming Electric damage ×1.25, and **every Electric hit has a separate 25% chance to Paralyze** it. Thunder Wave and other paralysis status moves land here.
 * **Paralyzed** (Lv3): Speed ÷4 and the vanilla 25% chance to lose the turn; keeps Shocked's penalties.
 * **Downgrades** one level when the mon uses, or is hit by, a Ground move.
 * Electric-type immune.
@@ -262,26 +283,32 @@ Numbers below are the current defaults (`include/constants/battle.h`, "status ra
 
 * **Drowsy** (Lv1): Speed ×0.75 and **+5 Stamina** on every move and Dodge.
 * **Asleep** (Lv2): can't act (Snore / Sleep Talk still work).
-* **Nightmare** (Lv3): can't act, and loses **maxHP/8** each turn, all of it Trauma. Snore/ Sleep Talk dont work.
-* **Duration & Valve:** Base duration **3 turns**, counted down at end of turn (Early Bird counts 2). 50% to be reduced by **1 turn each time the target is struck by a direct damaging attack** (valve applies across the whole rail), unless the move is Ghost-type. A critical ghost-type move on a Drowsy/ Sleeping target upgrades the status to Nightmare; reaching 0 wakes it at once. A fresh Drowsy, or falling asleep, starts the 3 turns; advancing to Nightmare inherits the remaining count (no reset, no refresh).
+* **Nightmare** (Lv3): can't act, and loses **maxHP/8** each turn, all of it Trauma. **Snore / Sleep Talk don't work.**
+* **Duration & Valve:** Base duration **3 turns**, counted down at end of turn (Early Bird counts 2). Each direct damaging hit has a **50%** chance to take 1 turn off (valve applies across the whole rail), **except Ghost-type moves**, which never wake. Reaching 0 wakes it at once. A fresh Drowsy, or falling asleep, starts the 3 turns; advancing to Nightmare inherits the remaining count (no reset, no refresh).
+* **Critical Ghost hit:** a crit from a Ghost-type move on a Drowsy / Asleep target sinks it into **Nightmare** (keeping the count).
 * Ghost-type immune.
 
 **Confused → Stupefied → Frightened** *(Confusion line)*
 
 * **Confused** (Lv1): 33% chance to hit itself instead of acting (vanilla).
-* **Stupefied** (Lv2): Confused effects, plus **25%** chance its move turns on its ally (doubles, single-target damaging moves); in singles, or with no ally, it hits itself instead. If the action is not a damaging move and this procs, it hits itself. The damage if this procs is the vanilla self hit + the move's (so this effect is never worse than lv1)
-* **Frightened** (Lv3): Stupefied effects, plus **25%** chance to panic and flee to a random party member(trainer battles; not while rooted, Dynamaxed or commanding). With nowhere to run it still loses the turn. The panic can proc from bench, meaning the pokemon can refuse the switch-in and its trainer loses the turn.
-* Effects are cumulative. Confuse Ray-type status moves land at Stupefied; secondary confusion, Outrage fatigue and confusing berries at Confused. 
-* Lasts **3 turns** (end-of-turn count). Advancing the line keeps the current count (turn 1 Confused, turn 2 Stupefied → the line still has 2 turns). Do not count down while benched. A critical Pyshic-type move on a Confused/ Stupefied target upgrades status to Frightened.
-* Psychic-type immune
+* **Stupefied** (Lv2): Confused's effects, plus a **25%** chance (rolled when the self-hit doesn't) that it turns on itself. It always takes the **vanilla self-hit**, and then:
+  * a single-target damaging move in doubles, with a live ally, **goes on against the ally**;
+  * with no ally (singles), the **move's own damage is added to the self-hit**;
+  * any other action (status move, spread move) is lost to the self-hit alone.
+  So a Stupefied proc is never milder than a Lv1 self-hit. (If the self-hit alone would KO the user, the move doesn't go on.)
+* **Frightened** (Lv3): Stupefied's effects, plus a **25%** chance to panic and flee to a random party member (trainer battles; not while rooted, Dynamaxed or commanding). With nowhere to run it still loses the turn. **It can also panic on the bench:** a switch into a Frightened mon has a 25% chance to be refused ("X is too frightened to come out!"), and that switch action is lost.
+* Effects are cumulative. Confuse Ray-type status moves land at Stupefied; secondary confusion, Outrage fatigue and confusing berries at Confused.
+* Lasts **3 turns** (end-of-turn count). Advancing the line keeps the current count (turn 1 Confused, turn 2 Stupefied → the line still has 2 turns). **It doesn't count down while benched.**
+* **Critical Psychic hit:** a crit from a Psychic-type move on a Confused / Stupefied target makes it **Frightened** (keeping the count).
+* Psychic-type immune.
 
 ### Implementation
 
-* **State.** `struct PartyState.rails[]` (`StatusRailEntry`: `level`, `counter` = Toxic escalation or turns left, `branch` = the Chill line's Lv2 form) is the source of truth; `src/status_rail.c` owns it.
+* **State.** `struct PartyState.rails[]` (`StatusRailEntry`: `level`, `counter` = Toxic escalation or turns left, `branch` = the Chill line's Lv2 form, `keepOnSwitch` = a Natural Cure leftover Lv1, kept through one switch-out) is the source of truth; `src/status_rail.c` owns it.
 * **Mirror.** The vanilla `status1` bits and `volatiles.confusionTimer` are kept as a mirror (`SyncStatusRailBridge`): Poison/Toxic, Burn (any stacks), Frozen / Frostbitten, Paralyzed, Asleep / Nightmare (the sleep bits hold the turns left) and the whole Confusion line. Several bits can now be set together. Soaked, Chilled, Dazed, Shocked and Drowsy have no vanilla equivalent and exist only on the rail.
-* **Reconcile.** Every rail change first reads the mirror back (`ReconcileStatusRailsFromBridge`), so anything vanilla writes straight to `status1` / `confusionTimer` (Toxic Orb, Rest, Yawn, Psycho Shift, Outrage fatigue, cures, Uproar waking a sleeper, ...) is picked up. The healthbox only reads, since it polls every frame.
-* **Hooks.** Application: `SetNonVolatileStatus` / `HandleSetEffectConfusion` (new levels print through `BattleScript_FRRailEffectApplied` with `gBattleScripting.savedStringId`). "Already" checks: `CanSetNonVolatileStatus` / `CanBeConfused`. Actions: `CancelerAsleepOrFrozen`, `CancelerConfused` (+ the Stupefied redirect in `CancelerSetTargets`). After a damaging move: `MOVEEND_STATUS_RAILS` (type interactions, Soak, Sleep valve). End of turn: Burn stacks, Frostbite and Nightmare Trauma ticks, and `ENDTURN_STATUS_RAILS` (timers). Effects: `GetStatusRailSpeedPercent`, `GetStatusRailStaminaSurcharge` (through `GetMoveStaminaCost` / `GetDodgeCost`), `GetStatusRailAccuracyPercent`, `GetStatusRailIncomingDamageModifier`, `GetBurnRailPhysicalModifier`.
-* **Switching.** Switch-out drops Lv1 (`ClearVolatileStatusRails`); switch-in re-syncs the mirror after the volatiles reset, which restores a persisted Confusion line.
+* **Reconcile.** Every rail change first reads the mirror back (`ReconcileStatusRailsFromBridge`), so anything vanilla writes straight to `status1` / `confusionTimer` (Toxic Orb, Rest, Yawn, Psycho Shift, Outrage fatigue, Uproar waking a sleeper, ...) is picked up. The healthbox only reads, since it polls every frame. Full cures go through `CureAllStatusRails` / `CurePartyStatusRails` **without** reconciling first (the caller may already have zeroed `status1`, which would wipe the Lv3s they keep), then re-sync the mirror; `BS_ItemCureStatus` puts the mirror back after `HealStatusConditions` clears it.
+* **Hooks.** Application: `SetNonVolatileStatus` / `HandleSetEffectConfusion` through `ApplyStatusRailOrSynchronize` (new levels print through `BattleScript_FRRailEffectApplied` with `gBattleScripting.savedStringId`). Synchronize: `TrySynchronizeActivation` stores the line and level in `gBattleStruct->synchronize*`, `Cmd_trysynchronize` passes them back; `BattleScript_MoveEffectConfusion` now runs `trysynchronize` too. "Already" checks / immunities: `CanSetNonVolatileStatus` (Ghost vs sleep) / `CanBeConfused` (Psychic). Actions: `CancelerAsleepOrFrozen` (Nightmare blocks Snore / Sleep Talk), `CancelerConfused` (+ `BattleScript_FRStupefiedSelfHitRet` and the redirect in `CancelerSetTargets`), `HandleAction_Switch` (Frightened refusing, `BattleScript_FRFrightenedRefusedSwitch`). After a damaging move: `MOVEEND_STATUS_RAILS`, five steps per battler (type interactions; Chill renewal + Soak / douse; Shocked → Paralyzed; crit upgrades; Sleep valve). End of turn: Burn stacks, Frostbite and Nightmare Trauma ticks, and `ENDTURN_STATUS_RAILS` (timers, active battlers only). Effects: `GetStatusRailSpeedPercent`, `GetStatusRailStaminaSurcharge` (through `GetMoveStaminaCost` / `GetDodgeCost`), `GetStatusRailAccuracyPercent` + `GetStatusRailIncomingAccuracyPercent` (in `GetTotalAccuracy`), `GetStatusRailIncomingDamageModifier`, `GetBurnRailPhysicalModifier`. Heal block: `IsHealBlockedByStatusRails`, checked in `Cmd_healthbarupdate` (any heal), `TryLeftovers` (no message) and `HandleAction_Recuperate`. Berries: `CureStatusRailWithBerry` in the `TryCure*` helpers of `battle_hold_effects.c`. Other cures: `CureStatusRails` / `HasAnyStatusRail` / `GetStatusRailCureMessage` (Shed Skin / Hydration in `battle_util.c`, `BS_CureStatus`, `HandleSetEffectRemoveStatus`); Refresh is `Cmd_curestatuswithmove`; Jungle Healing and Purify gate on the `jumpifanystatusrail` script command; immunity abilities in `TryImmunityAbilityHealStatus`. Status checks: `HasStatusRailCondition` / `HasStatusRailConditionForStatus1`. Psycho Shift: `BS_TryPsychoShift` + `frpsychoshiftcureuser`. Baton Pass: `Cmd_getswitchedmondata` stashes the line in `gBattleStruct->batonPassConfusion*`, `SwitchInClearSetData` restores it. Yawn: `Cmd_setyawn` + the end-turn Yawn handler. Battle end: `HandleEndTurn_FinishBattle` writes `GetStatusRailPartyStatusAfterBattle` to each sent-out party mon.
+* **Switching.** Switch-out drops Lv1 (`ClearVolatileStatusRails`); a `keepOnSwitch` Lv1 only loses the flag, so it lasts exactly one more switch-out; switch-in re-syncs the mirror after the volatiles reset, which restores a persisted Confusion line.
 
 ---
 
@@ -385,6 +412,17 @@ EXP rewards fighting opponents near your own level and discourages both over-lev
 * **Per earner.** The band is checked per Pokémon, so in one battle a Pokémon close in level can earn double while an over-levelled teammate or an Exp. Share holder earns half.
 * **Engine.** This is the last step of `ApplyExperienceMultipliers` (`battle_script_commands.c`). It runs after the vanilla multipliers (traded, Lucky Egg, Exp. Charm, affection, Gen 5+ level scaling), so it stacks with them.
 
+### Infinite Repel (start menu)
+
+* The start menu has a **REPEL OFF / REPEL ON** entry (once the player has a Pokémon). Pressing A flips it and relabels the entry in place; the menu stays open.
+* While ON it works like a Repel that never wears off: wild Pokémon below the lead's level don't appear (same rule as the item, `IsWildLevelAllowedByRepel`), including overworld-spawned encounters. Repel and Lure items keep working on top of it.
+* **Engine.** `FLAG_INFINITE_REPEL` (was `FLAG_UNUSED_0x020`, saved). `IsRepelActive()` (`wild_encounter.c`) = Repel steps left **or** the flag; it replaces the bare `REPEL_STEP_COUNT` checks in `IsWildLevelAllowedByRepel` and `wild_encounter_ow.c`. The entry is two menu actions (`MENU_ACTION_REPEL_OFF` / `_ON`) sharing `StartMenuRepelCallback`.
+* **Layout.** The start menu window is 1 tile wider (8 tiles, for "REPEL OFF"). A 9th entry doesn't fit with the vanilla 2-tile padding, so with more than 8 entries the window drops the padding and the text starts 1px from the top (`START_MENU_PADDING_TILES` / `START_MENU_TEXT_TOP` in `menu.h`).
+
+### Battle Style locked to Set
+
+* Battles always use **Set** (no "switch Pokémon?" prompt when a foe faints): `ClearSetBScriptingStruct` forces `OPTIONS_BATTLE_STYLE_SET`, new games default to Set, and the **BATTLE STYLE** row is removed from the Options menu (the save field is written as Set when the menu closes).
+
 ### Repurposed Moves (consequence of unified Defense)
 
 * **Psyshock / Psystrike / Secret Sword** — their vanilla gimmick (special move that hits physical Def) is meaningless now that all special moves hit Def. Repurposed identity: **special damage that exhausts like a physical hit** — they apply the Physical Stamina attrition (`BP/10`, ×2 SE, per hit) and deal **no Trauma** (they opt out of the Special→Trauma split). The special-side stamina-shredders. *(Attrition implemented in Phase 2's hook; the no-Trauma opt-out lands with the Phase 3 split.)*
@@ -412,16 +450,19 @@ EXP rewards fighting opponents near your own level and discourages both over-lev
 | Trauma     | Special split (floor `a`)       | 0.25                                                               |
 | Trauma     | Special split (drain bonus `b`) | 0.40                                                               |
 | Trauma     | SpD stage resistance            | ×0.85 per +1 stage (Trauma channel only)                           |
-| Status     | Proc rate                       | ×2 baseline                                                        |
-| Status     | Sleep base duration             | 3 turns (−1 per damaging hit)                                      |
-| Status     | Soaked                          | Speed ×0.75; Fire ×0.5, Electric/Ice ×1.5 taken; 3 turns; 20% proc |
-| Status     | Chilled / Drowsy                | Speed ×0.75 and +5 Stamina per action (each)                       |
-| Status     | Chill duration                  | 2 turns, renewed by each Ice application                           |
-| Status     | Burn                            | maxHP/16 per stack per turn; physical −15% per stack               |
-| Status     | Dazed / Shocked accuracy        | ×0.9 / ×0.8 (Shocked+: Electric ×1.25 taken)                       |
+| Status     | Proc rate                       | ×2 baseline (incl. Tri Attack lists); Serene Grace/Rainbow: +1 roll |
+| Status     | Sleep base duration             | 3 turns (50% −1 per non-Ghost damaging hit)                        |
+| Status     | Soaked                          | Speed ×0.85; Fire ×0.5, Electric/Ice ×1.5 taken; 3 turns; 20% proc |
+| Status     | Chill line / Drowsy             | Speed ×0.75 and +5 Stamina per action (each)                       |
+| Status     | Chill duration                  | 2 turns, renewed by Ice damage (Frozen never)                      |
+| Status     | Burn                            | maxHP/16 per stack per turn; physical −10% per stack               |
+| Status     | Electric line accuracy          | own ×0.9, incoming ×1.1 (Shocked+: Electric ×1.25 taken)           |
+| Status     | Shocked → Paralyzed             | 25% per Electric hit                                               |
 | Status     | Paralyzed                       | Speed ÷4; 25% lose turn                                            |
-| Status     | Frostbitten / Nightmare         | maxHP/16 / maxHP/8 per turn, all Trauma                            |
-| Status     | Confusion line                  | 3 turns; Stupefied 25% ally/self, Frightened 20% flee              |
+| Status     | Frostbitten / Nightmare         | maxHP/8 / maxHP/8 per turn, all Trauma                             |
+| Status     | Confusion line                  | 3 turns; Stupefied 25% ally/self, Frightened 25% flee / refuse     |
+| Status     | Poison heal block               | Recuperate, Leftovers, any heal ≤ maxHP/16                         |
+| Status     | Full cure / berry               | clears Lv2 (berry: not Lv1); Lv3 → Lv1 (kept on switch: Nat. Cure) |
 | Setup      | Speed-boosting setup cost       | 0 Stamina                                                          |
 | Nature     | Neutral                         | Advantage (guaranteed hit if faster)                               |
 | Nature     | Reckless (under-used offense)   | Super Luck (+1 crit stage)                                         |
@@ -442,7 +483,8 @@ EXP rewards fighting opponents near your own level and discourages both over-lev
 * Body Tax % final value (1.5–2% range; currently 2%).
 * Nature ability magnitudes (Crusher +50%, Disruptor `a→0.50`, Resilient −25%) — validate vs the wall-breaking triangle.
 * Cap on Toxic Trauma escalation (§6).
-* Playtest the §6 status defaults (Lv1 slows / surcharges, Dazed / Shocked accuracy, Paralyzed ÷4, Nightmare maxHP/8, Stupefied 25%, Frightened 20%, Soak 20%). AI scoring doesn't value the new levels yet; it still reads the vanilla `status1` mirror.
+* Playtest the §6 status defaults (Lv1 slows / surcharges, Electric-line accuracy, Shocked's 25% paralysis, Paralyzed ÷4, Frostbite / Nightmare maxHP/8, Stupefied 25%, Frightened 25%, Soak 20%, the 50% sleep valve). AI scoring doesn't value the new levels yet; it still reads the vanilla `status1` mirror.
+* Bag / party-menu item checks still read the party `status1`, so a Full Heal can't be used on a mon whose only status has no vanilla bit (Shocked, Stupefied on the field, a leftover Lv1). Full cures still leave the party `status1` at 0 for an active mon until the rail mirror is next sent (the battle state is right).
 * Field Hazards and Held Item systems (§8, §9).
 
 ---

@@ -64,6 +64,8 @@ static void HandleSetEffectConfusion(struct BattleCalcValues *cv, struct SetEffe
         // checks the volatile itself, since Confused / Stupefied can still advance).
         if (se->primary && GetStatusRailLevel(se->effectBattler, RAIL_CONFUSION) >= GetStatusRailMaxLevel(RAIL_CONFUSION))
             gBattlescriptCurrInstr = BattleScript_AlreadyConfused;
+        else if (se->primary && IS_BATTLER_OF_TYPE(se->effectBattler, TYPE_PSYCHIC)) // Fantasy Retold: Psychic types can't be confused
+            gBattlescriptCurrInstr = BattleScript_NotAffected;
         else
             gBattlescriptCurrInstr = se->script;
     }
@@ -71,7 +73,7 @@ static void HandleSetEffectConfusion(struct BattleCalcValues *cv, struct SetEffe
     {
         // Fantasy Retold: Confused (Lv1) -> Stupefied (Lv2) -> Frightened (Lv3); a status move starts at
         // Stupefied, a secondary at Confused. 3 turns, kept when the line advances (design.md §6).
-        u8 level = ApplyStatusRail(se->effectBattler, RAIL_CONFUSION, se->primary ? 2 : 1);
+        u8 level = ApplyStatusRailOrSynchronize(se->effectBattler, RAIL_CONFUSION, se->primary ? 2 : 1);
         gEffectBattler = se->effectBattler;
         BattleScriptPush(se->script);
         if (level == 1)
@@ -81,8 +83,9 @@ static void HandleSetEffectConfusion(struct BattleCalcValues *cv, struct SetEffe
         else
         {
             gBattleScripting.savedStringId = (level == 2) ? STRINGID_FRSTUPEFIED : STRINGID_FRFRIGHTENED;
-            gBattlescriptCurrInstr = BattleScript_FRRailMessageRet;
+            gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied; // ends in trysynchronize
         }
+        TrySynchronizeActivation(cv->battlerAtk, se->effectBattler, MOVE_EFFECT_CONFUSION); // Fantasy Retold
     }
 }
 
@@ -326,11 +329,14 @@ static void HandleSetEffectGlaiveRush(struct BattleCalcValues *cv, struct SetEff
 static void HandleSetEffectRemoveStatus(struct BattleCalcValues *cv, struct SetEffect *se)
 {
     u32 argStatus = GetMoveEffectArg_Status(gCurrentMove); // TODO: use the arg field in move effect
-    if ((gBattleMons[se->effectBattler].status1 & argStatus)
+    enum StatusRail rail = GetStatusRailFromStatus1(argStatus);
+
+    // Fantasy Retold: cures its line like a full cure (Lv3 -> volatile Lv1, the rest clear; design.md §6).
+    if (rail != NUM_STATUS_RAILS && GetStatusRailLevel(se->effectBattler, rail) != 0
      && (NumAffectedSpreadMoveTargets() > 1 || !IsMoveEffectBlockedByTarget(cv->abilities[se->effectBattler])))
     {
         gBattleScripting.battler = se->effectBattler;
-        gBattleMons[se->effectBattler].status1 &= ~(argStatus);
+        CureStatusRails(se->effectBattler, STATUS_RAIL_BIT(rail));
         BtlController_EmitSetMonData(se->effectBattler, 0, REQUEST_STATUS_BATTLE, 0, 4, &gBattleMons[se->effectBattler].status1);
         MarkBattlerForControllerExec(se->effectBattler);
         BattleScriptPush(se->script);

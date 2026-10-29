@@ -3055,7 +3055,14 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
     gBattleMons[battler].volatiles.truantSwitchInHack = volatilesCopy->truantSwitchInHack;
 
     // Fantasy Retold: the volatiles were just reset; put back the persisted Confusion line (Lv2+) and the
-    // rest of the rail mirror for the incoming mon (design.md §6).
+    // rest of the rail mirror for the incoming mon (design.md §6). A Baton Pass brings the passer's line.
+    if (effect == EFFECT_BATON_PASS && gBattleStruct->batonPassConfusionLevel != 0)
+    {
+        SyncStatusRailBridge(battler); // replace the vanilla confusion copy before RaiseStatusRailTo reconciles
+        RaiseStatusRailTo(battler, RAIL_CONFUSION, gBattleStruct->batonPassConfusionLevel, 0);
+        SetStatusRailCounter(battler, RAIL_CONFUSION, gBattleStruct->batonPassConfusionCounter);
+        gBattleStruct->batonPassConfusionLevel = 0;
+    }
     SyncStatusRailBridge(battler);
 
     gBattleStruct->hazardsCounter = 0;
@@ -4518,7 +4525,7 @@ u32 GetBattlerTotalSpeedStat(enum BattlerId battler, enum Ability ability, enum 
         speed *= 2;
 
     // other abilities
-    if (ability == ABILITY_QUICK_FEET && gBattleMons[battler].status1 & STATUS1_ANY)
+    if (ability == ABILITY_QUICK_FEET && HasStatusRailCondition(battler)) // Fantasy Retold: Lv2+ of any line, or Soaked
         speed = (speed * 150) / 100;
     else if (ability == ABILITY_SURGE_SURFER && gFieldTimers.terrain == B_TERRAIN_ELECTRIC)
         speed *= 2;
@@ -5434,6 +5441,15 @@ static void HandleEndTurn_FinishBattle(void)
             // Recalculate the stats of every party member before the end
             if (!changedForm && B_RECALCULATE_STATS >= GEN_5)
                 CalculateMonStats(&gParties[B_TRAINER_PLAYER][i]);
+
+            // Fantasy Retold: Lv1 status lines are volatile, so the battle ending drops them; Lv2+ stays on the
+            // party (design.md §6).
+            if (gBattleStruct->partyState[B_TRAINER_PLAYER][i].sentOut
+             && GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_HP) != 0)
+            {
+                u32 status = GetStatusRailPartyStatusAfterBattle(gBattleStruct->partyState[B_TRAINER_PLAYER][i].rails);
+                SetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_STATUS, &status);
+            }
         }
         RecordedBattle_SetPlaybackFinished();
         if (gTestRunnerEnabled)

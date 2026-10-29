@@ -1887,6 +1887,18 @@
 	.byte \battler
 	.endm
 
+	@ Fantasy Retold: jumps if the battler has any non-volatile status line (Soaked included), at any level.
+	.macro jumpifanystatusrail battler:req, jumpInstr:req
+	callnative BS_FRJumpIfAnyStatusRail
+	.byte \battler
+	.4byte \jumpInstr
+	.endm
+
+	@ Fantasy Retold: Psycho Shift's user loses the line it just passed on.
+	.macro frpsychoshiftcureuser
+	callnative BS_FRPsychoShiftCureUser
+	.endm
+
 	.macro powertrick
 	callnative BS_PowerTrick
 	.endm

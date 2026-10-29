@@ -116,6 +116,27 @@ BattleScript_FRRecuperate::
 	datahpupdate BS_ATTACKER, ASSURANCE_IGNORE
 	finishaction
 
+@ Poisoned: Recuperate restores Stamina but no HP (design.md §6).
+BattleScript_FRRecuperatePoisoned::
+	printstring STRINGID_FRRECUPERATING
+	waitmessage B_WAIT_TIME_SHORT
+	playmoveanimation MOVE_RECOVER
+	waitanimation
+	printstring STRINGID_FRPOISONBLOCKSHEAL
+	waitmessage B_WAIT_TIME_LONG
+	finishaction
+
+BattleScript_FRRecuperatePoisonedCured::
+	printstring STRINGID_FRRECUPERATING
+	waitmessage B_WAIT_TIME_SHORT
+	playmoveanimation MOVE_RECOVER
+	waitanimation
+	printstring STRINGID_FRPOISONBLOCKSHEAL
+	waitmessage B_WAIT_TIME_LONG
+	printstring STRINGID_FRSHOOKOFFAILMENT
+	waitmessage B_WAIT_TIME_LONG
+	finishaction
+
 @ Same, when Recuperate also purged a Level 1 status.
 BattleScript_FRRecuperateCured::
 	printstring STRINGID_FRRECUPERATING
@@ -744,7 +765,7 @@ JungleHealing_RestoreTargetHealth:
 	printstring STRINGID_PKMNREGAINEDHEALTH
 	waitmessage B_WAIT_TIME_LONG
 BattleScript_JungleHealing_TryCureStatus:
-	jumpifstatus BS_TARGET, STATUS1_ANY, BattleScript_JungleHealingCureStatus
+	jumpifanystatusrail BS_TARGET, BattleScript_JungleHealingCureStatus
 	goto BattleScript_JungleHealingTryRestoreAlly
 BattleScript_JungleHealingCureStatus:
 	curestatus BS_TARGET
@@ -825,7 +846,7 @@ BattleScript_RemoveGenericType::
 
 BattleScript_EffectPurify::
 	attackcanceler
-	jumpifstatus BS_TARGET, STATUS1_ANY, BattleScript_PurifyWorks
+	jumpifanystatusrail BS_TARGET, BattleScript_PurifyWorks
 	goto BattleScript_ButItFailed
 BattleScript_PurifyWorks:
 	attackanimation
@@ -947,24 +968,21 @@ BattleScript_EffectPowerTrick::
 	waitmessage B_WAIT_TIME_LONG
 	goto BattleScript_MoveEnd
 
+@ Fantasy Retold: moves one whole status line, at its level (BS_TryPsychoShift).
 BattleScript_EffectPsychoShift::
 	attackcanceler
-	jumpifstatus BS_ATTACKER, STATUS1_ANY, BattleScript_EffectPsychoShiftCanWork
-	goto BattleScript_ButItFailed
-BattleScript_EffectPsychoShiftCanWork:
-	jumpifstatus BS_TARGET, STATUS1_ANY, BattleScript_ButItFailed
 	jumpifsafeguard BattleScript_SafeguardProtected
 	trypsychoshift BattleScript_ButItFailed, BattleScript_SleepClauseBlocked
 	attackanimation
 	waitanimation
 	copybyte gEffectBattler, gBattlerTarget
-	printfromtable gStatusConditionsStringIds
+	printstring 0
 	waitmessage B_WAIT_TIME_LONG
 	statusanimation BS_TARGET
 	updatestatusicon BS_TARGET
 	waitstate
 	trysynchronize
-	curestatus BS_ATTACKER
+	frpsychoshiftcureuser
 	printfromtable gCureStatusStringIds
 	waitmessage B_WAIT_TIME_LONG
 	updatestatusicon BS_ATTACKER
@@ -4223,6 +4241,43 @@ BattleScript_FRRailMessageRet::
 	waitmessage B_WAIT_TIME_LONG
 	return
 
+@ Stupefied turning a move on its ally: the user takes the confusion self-hit first, then the move goes on.
+BattleScript_FRStupefiedSelfHitRet::
+	printstring 0
+	waitmessage B_WAIT_TIME_LONG
+	volatileanimation BS_ATTACKER, VOLATILE_CONFUSION
+	printstring STRINGID_ITHURTCONFUSION
+	waitmessage B_WAIT_TIME_LONG
+	effectivenesssound
+	hitanimation BS_ATTACKER
+	waitstate
+	tryselfconfusiondmgformchange
+	healthbarupdate BS_ATTACKER
+	datahpupdate BS_ATTACKER, ASSURANCE_IGNORE
+	printstring STRINGID_FRTURNEDONALLY
+	waitmessage B_WAIT_TIME_LONG
+	return
+
+@ A status that can't take hold for a rail reason (too wet / cold to burn, already frozen, ...): savedStringId.
+BattleScript_FRStatusBlocked::
+	pause B_WAIT_TIME_SHORT
+	printstring 0
+	waitmessage B_WAIT_TIME_LONG
+	goto BattleScript_MoveEnd
+
+@ Nightmare: can't act, and Snore / Sleep Talk don't help.
+BattleScript_FRMoveUsedInNightmare::
+	printstring STRINGID_FRTRAPPEDINNIGHTMARE
+	waitmessage B_WAIT_TIME_LONG
+	statusanimation BS_ATTACKER
+	goto BattleScript_MoveEnd
+
+@ Frightened on the bench: the chosen mon refuses to come out and the switch is lost.
+BattleScript_FRFrightenedRefusedSwitch::
+	printstring STRINGID_FRREFUSEDSWITCH
+	waitmessage B_WAIT_TIME_LONG
+	finishaction
+
 @ Frightened: the attacker tries to flee to a random party member instead of acting (trainer battles only).
 BattleScript_FRFrightenedFlee::
 	printstring STRINGID_FRPANICKED
@@ -4284,11 +4339,14 @@ BattleScript_ConfusionAfterRampage::
 	waitmessage B_WAIT_TIME_LONG
 	return
 
+@ Fantasy Retold: the first line is gBattleScripting.savedStringId (is confused / stupefied / frightened);
+@ cMULTISTRING_CHOOSER 2 = Stupefied turning its own attack on itself.
 BattleScript_MoveUsedIsConfused::
-	printstring STRINGID_PKMNISCONFUSED
+	printstring 0
 	waitmessage B_WAIT_TIME_LONG
 	volatileanimation BS_ATTACKER, VOLATILE_CONFUSION
 	jumpifbyte CMP_EQUAL, cMULTISTRING_CHOOSER, FALSE, BattleScript_MoveUsedIsConfusedRet
+	jumpifbyte CMP_EQUAL, cMULTISTRING_CHOOSER, 2, BattleScript_FRStupefiedTurnedOnSelf
 BattleScript_DoSelfConfusionDmg::
 	cancelmultiturnmoves
 	printstring STRINGID_ITHURTCONFUSION
@@ -4305,6 +4363,19 @@ BattleScript_DoSelfConfusionDmg::
 	goto BattleScript_MoveEnd
 BattleScript_MoveUsedIsConfusedRet::
 	return
+
+BattleScript_FRStupefiedTurnedOnSelf:
+	cancelmultiturnmoves
+	printstring STRINGID_FRTURNEDONSELF
+	waitmessage B_WAIT_TIME_LONG
+	effectivenesssound
+	hitanimation BS_ATTACKER
+	waitstate
+	tryselfconfusiondmgformchange
+	healthbarupdate BS_ATTACKER
+	datahpupdate BS_ATTACKER, ASSURANCE_DOUBLE
+	tryfaintmon BS_ATTACKER
+	goto BattleScript_MoveEnd
 
 BattleScript_MoveUsedPowder::
 	pause B_WAIT_TIME_SHORT
@@ -4499,6 +4570,7 @@ BattleScript_MoveEffectConfusion::
 	volatileanimation BS_EFFECT_BATTLER, VOLATILE_CONFUSION
 	printstring STRINGID_PKMNWASCONFUSED
 	waitmessage B_WAIT_TIME_LONG
+	trysynchronize @ Fantasy Retold: Synchronize passes confusion back too
 	return
 
 BattleScript_MoveEffectRecoilHP25::

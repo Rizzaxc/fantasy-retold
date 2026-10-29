@@ -1211,6 +1211,11 @@ static void Cmd_healthbarupdate(void)
     if (gBattleControllerExecFlags)
         return;
 
+    // Fantasy Retold: the Poison line blocks heals of maxHP/16 or less (design.md §6).
+    if (gBattleStruct->passiveHpUpdate[battler] < 0
+     && IsHealBlockedByStatusRails(battler, -gBattleStruct->passiveHpUpdate[battler]))
+        gBattleStruct->passiveHpUpdate[battler] = 0;
+
     BtlController_EmitHealthBarUpdate(battler, B_COMM_TO_CONTROLLER, min(gBattleStruct->passiveHpUpdate[battler], 10000));
     MarkBattlerForControllerExec(battler);
     gBattlescriptCurrInstr = cmd->nextInstr;
@@ -1679,37 +1684,54 @@ bool32 TrySetLightScreen(enum BattlerId battler)
     return FALSE;
 }
 
+static enum StatusRail GetStatusRailFromMoveEffect(enum MoveEffect effect)
+{
+    switch (effect)
+    {
+    case MOVE_EFFECT_POISON:
+    case MOVE_EFFECT_TOXIC:     return RAIL_POISON;
+    case MOVE_EFFECT_BURN:      return RAIL_BURN;
+    case MOVE_EFFECT_FREEZE:
+    case MOVE_EFFECT_FROSTBITE: return RAIL_CHILL;
+    case MOVE_EFFECT_PARALYSIS: return RAIL_ELECTRIC;
+    case MOVE_EFFECT_SLEEP:     return RAIL_SLEEP;
+    case MOVE_EFFECT_CONFUSION: return RAIL_CONFUSION;
+    default:                    return NUM_STATUS_RAILS;
+    }
+}
+
+// Fantasy Retold: Synchronize passes back every status line (no exceptions), at the level the synchronizer
+// now has (design.md §6).
 void TrySynchronizeActivation(enum BattlerId battlerAtk, enum BattlerId effectBattler, enum MoveEffect effect)
 {
+    enum StatusRail rail = GetStatusRailFromMoveEffect(effect);
+    bool32 canSet;
+
     if (battlerAtk == effectBattler || gBattleStruct->synchronizeState == SYNCH_STATE_SET_STATUS)
         return;
 
     enum Ability effectAbility = GetBattlerAbility(effectBattler);
-    if (effectAbility != ABILITY_SYNCHRONIZE)
+    if (effectAbility != ABILITY_SYNCHRONIZE || rail == NUM_STATUS_RAILS)
         return;
 
-    if (effect == MOVE_EFFECT_POISON
-     || effect == MOVE_EFFECT_TOXIC
-     || effect == MOVE_EFFECT_PARALYSIS
-     || effect == MOVE_EFFECT_BURN)
+    if (rail == RAIL_CONFUSION)
+        canSet = IsBattlerAlive(battlerAtk) && CanBeConfused(effectBattler, battlerAtk);
+    else
+        canSet = CanSetNonVolatileStatus(effectBattler, battlerAtk, effectAbility, GetBattlerAbility(battlerAtk), effect, CHECK_TRIGGER);
+
+    if (canSet)
     {
-        if (CanSetNonVolatileStatus(
-                effectBattler,
-                battlerAtk,
-                effectAbility,
-                GetBattlerAbility(battlerAtk),
-                effect,
-                CHECK_TRIGGER))
-        {
-            gBattleStruct->synchronizeState = SYNCH_STATE_START;
-            gBattlerAbility = effectBattler;
-            gBattleScripting.savedBattler = battlerAtk;
-        }
-        else
-        {
-            gBattleStruct->synchronizeState = SYNCH_STATE_SHOW_ABILITY_POPUP;
-            gBattlerAbility = effectBattler;
-        }
+        gBattleStruct->synchronizeState = SYNCH_STATE_START;
+        gBattleStruct->synchronizeMoveEffect = effect;
+        gBattleStruct->synchronizeRailLevel = GetStatusRailLevel(effectBattler, rail);
+        gBattleStruct->synchronizeRailBranch = GetStatusRailBranch(effectBattler, rail);
+        gBattlerAbility = effectBattler;
+        gBattleScripting.savedBattler = battlerAtk;
+    }
+    else
+    {
+        gBattleStruct->synchronizeState = SYNCH_STATE_SHOW_ABILITY_POPUP;
+        gBattlerAbility = effectBattler;
     }
 }
 
@@ -1727,7 +1749,7 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
     switch (effect)
     {
     case MOVE_EFFECT_SLEEP:
-        level = ApplyStatusRail(effectBattler, RAIL_SLEEP, railMinLevel);
+        level = ApplyStatusRailOrSynchronize(effectBattler, RAIL_SLEEP, railMinLevel);
         if (level == 1)
         {
             gBattleScripting.savedStringId = STRINGID_FRDROWSY;
@@ -1751,7 +1773,7 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
         // (railMinLevel == 2) lands at Lv2 (Toxic); an attacking-move secondary / ability / protect
         // effect (railMinLevel == 1) lands at Lv1 (regular Poison) and advances to Lv2 on reapplication.
         // ApplyStatusRail mirrors the result back into status1 (the legacy bits used by UI/AI).
-        ApplyStatusRail(effectBattler, RAIL_POISON, railMinLevel);
+        ApplyStatusRailOrSynchronize(effectBattler, RAIL_POISON, railMinLevel);
         if (GetStatusRailLevel(effectBattler, RAIL_POISON) >= 2)
             gBattlescriptCurrInstr = BattleScript_MoveEffectToxic;
         else
@@ -1759,7 +1781,7 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
         break;
     case MOVE_EFFECT_BURN:
         // Stacks: a status move (Will-O-Wisp) lands 2, a secondary 1, each reapplication +1 (max 3).
-        if (ApplyStatusRail(effectBattler, RAIL_BURN, railMinLevel) == 1)
+        if (ApplyStatusRailOrSynchronize(effectBattler, RAIL_BURN, railMinLevel) == 1)
         {
             gBattlescriptCurrInstr = BattleScript_MoveEffectBurn;
         }
@@ -1772,7 +1794,7 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
     case MOVE_EFFECT_FREEZE:
     case MOVE_EFFECT_FROSTBITE:
         // Chilled first; the next Ice application turns it into Frozen or Frostbitten at random.
-        if (ApplyStatusRail(effectBattler, RAIL_CHILL, railMinLevel) == 1)
+        if (ApplyStatusRailOrSynchronize(effectBattler, RAIL_CHILL, railMinLevel) == 1)
         {
             gBattleScripting.savedStringId = STRINGID_FRCHILLED;
             gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied;
@@ -1788,7 +1810,10 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
         }
         break;
     case MOVE_EFFECT_PARALYSIS:
-        switch (ApplyStatusRail(effectBattler, RAIL_ELECTRIC, railMinLevel))
+    {
+        bool32 dazedAndSoaked = GetStatusRailLevel(effectBattler, RAIL_ELECTRIC) == 1 && GetStatusRailLevel(effectBattler, RAIL_SOAK) != 0;
+
+        switch (ApplyStatusRailOrSynchronize(effectBattler, RAIL_ELECTRIC, railMinLevel))
         {
         case 1:
             gBattleScripting.savedStringId = STRINGID_FRDAZED;
@@ -1799,10 +1824,19 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
             gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied;
             break;
         default:
-            gBattlescriptCurrInstr = BattleScript_MoveEffectParalysis;
+            if (dazedAndSoaked) // skipped Shocked
+            {
+                gBattleScripting.savedStringId = STRINGID_FRSOAKEDPARALYZED;
+                gBattlescriptCurrInstr = BattleScript_FRRailEffectApplied;
+            }
+            else
+            {
+                gBattlescriptCurrInstr = BattleScript_MoveEffectParalysis;
+            }
             break;
         }
         break;
+    }
     default:
         break;
     }
@@ -1890,7 +1924,7 @@ static void Cmd_setadditionaleffects(void)
                 percentChance = CalcSecondaryEffectChance(gBattlerAttacker, cv.abilities[cv.battlerAtk], additionalEffect);
 
                 // Activate effect if it's primary (chance == 0) or if RNGesus says so
-                if ((percentChance == 0) || RandomPercentage(RNG_SECONDARY_EFFECT + gBattleStruct->additionalEffectsCounter, percentChance))
+                if ((percentChance == 0) || RollSecondaryEffect(gBattlerAttacker, cv.abilities[cv.battlerAtk], additionalEffect, percentChance, RNG_SECONDARY_EFFECT + gBattleStruct->additionalEffectsCounter))
                 {
                     se.additionalEffect = additionalEffect;
                     se.moveEffect = additionalEffect->moveEffect;
@@ -3281,6 +3315,16 @@ static void Cmd_getswitchedmondata(void)
         u32 baseSta = GetBaseStamina(battler);
         u32 banked = gBattleStruct->battlerState[battler].currentStamina + (5 + gBattleMons[battler].level / 2);
         GetBattlerPartyState(battler)->storedStamina = min(banked, baseSta);
+    }
+
+    // Fantasy Retold: Baton Pass hands the whole Confusion line (any level, turns left) to the incoming mon.
+    gBattleStruct->batonPassConfusionLevel = 0;
+    if (battler == gBattlerAttacker && GetMoveEffect(gCurrentMove) == EFFECT_BATON_PASS)
+    {
+        ReconcileStatusRailsFromBridge(battler);
+        gBattleStruct->batonPassConfusionLevel = GetStatusRailLevel(battler, RAIL_CONFUSION);
+        gBattleStruct->batonPassConfusionCounter = GetStatusRailCounter(battler, RAIL_CONFUSION);
+        ClearStatusRail(battler, RAIL_CONFUSION);
     }
 
     // Fantasy Retold: Level 1 status rails are volatile — they drop when the mon leaves the field
@@ -6536,8 +6580,7 @@ static void Cmd_healpartystatus(void)
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_BELL;
         else
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_SOOTHING_AROMA;
-        ClearAllStatusRails(gBattlerAttacker); // Fantasy Retold: cures every line (design.md §6)
-        gBattleMons[gBattlerAttacker].status1 = 0;
+        CureAllStatusRails(gBattlerAttacker, FALSE); // Fantasy Retold: Lv3 drops to Lv1, the rest clear (design.md §6)
         gBattleMons[gBattlerAttacker].volatiles.nightmare = FALSE;
     }
     else
@@ -6553,8 +6596,7 @@ static void Cmd_healpartystatus(void)
         if (GetConfig(B_HEAL_BELL_SOUNDPROOF) == GEN_5
          || !(isSoundMove && GetBattlerAbility(partner) == ABILITY_SOUNDPROOF))
         {
-            ClearAllStatusRails(partner); // Fantasy Retold
-            gBattleMons[partner].status1 = 0;
+            CureAllStatusRails(partner, FALSE); // Fantasy Retold
             gBattleMons[partner].volatiles.nightmare = FALSE;
         }
         else
@@ -6603,6 +6645,9 @@ static void Cmd_healpartystatus(void)
             {
                 toHeal |= (1 << i);
                 TryDeactivateSleepClause(gBattlerAttacker, i);
+                // Fantasy Retold: the benched mons' rails (the active ones were cured above).
+                if (!isAttacker && !isDoublesPartner)
+                    CurePartyStatusRails(gBattleStruct->partyState[GetBattlerTrainer(gBattlerAttacker)][i].rails, FALSE);
             }
         }
     }
@@ -7004,33 +7049,25 @@ static void Cmd_setforcedtarget(void)
     gBattlescriptCurrInstr = cmd->nextInstr;
 }
 
+// Fantasy Retold: Refresh wipes its lines outright, at every level (design.md §6).
+#define REFRESH_RAILS (STATUS_RAIL_BIT(RAIL_POISON) | STATUS_RAIL_BIT(RAIL_BURN) | STATUS_RAIL_BIT(RAIL_ELECTRIC) | STATUS_RAIL_BIT(RAIL_CHILL))
+
 static void Cmd_curestatuswithmove(void)
 {
     CMD_ARGS(const u8 *failInstr);
-    u32 status = gBattleMons[gBattlerAttacker].status1;
-    u32 shouldHeal = status & STATUS1_CAN_MOVE;
 
-    if (shouldHeal)
+    ReconcileStatusRailsFromBridge(gBattlerAttacker);
+    if (HasAnyStatusRail(gBattlerAttacker, REFRESH_RAILS))
     {
-        if (status & STATUS1_SLEEP)
-            TryDeactivateSleepClause(gBattlerAttacker, gBattlerPartyIndexes[gBattlerAttacker]);
+        enum StatusRail rail;
 
-        if (status & STATUS1_PARALYSIS)
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_PARALYSIS;
-        else if (status & STATUS1_POISON || status & STATUS1_TOXIC_POISON)
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_POISON;
-        else if (status & STATUS1_BURN)
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_BURN;
-        else if (status & STATUS1_SLEEP)
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_SLEEP;
-        else if (status & STATUS1_FREEZE)
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FREEZE;
-        else if (status & STATUS1_FROSTBITE)
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FROSTBITE;
-
+        gBattleCommunication[MULTISTRING_CHOOSER] = GetStatusRailCureMessage(gBattlerAttacker, REFRESH_RAILS);
         gBattleScripting.battler = gBattlerAttacker;
-
-        gBattleMons[gBattlerAttacker].status1 = 0;
+        for (rail = 0; rail < NUM_STATUS_RAILS; rail++)
+        {
+            if (REFRESH_RAILS & STATUS_RAIL_BIT(rail))
+                ClearStatusRail(gBattlerAttacker, rail);
+        }
         gBattlescriptCurrInstr = cmd->nextInstr;
         BtlController_EmitSetMonData(gBattlerAttacker, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[gBattlerAttacker].status1), &gBattleMons[gBattlerAttacker].status1);
         MarkBattlerForControllerExec(gBattlerAttacker);
@@ -7344,7 +7381,7 @@ static void Cmd_setyawn(void)
     enum HoldEffect holdEffect = GetBattlerHoldEffect(gBattlerTarget);
 
     if (gBattleMons[gBattlerTarget].volatiles.yawn
-        || gBattleMons[gBattlerTarget].status1 & STATUS1_ANY)
+        || GetStatusRailLevel(gBattlerTarget, RAIL_SLEEP) >= 2) // Fantasy Retold: other lines don't block it
     {
         gBattlescriptCurrInstr = cmd->failInstr;
     }
@@ -7362,6 +7399,8 @@ static void Cmd_setyawn(void)
     }
     else
     {
+        // Fantasy Retold: Drowsy at once; still Drowsy at the end of next turn -> Asleep (battle_end_turn.c).
+        RaiseStatusRailTo(gBattlerTarget, RAIL_SLEEP, 1, 0);
         gBattleMons[gBattlerTarget].volatiles.yawn = 2;
         gBattlescriptCurrInstr = cmd->nextInstr;
     }
@@ -7584,8 +7623,7 @@ static void Cmd_switchoutabilities(void)
         if (gBattleMons[battler].status1 & STATUS1_SLEEP)
             TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
 
-        ClearAllStatusRails(battler); // Fantasy Retold: every line, including the ones status1 doesn't show
-        gBattleMons[battler].status1 = 0;
+        CureAllStatusRails(battler, TRUE); // Fantasy Retold: Lv3 drops to a Lv1 that stays through this switch-out
         BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE,
                                         1u << gBattlerPartyIndexes[battler],
                                         sizeof(gBattleMons[battler].status1),
@@ -8103,7 +8141,7 @@ static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallDa
         }
         break;
     case BALL_DREAM:
-        if (B_DREAM_BALL_MODIFIER >= GEN_8 && (battleMon->status1 & STATUS1_SLEEP || (GetBattlerAbilityIgnoreMoldBreaker(wildMonBattler) == ABILITY_COMATOSE)))
+        if (B_DREAM_BALL_MODIFIER >= GEN_8 && (GetStatusRailLevel(wildMonBattler, RAIL_SLEEP) >= 2 || (GetBattlerAbilityIgnoreMoldBreaker(wildMonBattler) == ABILITY_COMATOSE)))
             ball->multiplier = 400;
         break;
     case BALL_SAFARI:
@@ -8192,15 +8230,19 @@ static u32 ComputeCaptureOdds(u32 wildMonBattler, u32 playerBattler)
     else if (GetConfig(B_LOW_LEVEL_CATCH_BONUS) >= GEN_9 && battleMon->level <= 13)
         odds = odds * (36 - (battleMon->level * 2)) / 10;
 
-    if (battleMon->status1 & STATUS1_INCAPACITATED)
+    // Fantasy Retold: Asleep+ / Frozen get the big bonus, any other Lv2+ line or Soaked the small one.
+    if (GetStatusRailLevel(wildMonBattler, RAIL_SLEEP) >= 2
+     || (GetStatusRailLevel(wildMonBattler, RAIL_CHILL) >= 2 && GetStatusRailBranch(wildMonBattler, RAIL_CHILL) == CHILL_BRANCH_FROZEN))
     {
         if (GetConfig(B_INCAPACITATED_CATCH_BONUS) >= GEN_5)
             odds = (odds * 25) / 10;
         else
             odds *= 2;
     }
-    if (battleMon->status1 & STATUS1_CAN_MOVE)
+    else if (HasStatusRailCondition(wildMonBattler))
+    {
         odds = odds * 15 / 10;
+    }
 
     return odds;
 }
@@ -8889,23 +8931,6 @@ static void Cmd_tryoverwriteability(void)
     }
 }
 
-static u32 GetMoveEffectFromStatus(enum BattlerId battler)
-{
-    switch (gBattleMons[battler].status1)
-    {
-    case STATUS1_POISON:
-        return MOVE_EFFECT_POISON;
-    case STATUS1_TOXIC_POISON:
-        return MOVE_EFFECT_TOXIC;
-    case STATUS1_PARALYSIS:
-        return MOVE_EFFECT_PARALYSIS;
-    case STATUS1_BURN:
-        return MOVE_EFFECT_BURN;
-    default:
-        return MOVE_EFFECT_NONE;
-    }
-}
-
 static void Cmd_trysynchronize(void)
 {
     CMD_ARGS();
@@ -8917,11 +8942,8 @@ static void Cmd_trysynchronize(void)
         gBattlescriptCurrInstr = cmd->nextInstr;
         break;
     case SYNCH_STATE_START:
-        synchStatus = GetMoveEffectFromStatus(gBattlerAbility);
+        synchStatus = gBattleStruct->synchronizeMoveEffect; // Fantasy Retold: any line, at the synchronizer's level
         RecordAbilityBattle(gBattlerAbility, ABILITY_SYNCHRONIZE);
-
-        if (GetConfig(B_SYNCHRONIZE_TOXIC) < GEN_5 && synchStatus == MOVE_EFFECT_TOXIC)
-            synchStatus = MOVE_EFFECT_POISON;
 
         gBattleScripting.battler = gBattlerAbility;
         gEffectBattler = gBattleScripting.savedBattler;
@@ -8940,6 +8962,7 @@ static void Cmd_trysynchronize(void)
         break;
     case SYNCH_STATE_END:
         gBattleStruct->synchronizeState = SYNCH_STATE_NONE;
+        gBattleStruct->synchronizeRailLevel = 0;
         gEffectBattler = gBattlerAbility; // Restore effect battler that was previously set to the synchronize battler
         gBattlescriptCurrInstr = cmd->nextInstr;
         break;
@@ -9492,6 +9515,22 @@ void BS_ItemCureStatus(void)
         statusChanged = TRUE;
         if (GetItemStatus1Mask(gLastUsedItem) & STATUS1_SLEEP)
             gBattleMons[targetBattler].volatiles.nightmare = FALSE;
+    }
+
+    // Fantasy Retold: a full cure leaves a Lv1 behind for each Lv3 line (design.md §6). On the field
+    // ItemHealMonVolatile already cured the rails; put back the mirror HealStatusConditions just cleared.
+    if (GetItemEffect(gLastUsedItem)[3] & ITEM3_STATUS_ALL)
+    {
+        if (targetBattler != MAX_BATTLERS_COUNT)
+        {
+            SyncStatusRailBridge(targetBattler);
+            SetMonData(&party[gBattleStruct->itemPartyIndex[gBattlerAttacker]], MON_DATA_STATUS, &gBattleMons[targetBattler].status1);
+        }
+        else
+        {
+            if (CurePartyStatusRails(gBattleStruct->partyState[GetBattlerTrainer(gBattlerAttacker)][gBattleStruct->itemPartyIndex[gBattlerAttacker]].rails, FALSE))
+                statusChanged = TRUE;
+        }
     }
 
     if (!statusChanged)
@@ -11344,98 +11383,106 @@ void BS_JumpIfTargetAlly(void)
         gBattlescriptCurrInstr = cmd->jumpInstr;
 }
 
+// Fantasy Retold: Psycho Shift moves the user's first status line the target can take, at the same level; the
+// user is then cured of that line (BS_FRPsychoShiftCureUser). design.md §6.
 void BS_TryPsychoShift(void)
 {
     NATIVE_ARGS(const u8 *failInstr, const u8 *sleepClauseFailInstr);
+    static const struct { enum StatusRail rail; enum MoveEffect effect; } sLines[] =
+    {
+        { RAIL_POISON,   MOVE_EFFECT_TOXIC },
+        { RAIL_BURN,     MOVE_EFFECT_BURN },
+        { RAIL_ELECTRIC, MOVE_EFFECT_PARALYSIS },
+        { RAIL_SLEEP,    MOVE_EFFECT_SLEEP },
+        { RAIL_CHILL,    MOVE_EFFECT_FREEZE_OR_FROSTBITE },
+    };
     enum Ability attackerAbility = GetBattlerAbility(gBattlerAttacker);
     enum Ability targetAbility = GetBattlerAbility(gBattlerTarget);
-    enum MoveEffect synchronizeEffect = MOVE_EFFECT_NONE;
+    bool32 sleepClauseBlocked = FALSE;
+    u32 i;
 
-    // Psycho shift works
-    if ((gBattleMons[gBattlerAttacker].status1 & STATUS1_POISON)
-     && CanSetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, attackerAbility, targetAbility, MOVE_EFFECT_TOXIC, CHECK_TRIGGER))
+    ReconcileStatusRailsFromBridge(gBattlerAttacker);
+    for (i = 0; i < ARRAY_COUNT(sLines); i++)
     {
-        gBattleCommunication[MULTISTRING_CHOOSER] = 0;
-        synchronizeEffect = MOVE_EFFECT_POISON;
-    }
-    else if ((gBattleMons[gBattlerAttacker].status1 & STATUS1_TOXIC_POISON)
-          && CanSetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, attackerAbility, targetAbility, MOVE_EFFECT_TOXIC, CHECK_TRIGGER))
-    {
-        gBattleCommunication[MULTISTRING_CHOOSER] = 1;
-        synchronizeEffect = MOVE_EFFECT_TOXIC;
-    }
-    else if ((gBattleMons[gBattlerAttacker].status1 & STATUS1_BURN)
-          && CanSetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, attackerAbility, targetAbility, MOVE_EFFECT_BURN, CHECK_TRIGGER))
-    {
-        gBattleCommunication[MULTISTRING_CHOOSER] = 2;
-        synchronizeEffect = MOVE_EFFECT_BURN;
-    }
-    else if ((gBattleMons[gBattlerAttacker].status1 & STATUS1_PARALYSIS)
-          && CanSetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, attackerAbility, targetAbility, MOVE_EFFECT_PARALYSIS, CHECK_TRIGGER))
-    {
-        gBattleCommunication[MULTISTRING_CHOOSER] = 3;
-        synchronizeEffect = MOVE_EFFECT_PARALYSIS;
-    }
-    else if ((gBattleMons[gBattlerAttacker].status1 & STATUS1_SLEEP)
-          && !IsSleepClauseActiveForSide(GetBattlerSide(gBattlerTarget))
-          && CanSetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, attackerAbility, targetAbility, MOVE_EFFECT_SLEEP, CHECK_TRIGGER))
-    {
-        gBattleCommunication[MULTISTRING_CHOOSER] = 4;
-    }
-    else if ((gBattleMons[gBattlerAttacker].status1 & STATUS1_FROSTBITE)
-          && CanSetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, attackerAbility, targetAbility, MOVE_EFFECT_FREEZE_OR_FROSTBITE, CHECK_TRIGGER))
-    {
-        gBattleCommunication[MULTISTRING_CHOOSER] = 5;
-    }
-    else if (IsSleepClauseActiveForSide(GetBattlerSide(gBattlerTarget)))
-    {
-        gBattlescriptCurrInstr = cmd->sleepClauseFailInstr;
+        enum StatusRail rail = sLines[i].rail;
+        u8 level = GetStatusRailLevel(gBattlerAttacker, rail);
+        enum MoveEffect synchronizeEffect = sLines[i].effect;
+
+        if (level == 0 || GetStatusRailLevel(gBattlerTarget, rail) >= level)
+            continue;
+        if (rail == RAIL_SLEEP && IsSleepClauseActiveForSide(GetBattlerSide(gBattlerTarget)))
+        {
+            sleepClauseBlocked = TRUE;
+            continue;
+        }
+        if (!CanSetNonVolatileStatus(gBattlerAttacker, gBattlerTarget, attackerAbility, targetAbility, sLines[i].effect, CHECK_TRIGGER))
+            continue;
+
+        RaiseStatusRailTo(gBattlerTarget, rail, level, GetStatusRailBranch(gBattlerAttacker, rail));
+        gBattleStruct->psychoShiftRail = rail;
+        gBattleScripting.savedStringId = GetStatusRailAppliedStringId(rail, level, GetStatusRailBranch(gBattlerAttacker, rail));
+        if (rail == RAIL_POISON && level < 2)
+            synchronizeEffect = MOVE_EFFECT_POISON;
+
+        BtlController_EmitSetMonData(
+            gBattlerTarget,
+            B_COMM_TO_CONTROLLER,
+            REQUEST_STATUS_BATTLE,
+            0,
+            sizeof(gBattleMons[gBattlerTarget].status1),
+            &gBattleMons[gBattlerTarget].status1);
+        MarkBattlerForControllerExec(gBattlerTarget);
+        if (rail == RAIL_SLEEP && level >= 2)
+            TryActivateSleepClause(gBattlerTarget, gBattlerPartyIndexes[gBattlerTarget]);
+        TrySynchronizeActivation(gBattlerAttacker, gBattlerTarget, synchronizeEffect);
+        gBattlescriptCurrInstr = cmd->nextInstr;
         return;
     }
-    else
-    {
-        gBattlescriptCurrInstr = cmd->failInstr;
-        return;
-    }
-    gBattleMons[gBattlerTarget].status1 = gBattleMons[gBattlerAttacker].status1 & STATUS1_ANY;
-    BtlController_EmitSetMonData(
-        gBattlerTarget,
-        B_COMM_TO_CONTROLLER,
-        REQUEST_STATUS_BATTLE,
-        0,
-        sizeof(gBattleMons[gBattlerTarget].status1),
-        &gBattleMons[gBattlerTarget].status1);
-    MarkBattlerForControllerExec(gBattlerTarget);
-    TryActivateSleepClause(gBattlerTarget, gBattlerPartyIndexes[gBattlerTarget]);
-    TrySynchronizeActivation(gBattlerAttacker, gBattlerTarget, synchronizeEffect);
+
+    gBattlescriptCurrInstr = sleepClauseBlocked ? cmd->sleepClauseFailInstr : cmd->failInstr;
+}
+
+void BS_FRPsychoShiftCureUser(void)
+{
+    NATIVE_ARGS();
+    enum StatusRail rail = gBattleStruct->psychoShiftRail;
+
+    gBattleCommunication[MULTISTRING_CHOOSER] = GetStatusRailCureMessage(gBattlerAttacker, STATUS_RAIL_BIT(rail));
+    if (rail == RAIL_SLEEP && (gBattleMons[gBattlerAttacker].status1 & STATUS1_SLEEP))
+        TryDeactivateSleepClause(gBattlerAttacker, gBattlerPartyIndexes[gBattlerAttacker]);
+    ClearStatusRail(gBattlerAttacker, rail);
+    gBattleScripting.battler = gBattlerAttacker;
+    BtlController_EmitSetMonData(gBattlerAttacker, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[gBattlerAttacker].status1), &gBattleMons[gBattlerAttacker].status1);
+    MarkBattlerForControllerExec(gBattlerAttacker);
     gBattlescriptCurrInstr = cmd->nextInstr;
+}
+
+void BS_FRJumpIfAnyStatusRail(void)
+{
+    NATIVE_ARGS(u8 battler, const u8 *jumpInstr);
+    enum BattlerId battler = GetBattlerForBattleScript(cmd->battler);
+
+    ReconcileStatusRailsFromBridge(battler);
+    if (HasAnyStatusRail(battler, STATUS_RAILS_NON_VOLATILE))
+        gBattlescriptCurrInstr = cmd->jumpInstr;
+    else
+        gBattlescriptCurrInstr = cmd->nextInstr;
 }
 
 void BS_CureStatus(void)
 {
     NATIVE_ARGS(u8 battler);
     enum BattlerId battler = GetBattlerForBattleScript(cmd->battler);
-    u32 status = gBattleMons[battler].status1;
 
-    if (status & STATUS1_SLEEP)
+    // Fantasy Retold: every non-volatile line, Lv3 -> volatile Lv1 (design.md §6).
+    ReconcileStatusRailsFromBridge(battler);
+    if (gBattleMons[battler].status1 & STATUS1_SLEEP)
         TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
-
-    if (status & STATUS1_PARALYSIS)
-        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_PARALYSIS;
-    else if (status & STATUS1_POISON || status & STATUS1_TOXIC_POISON)
-        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_POISON;
-    else if (status & STATUS1_BURN)
-        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_BURN;
-    else if (status & STATUS1_SLEEP)
-        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_SLEEP;
-    else if (status & STATUS1_FREEZE)
-        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FREEZE;
-    else if (status & STATUS1_FROSTBITE)
-        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FROSTBITE;
+    gBattleCommunication[MULTISTRING_CHOOSER] = GetStatusRailCureMessage(battler, STATUS_RAILS_NON_VOLATILE);
 
     gBattleScripting.battler = battler;
 
-    gBattleMons[battler].status1 = 0;
+    CureStatusRails(battler, STATUS_RAILS_NON_VOLATILE);
     BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[battler].status1), &gBattleMons[battler].status1);
     MarkBattlerForControllerExec(battler);
     gBattlescriptCurrInstr = cmd->nextInstr;

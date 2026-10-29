@@ -588,7 +588,9 @@ struct StatusRailEntry
 {
     u8 level;   // 0 = none; 1..3 (rail-specific max). For RAIL_BURN this is the stack count.
     u8 counter; // rail-specific: Toxic escalation turns (RAIL_POISON); turns left (SOAK, CHILL, SLEEP, CONFUSION)
-    u8 branch;  // RAIL_CHILL only: CHILL_BRANCH_FROZEN / CHILL_BRANCH_FROSTBITTEN once at Lv2
+    u8 branch:1;        // RAIL_CHILL only: CHILL_BRANCH_FROZEN / CHILL_BRANCH_FROSTBITTEN once at Lv2
+    u8 keepOnSwitch:1;  // a Lv1 left by Natural Cure downgrading a Lv3: survives that one switch-out
+    u8 padding:6;
 };
 
 struct PartyState
@@ -732,8 +734,14 @@ struct BattleStruct
     enum BattlerId soulheartBattlerId;
     struct LostItem itemLost[MAX_BATTLE_TRAINERS][PARTY_SIZE];
     u8 dodgeHalvedHit; // Fantasy Retold: battlers whose Dodge halved the current hit (for the result message)
-    u8 railMoveEndStep; // Fantasy Retold: progress through MoveEndStatusRails (battler * 4 + step)
+    u8 railMoveEndStep; // Fantasy Retold: progress through MoveEndStatusRails (battler * RAIL_MOVEEND_STEPS + step)
     u8 railsEndedMask;  // Fantasy Retold: status rails that ran out this end-turn tick, still to announce
+    u8 synchronizeRailLevel;   // Fantasy Retold: rail level a Synchronize copies onto the attacker (0 = none)
+    u8 synchronizeRailBranch;  // Fantasy Retold: the Chill branch it copies
+    u16 synchronizeMoveEffect; // Fantasy Retold: the status a Synchronize passes back
+    u8 psychoShiftRail;        // Fantasy Retold: the line Psycho Shift moved
+    u8 batonPassConfusionLevel;   // Fantasy Retold: the Confusion line Baton Pass hands over (0 = none)
+    u8 batonPassConfusionCounter;
     u8 blunderPolicy : 1; // should blunder policy activate
     u8 redCardActivated : 1;
     u8 snatchedMoveIsUsed : 1;

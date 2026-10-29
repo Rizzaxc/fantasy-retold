@@ -618,6 +618,16 @@ void HandleAction_Switch(void)
     gActionSelectionCursor[gBattlerAttacker] = 0;
     gMoveSelectionCursor[gBattlerAttacker] = 0;
 
+    // Fantasy Retold: a Frightened mon on the bench may refuse to come out; the switch is lost (design.md §6).
+    if (gBattleStruct->partyState[GetBattlerTrainer(gBattlerAttacker)][gBattleStruct->monToSwitchIntoId[gBattlerAttacker]].rails[RAIL_CONFUSION].level >= 3
+     && RandomPercentage(RNG_FRIGHTENED, FRIGHTENED_FLEE_CHANCE))
+    {
+        PREPARE_MON_NICK_BUFFER(gBattleTextBuff1, gBattlerAttacker, gBattleStruct->monToSwitchIntoId[gBattlerAttacker]);
+        gBattlescriptCurrInstr = BattleScript_FRFrightenedRefusedSwitch;
+        gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+        return;
+    }
+
     PREPARE_MON_NICK_BUFFER(gBattleTextBuff1, gBattlerAttacker, gBattleStruct->battlerPartyIndexes[gBattlerAttacker]);
 
     gBattleScripting.battler = gBattlerAttacker;
@@ -969,7 +979,9 @@ void HandleAction_Recuperate(void)
     healAmount = (GetNonDynamaxMaxHP(battler) * RECUPERATE_HP_HEAL_PERCENT / 100) * r / 100;
     if (healAmount == 0)
         healAmount = 1;
-    SetHealAmount(battler, healAmount);
+    bool32 poisoned = (GetStatusRailLevel(battler, RAIL_POISON) != 0); // Fantasy Retold: the Poison line blocks it (design.md §6)
+    if (!poisoned)
+        SetHealAmount(battler, healAmount);
 
     // Fantasy Retold: purge 1 random Level 1 status condition (design.md §6). Level 2+ is immune — that
     // is how persistent conditions and Toxic beat a Recuperate-stalling wall. Propagate the cleared
@@ -978,11 +990,11 @@ void HandleAction_Recuperate(void)
     {
         BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[battler].status1), &gBattleMons[battler].status1);
         MarkBattlerForControllerExec(battler);
-        gBattlescriptCurrInstr = BattleScript_FRRecuperateCured;
+        gBattlescriptCurrInstr = poisoned ? BattleScript_FRRecuperatePoisonedCured : BattleScript_FRRecuperateCured;
     }
     else
     {
-        gBattlescriptCurrInstr = BattleScript_FRRecuperate;
+        gBattlescriptCurrInstr = poisoned ? BattleScript_FRRecuperatePoisoned : BattleScript_FRRecuperate;
     }
     gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
 }
@@ -3779,35 +3791,23 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
                     effect++;
                 }
                 break;
+            // Fantasy Retold: these see every status line and cure like CureStatusRails (Lv3 -> Lv1, design.md §6).
             case ABILITY_HYDRATION:
                 if (IsBattlerWeatherAffected(GetBattlerHoldEffect(battler), GetWeather(), B_WEATHER_RAIN)
-                 && gBattleMons[battler].status1 & STATUS1_ANY)
+                 && HasAnyStatusRail(battler, STATUS_RAILS_NON_VOLATILE))
                 {
                     goto ABILITY_HEAL_MON_STATUS;
                 }
                 break;
             case ABILITY_SHED_SKIN:
-                if ((gBattleMons[battler].status1 & STATUS1_ANY)
+                if (HasAnyStatusRail(battler, STATUS_RAILS_NON_VOLATILE)
                  && (GetConfig(B_ABILITY_TRIGGER_CHANCE) == GEN_4 ? RandomPercentage(RNG_SHED_SKIN, 30) : RandomChance(RNG_SHED_SKIN, 1, 3)))
                 {
                 ABILITY_HEAL_MON_STATUS:
-                    if (gBattleMons[battler].status1 & (STATUS1_POISON | STATUS1_TOXIC_POISON))
-                        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_POISON;
+                    gBattleCommunication[MULTISTRING_CHOOSER] = GetStatusRailCureMessage(battler, STATUS_RAILS_NON_VOLATILE);
                     if (gBattleMons[battler].status1 & STATUS1_SLEEP)
-                    {
-                        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_SLEEP;
                         TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
-                    }
-                    if (gBattleMons[battler].status1 & STATUS1_PARALYSIS)
-                        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_PARALYSIS;
-                    if (gBattleMons[battler].status1 & STATUS1_BURN)
-                        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_BURN;
-                    if (gBattleMons[battler].status1 & STATUS1_FREEZE)
-                        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FREEZE;
-                    if (gBattleMons[battler].status1 & STATUS1_FROSTBITE)
-                        gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FROSTBITE;
-
-                    gBattleMons[battler].status1 = 0;
+                    CureStatusRails(battler, STATUS_RAILS_NON_VOLATILE);
                     gBattleMons[battler].volatiles.nightmare = FALSE;
                     gBattleScripting.battler = battler;
                     BattleScriptCall(BattleScript_ShedSkinActivates);
@@ -3883,7 +3883,7 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
             case ABILITY_HEALER:
                 gBattleScripting.battler = GetPartnerBattler(battler);
                 if (IsBattlerAlive(gBattleScripting.battler)
-                 && gBattleMons[gBattleScripting.battler].status1 & STATUS1_ANY
+                 && HasAnyStatusRail(gBattleScripting.battler, STATUS_RAILS_NON_VOLATILE) // Fantasy Retold
                  && RandomPercentage(RNG_HEALER, 30))
                 {
                     BattleScriptCall(BattleScript_HealerActivates);
@@ -5478,7 +5478,9 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
         }
         else if (IsBurnBlockedByStatusRails(battlerDef))
         {
-            battleScript = BattleScript_ButItFailed;
+            if (option == RUN_SCRIPT)
+                gBattleScripting.savedStringId = GetStatusRailLevel(battlerDef, RAIL_SOAK) != 0 ? STRINGID_FRTOOWETTOBURN : STRINGID_FRTOOCOLDTOBURN;
+            battleScript = BattleScript_FRStatusBlocked;
         }
         else if (IS_BATTLER_OF_TYPE(battlerDef, TYPE_FIRE))
         {
@@ -5500,6 +5502,10 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
         if (GetStatusRailLevel(battlerDef, RAIL_SLEEP) >= GetStatusRailMaxLevel(RAIL_SLEEP))
         {
             battleScript = BattleScript_AlreadyAsleep;
+        }
+        else if (IS_BATTLER_OF_TYPE(battlerDef, TYPE_GHOST)) // Fantasy Retold: Ghosts don't sleep
+        {
+            battleScript = BattleScript_NotAffected;
         }
         else if (UproarWakeUpCheck(battlerDef))
         {
@@ -5532,11 +5538,15 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
         // each other (design.md §6).
         if (GetStatusRailLevel(battlerDef, RAIL_CHILL) >= GetStatusRailMaxLevel(RAIL_CHILL))
         {
-            battleScript = BattleScript_AlreadyBurned;
+            if (option == RUN_SCRIPT)
+                gBattleScripting.savedStringId = GetStatusRailBranch(battlerDef, RAIL_CHILL) == CHILL_BRANCH_FROSTBITTEN ? STRINGID_FRALREADYFROSTBITTEN : STRINGID_FRALREADYFROZEN;
+            battleScript = BattleScript_FRStatusBlocked;
         }
         else if (GetStatusRailLevel(battlerDef, RAIL_BURN) != 0)
         {
-            battleScript = BattleScript_ButItFailed;
+            if (option == RUN_SCRIPT)
+                gBattleScripting.savedStringId = STRINGID_FRTOOHOTTOCHILL;
+            battleScript = BattleScript_FRStatusBlocked;
         }
         else if (IS_BATTLER_OF_TYPE(battlerDef, TYPE_ICE) || IsBattlerWeatherAffected(GetBattlerHoldEffect(battlerDef), GetWeather(), B_WEATHER_SUN))
         {
@@ -5647,6 +5657,7 @@ bool32 CanBeConfused(enum BattlerId battlerAtk, enum BattlerId effectBattler)
 
     // Fantasy Retold: confusion advances Confused -> Stupefied -> Frightened; only the top level blocks it.
     if (GetStatusRailLevel(effectBattler, RAIL_CONFUSION) >= GetStatusRailMaxLevel(RAIL_CONFUSION)
+     || IS_BATTLER_OF_TYPE(effectBattler, TYPE_PSYCHIC)
      || IsSafeguardProtected(battlerAtk, effectBattler, GetBattlerAbility(battlerAtk))
      || IsMistyTerrainAffected(effectBattler, effectAbility, GetBattlerHoldEffect(effectBattler), gFieldTimers.terrain)
      || IsAbilityAndRecord(effectBattler, effectAbility, ABILITY_OWN_TEMPO))
@@ -6408,7 +6419,9 @@ static inline u32 CalcMoveBasePower(struct DamageContext *ctx)
         break;
     case EFFECT_DOUBLE_POWER_ON_ARG_STATUS:
         // Comatose targets treated as if asleep
-        if ((gBattleMons[battlerDef].status1 | (STATUS1_SLEEP * (ctx->abilities[ctx->battlerDef] == ABILITY_COMATOSE))) & GetMoveEffectArg_Status(move)
+        // Fantasy Retold: Lv2+ of the matching line counts (any line or Soaked for Hex-like moves, design.md §6)
+        if ((HasStatusRailConditionForStatus1(battlerDef, GetMoveEffectArg_Status(move))
+          || (ctx->abilities[ctx->battlerDef] == ABILITY_COMATOSE && (GetMoveEffectArg_Status(move) & STATUS1_SLEEP)))
          && !((GetMoveAdditionalEffectById(move, 0)->moveEffect == MOVE_EFFECT_REMOVE_STATUS) && DoesSubstituteBlockMove(battlerAtk, battlerDef, move)))
             basePower *= 2;
         break;
@@ -6628,7 +6641,7 @@ static inline u32 CalcMoveBasePowerAfterModifiers(struct DamageContext *ctx)
     switch (moveEffect)
     {
     case EFFECT_FACADE:
-        if (gBattleMons[battlerAtk].status1 & (STATUS1_BURN | STATUS1_PSN_ANY | STATUS1_PARALYSIS | STATUS1_FROSTBITE))
+        if (HasStatusRailCondition(battlerAtk)) // Fantasy Retold: Lv2+ of any line, or Soaked
             modifier = uq4_12_multiply(modifier, UQ_4_12(2.0));
         break;
     case EFFECT_BRINE:
@@ -6706,11 +6719,11 @@ static inline u32 CalcMoveBasePowerAfterModifiers(struct DamageContext *ctx)
            modifier = uq4_12_multiply(modifier, UQ_4_12(1.5));
         break;
     case ABILITY_FLARE_BOOST:
-        if (gBattleMons[battlerAtk].status1 & STATUS1_BURN && IsBattleMoveSpecial(move))
+        if (GetStatusRailLevel(battlerAtk, RAIL_BURN) >= 2 && IsBattleMoveSpecial(move)) // Fantasy Retold
            modifier = uq4_12_multiply(modifier, UQ_4_12(1.5));
         break;
     case ABILITY_TOXIC_BOOST:
-        if (gBattleMons[battlerAtk].status1 & STATUS1_PSN_ANY && IsBattleMovePhysical(move))
+        if (GetStatusRailLevel(battlerAtk, RAIL_POISON) >= 2 && IsBattleMovePhysical(move)) // Fantasy Retold
            modifier = uq4_12_multiply(modifier, UQ_4_12(1.5));
         break;
     case ABILITY_RECKLESS:
@@ -7132,7 +7145,7 @@ static inline u32 CalcAttackStat(struct DamageContext *ctx)
             modifier = uq4_12_multiply_half_down(modifier, UQ_4_12(2.0));
         break;
     case ABILITY_GUTS:
-        if (gBattleMons[battlerAtk].status1 & STATUS1_ANY && IsBattleMovePhysical(move))
+        if (HasStatusRailCondition(battlerAtk) && IsBattleMovePhysical(move)) // Fantasy Retold
             modifier = uq4_12_multiply_half_down(modifier, UQ_4_12(1.5));
         break;
     case ABILITY_TRANSISTOR:
@@ -7318,7 +7331,7 @@ static inline u32 CalcDefenseStat(struct DamageContext *ctx)
     switch (ctx->abilities[ctx->battlerDef])
     {
     case ABILITY_MARVEL_SCALE:
-        if (gBattleMons[battlerDef].status1 & STATUS1_ANY && usesDefStat)
+        if (HasStatusRailCondition(battlerDef) && usesDefStat) // Fantasy Retold
         {
             modifier = uq4_12_multiply_half_down(modifier, UQ_4_12(1.5));
             if (ctx->updateFlags)
@@ -8182,7 +8195,7 @@ s32 CalcCritChanceStage(struct DamageContext *ctx)
     }
     else if (gBattleMons[ctx->battlerAtk].volatiles.laserFocusTimer > 0
           || MoveAlwaysCrits(ctx->move)
-          || (ctx->abilities[ctx->battlerAtk] == ABILITY_MERCILESS && gBattleMons[ctx->battlerDef].status1 & STATUS1_PSN_ANY))
+          || (ctx->abilities[ctx->battlerAtk] == ABILITY_MERCILESS && GetStatusRailLevel(ctx->battlerDef, RAIL_POISON) >= 2))
     {
         critChance = CRITICAL_HIT_ALWAYS;
     }
@@ -8265,7 +8278,7 @@ s32 CalcCritChanceStageGen1(struct DamageContext *ctx)
     }
     else if (gBattleMons[ctx->battlerAtk].volatiles.laserFocusTimer > 0
           || MoveAlwaysCrits(ctx->move)
-          || (ctx->abilities[ctx->battlerAtk] == ABILITY_MERCILESS && gBattleMons[ctx->battlerDef].status1 & STATUS1_PSN_ANY))
+          || (ctx->abilities[ctx->battlerAtk] == ABILITY_MERCILESS && GetStatusRailLevel(ctx->battlerDef, RAIL_POISON) >= 2))
     {
         critChance = CRITICAL_HIT_ALWAYS;
     }
@@ -9227,11 +9240,14 @@ void SetIllusionMon(struct Pokemon *mon, enum BattlerId battler)
 enum ImmunityHealStatusOutcome TryImmunityAbilityHealStatus(enum BattlerId battler)
 {
     enum ImmunityHealStatusOutcome outcome = IMMUNITY_NO_EFFECT;
+    enum StatusRail clearedRail = NUM_STATUS_RAILS; // Fantasy Retold: the immune line is wiped at every level
+
     switch (GetBattlerAbilityIgnoreMoldBreaker(battler))
     {
     case ABILITY_IMMUNITY:
     case ABILITY_PASTEL_VEIL:
-        if (gBattleMons[battler].status1 & (STATUS1_POISON | STATUS1_TOXIC_POISON | STATUS1_TOXIC_COUNTER))
+        clearedRail = RAIL_POISON;
+        if (GetStatusRailLevel(battler, RAIL_POISON) != 0)
         {
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_POISON;
             outcome = IMMUNITY_STATUS_CLEARED;
@@ -9245,7 +9261,8 @@ enum ImmunityHealStatusOutcome TryImmunityAbilityHealStatus(enum BattlerId battl
         }
         break;
     case ABILITY_LIMBER:
-        if (gBattleMons[battler].status1 & STATUS1_PARALYSIS)
+        clearedRail = RAIL_ELECTRIC;
+        if (GetStatusRailLevel(battler, RAIL_ELECTRIC) != 0)
         {
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_PARALYSIS;
             outcome = IMMUNITY_STATUS_CLEARED;
@@ -9253,7 +9270,8 @@ enum ImmunityHealStatusOutcome TryImmunityAbilityHealStatus(enum BattlerId battl
         break;
     case ABILITY_INSOMNIA:
     case ABILITY_VITAL_SPIRIT:
-        if (gBattleMons[battler].status1 & STATUS1_SLEEP)
+        clearedRail = RAIL_SLEEP;
+        if (GetStatusRailLevel(battler, RAIL_SLEEP) != 0)
         {
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_SLEEP;
             TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
@@ -9264,21 +9282,18 @@ enum ImmunityHealStatusOutcome TryImmunityAbilityHealStatus(enum BattlerId battl
     case ABILITY_WATER_VEIL:
     case ABILITY_WATER_BUBBLE:
     case ABILITY_THERMAL_EXCHANGE:
-        if (gBattleMons[battler].status1 & STATUS1_BURN)
+        clearedRail = RAIL_BURN;
+        if (GetStatusRailLevel(battler, RAIL_BURN) != 0)
         {
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_BURN;
             outcome = IMMUNITY_STATUS_CLEARED;
         }
         break;
     case ABILITY_MAGMA_ARMOR:
-        if (gBattleMons[battler].status1 & STATUS1_FREEZE)
+        clearedRail = RAIL_CHILL;
+        if (GetStatusRailLevel(battler, RAIL_CHILL) != 0)
         {
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FREEZE;
-            outcome = IMMUNITY_STATUS_CLEARED;
-        }
-        else if (gBattleMons[battler].status1 & STATUS1_FROSTBITE)
-        {
-            gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FROSTBITE;
+            gBattleCommunication[MULTISTRING_CHOOSER] = GetStatusRailCureMessage(battler, STATUS_RAIL_BIT(RAIL_CHILL));
             outcome = IMMUNITY_STATUS_CLEARED;
         }
         break;
@@ -9301,11 +9316,11 @@ enum ImmunityHealStatusOutcome TryImmunityAbilityHealStatus(enum BattlerId battl
     switch (outcome)
     {
     case IMMUNITY_STATUS_CLEARED:
-        gBattleMons[battler].status1 = 0;
+        ClearStatusRail(battler, clearedRail);
         BattleScriptCall(BattleScript_AbilityCuredStatus);
         break;
     case IMMUNITY_CONFUSION_CLEARED:
-        gBattleMons[battler].volatiles.confusionTimer = 0;
+        ClearStatusRail(battler, RAIL_CONFUSION);
         BattleScriptCall(BattleScript_AbilityCuredStatus);
         break;
     case IMMUNITY_INFATUATION_CLEARED:
@@ -9927,21 +9942,37 @@ bool32 AreBattlersOfSameGender(enum BattlerId battler1, enum BattlerId battler2)
     return (gender1 != MON_GENDERLESS && gender2 != MON_GENDERLESS && gender1 == gender2);
 }
 
+// Fantasy Retold: a status-rail effect (design.md §6): one of the statuses, or a random pick (Tri Attack, Dire
+// Claw) from a list of nothing but statuses.
+static bool32 IsStatusRailAdditionalEffect(const struct AdditionalEffect *additionalEffect)
+{
+    u32 i;
+
+    if (additionalEffect->moveEffect >= MOVE_EFFECT_SLEEP && additionalEffect->moveEffect <= MOVE_EFFECT_CONFUSION)
+        return TRUE;
+    if (additionalEffect->moveEffect != MOVE_EFFECT_RANDOM_FROM_LIST
+     || additionalEffect->argument.randomMoveEffects[0] == MOVE_EFFECT_NONE)
+        return FALSE;
+    for (i = 0; i < MAX_RANDOM_ADDITIONAL_EFFECTS && additionalEffect->argument.randomMoveEffects[i] != MOVE_EFFECT_NONE; i++)
+    {
+        enum MoveEffect effect = additionalEffect->argument.randomMoveEffects[i];
+        if (effect < MOVE_EFFECT_SLEEP || effect > MOVE_EFFECT_CONFUSION)
+            return FALSE;
+    }
+    return TRUE;
+}
+
 u32 CalcSecondaryEffectChance(enum BattlerId battler, enum Ability battlerAbility, const struct AdditionalEffect *additionalEffect)
 {
-    bool8 hasSereneGrace = (battlerAbility == ABILITY_SERENE_GRACE);
-    bool8 hasRainbow = (gSideStatuses[GetBattlerSide(battler)] & SIDE_STATUS_RAINBOW) != 0;
+    bool32 isStatusEffect = IsStatusRailAdditionalEffect(additionalEffect);
+    // Fantasy Retold: for statuses these give extra rolls instead (RollSecondaryEffect).
+    bool8 hasSereneGrace = (battlerAbility == ABILITY_SERENE_GRACE) && !isStatusEffect;
+    bool8 hasRainbow = (gSideStatuses[GetBattlerSide(battler)] & SIDE_STATUS_RAINBOW) != 0 && !isStatusEffect;
     u32 secondaryEffectChance = additionalEffect->chance;
     enum MoveEffect moveEffect = additionalEffect->moveEffect;
-    bool32 isStatusEffect = (moveEffect >= MOVE_EFFECT_SLEEP && moveEffect <= MOVE_EFFECT_CONFUSION);
 
     // Attacking moves are twice as likely to inflict a status condition.
     if (isStatusEffect && !IsBattleMoveStatus(gCurrentMove))
-        secondaryEffectChance *= 2;
-
-    // Fantasy Retold: a Shocked (or Paralyzed) target is twice as easy to push down the Electric line.
-    if (moveEffect == MOVE_EFFECT_PARALYSIS && !additionalEffect->self
-     && GetStatusRailLevel(gBattlerTarget, RAIL_ELECTRIC) >= 2)
         secondaryEffectChance *= 2;
 
     // Serene Grace and Rainbow each grant 1.5x (down from 2x), and stack.
@@ -9955,6 +9986,27 @@ u32 CalcSecondaryEffectChance(enum BattlerId battler, enum Ability battlerAbilit
         secondaryEffectChance = secondaryEffectChance * 3 / 2;
 
     return secondaryEffectChance;
+}
+
+// Fantasy Retold: Serene Grace and Rainbow each give a status effect one more roll instead of a higher chance;
+// it only fails if every roll fails (design.md §6).
+bool32 RollSecondaryEffect(enum BattlerId battler, enum Ability battlerAbility, const struct AdditionalEffect *additionalEffect, u32 percentChance, u32 rngTag)
+{
+    u32 rolls = 1;
+
+    if (IsStatusRailAdditionalEffect(additionalEffect))
+    {
+        if (battlerAbility == ABILITY_SERENE_GRACE)
+            rolls++;
+        if (gSideStatuses[GetBattlerSide(battler)] & SIDE_STATUS_RAINBOW)
+            rolls++;
+    }
+    while (rolls-- != 0)
+    {
+        if (RandomPercentage(rngTag, percentChance))
+            return TRUE;
+    }
+    return FALSE;
 }
 
 bool32 MoveEffectIsGuaranteed(enum BattlerId battler, enum Ability battlerAbility, const struct AdditionalEffect *additionalEffect)
@@ -10578,8 +10630,7 @@ bool32 ItemHealMonVolatile(enum BattlerId battler, enum Item itemId)
     {
         statusChanged = (gBattleMons[battler].volatiles.infatuation || gBattleMons[battler].volatiles.confusionTimer > 0);
         gBattleMons[battler].volatiles.infatuation = 0;
-        ClearAllStatusRails(battler); // Fantasy Retold: a full cure clears every status line (design.md §6)
-        gBattleMons[battler].volatiles.confusionTimer = 0;
+        CureAllStatusRails(battler, FALSE); // Fantasy Retold: Lv3 drops to Lv1, the rest clear (design.md §6)
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_CONFUSION;
     }
     else if (effect[0] & ITEM0_INFATUATION)
@@ -10870,8 +10921,9 @@ u32 GetTotalAccuracy(struct BattleCalcValues *cv, u32 weather)
     if (gBattleStruct->battlerState[battlerAtk].usedMicleBerry)
         calc = (calc * 120) / 100;  // 20% acc boost
 
-    // Fantasy Retold: Dazed / Shocked / Paralyzed attacker (design.md §6)
+    // Fantasy Retold: the Electric line misses more and is hit more (design.md §6)
     calc = (calc * GetStatusRailAccuracyPercent(battlerAtk)) / 100;
+    calc = (calc * GetStatusRailIncomingAccuracyPercent(battlerDef)) / 100;
 
     if (gFieldStatuses & STATUS_FIELD_GRAVITY)
         calc = (calc * 5) / 3; // 1.66 Gravity acc boost

@@ -1067,11 +1067,17 @@ bool8 UpdateRepelCounter(void)
     return FALSE;
 }
 
+// Fantasy Retold: the start-menu toggle works like a Repel that never wears off.
+bool32 IsRepelActive(void)
+{
+    return REPEL_STEP_COUNT != 0 || FlagGet(FLAG_INFINITE_REPEL);
+}
+
 bool8 IsWildLevelAllowedByRepel(u8 wildLevel)
 {
     u8 i;
 
-    if (!REPEL_STEP_COUNT)
+    if (!IsRepelActive())
         return TRUE;
 
     for (i = 0; i < PARTY_SIZE; i++)

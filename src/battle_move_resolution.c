@@ -141,19 +141,22 @@ static enum CancelerResult CancelerAsleepOrFrozen(struct BattleCalcValues *cv)
         else
         {
             // Fantasy Retold: the Sleep line counts down at end of turn and on hits (status_rail.c), not
-            // here, so an Asleep / Nightmare battler just can't act (Snore / Sleep Talk still work).
-            if (cv->moveEffect == EFFECT_SNORE)
+            // here, so an Asleep / Nightmare battler just can't act (Snore / Sleep Talk work while Asleep,
+            // not in a Nightmare).
+            bool32 nightmare = (GetStatusRailLevel(cv->battlerAtk, RAIL_SLEEP) >= 3);
+
+            if (cv->moveEffect == EFFECT_SNORE && !nightmare)
             {
                 BattleScriptCall(BattleScript_BeforeSnoreMessage);
                 result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
             }
-            else if (cv->moveEffect == EFFECT_SLEEP_TALK)
+            else if (cv->moveEffect == EFFECT_SLEEP_TALK && !nightmare)
             {
                 result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
             }
             else
             {
-                gBattlescriptCurrInstr = BattleScript_MoveUsedIsAsleep;
+                gBattlescriptCurrInstr = nightmare ? BattleScript_FRMoveUsedInNightmare : BattleScript_MoveUsedIsAsleep;
                 result = CANCELER_RESULT_FAILURE;
             }
         }
@@ -385,6 +388,11 @@ static enum CancelerResult CancelerConfused(struct BattleCalcValues *cv)
     {
         bool32 hitsItself = RandomPercentage(RNG_CONFUSION, (GetConfig(B_CONFUSION_SELF_DMG_CHANCE) >= GEN_7 ? 33 : 50));
 
+        // First line of the confusion scripts: the level it is at.
+        gBattleScripting.savedStringId = confusionLevel >= 3 ? STRINGID_FRISFRIGHTENEDATK
+                                       : confusionLevel == 2 ? STRINGID_FRISSTUPEFIEDATK
+                                       : STRINGID_PKMNISCONFUSED;
+
         if (confusionLevel >= 3
          && (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
          && !(gBattleTypeFlags & BATTLE_TYPE_ARENA)
@@ -399,21 +407,19 @@ static enum CancelerResult CancelerConfused(struct BattleCalcValues *cv)
             return CANCELER_RESULT_FAILURE;
         }
 
-        if (!hitsItself && confusionLevel >= 2 && RandomPercentage(RNG_STUPEFIED, STUPEFIED_CHANCE))
-        {
-            enum BattlerId ally = GetPartnerBattler(cv->battlerAtk);
-            if (IsDoubleBattle() && IsBattlerAlive(ally) && !IsBattleMoveStatus(cv->move))
-                gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect = TRUE; // CancelerSetTargets
-            else
-                hitsItself = TRUE;
-        }
+        // Stupefied+: the move turns on the ally, or on the user itself. Either way the user also takes the
+        // vanilla self-hit, so the proc is never milder than plain confusion.
+        bool32 stupefied = (!hitsItself && confusionLevel >= 2 && RandomPercentage(RNG_STUPEFIED, STUPEFIED_CHANCE));
 
         // confusion dmg
-        if (hitsItself)
+        if (hitsItself || stupefied)
         {
-            gBattleCommunication[MULTISTRING_CHOOSER] = TRUE;
-            gBattlerTarget = gBattlerAttacker;
+            enum BattlerId ally = GetPartnerBattler(cv->battlerAtk);
+            enum MoveTarget moveTarget = GetBattlerMoveTargetType(cv->battlerAtk, cv->move);
+            bool32 singleTargetAttack = !IsBattleMoveStatus(cv->move) && !IsSpreadMove(moveTarget)
+                                     && moveTarget != TARGET_FIELD && moveTarget != TARGET_OPPONENTS_FIELD;
             struct DamageContext dmgCtx = {0};
+
             dmgCtx.battlerAtk = dmgCtx.battlerDef = cv->battlerAtk;
             dmgCtx.move = dmgCtx.chosenMove = dmgCtx.baseMove = MOVE_NONE;
             dmgCtx.moveType = TYPE_MYSTERY;
@@ -425,15 +431,34 @@ static enum CancelerResult CancelerConfused(struct BattleCalcValues *cv)
             dmgCtx.abilities[gBattlerAttacker] = cv->abilities[gBattlerAttacker];
             dmgCtx.holdEffects[gBattlerAttacker] = cv->holdEffects[gBattlerAttacker];
             gBattleStruct->passiveHpUpdate[cv->battlerAtk] = CalculateMoveDamage(&dmgCtx);
+
+            if (stupefied && singleTargetAttack)
+            {
+                if (IsDoubleBattle() && IsBattlerAlive(ally)
+                 && gBattleStruct->passiveHpUpdate[cv->battlerAtk] < gBattleMons[cv->battlerAtk].hp)
+                {
+                    // Take the self-hit, then the move goes on against the ally (CancelerSetTargets).
+                    gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect = TRUE;
+                    BattleScriptCall(BattleScript_FRStupefiedSelfHitRet);
+                    return CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
+                }
+
+                // No ally to turn on: the move's own damage lands on the user too.
+                dmgCtx.move = dmgCtx.chosenMove = dmgCtx.baseMove = cv->move;
+                dmgCtx.moveType = GetBattleMoveType(cv->move);
+                dmgCtx.fixedBasePower = 0;
+                dmgCtx.updateFlags = FALSE;
+                gBattleStruct->passiveHpUpdate[cv->battlerAtk] += CalculateMoveDamage(&dmgCtx);
+                gBattleCommunication[MULTISTRING_CHOOSER] = 2; // "It turned its own attack on itself!"
+            }
+            else
+            {
+                gBattleCommunication[MULTISTRING_CHOOSER] = TRUE;
+            }
+
+            gBattlerTarget = gBattlerAttacker;
             gBattlescriptCurrInstr = BattleScript_MoveUsedIsConfused;
             return CANCELER_RESULT_FAILURE;
-        }
-
-        if (gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect)
-        {
-            gBattleScripting.savedStringId = STRINGID_FRTURNEDONALLY;
-            BattleScriptCall(BattleScript_FRRailMessageRet);
-            return CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
         }
 
         gBattleCommunication[MULTISTRING_CHOOSER] = FALSE;
@@ -928,8 +953,7 @@ static enum CancelerResult CancelerSetTargets(struct BattleCalcValues *cv)
     if (gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect)
     {
         gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect = FALSE;
-        if (!IsSpreadMove(moveTarget) && moveTarget != TARGET_FIELD && moveTarget != TARGET_OPPONENTS_FIELD
-         && IsBattlerAlive(GetPartnerBattler(cv->battlerAtk)))
+        if (IsBattlerAlive(GetPartnerBattler(cv->battlerAtk)))
             cv->battlerDef = GetPartnerBattler(cv->battlerAtk);
     }
 
@@ -2653,7 +2677,7 @@ static enum CancelerResult CancelerPreAttackMoveEffect(struct BattleCalcValues *
             u32 percentChance = CalcSecondaryEffectChance(cv->battlerAtk, cv->abilities[cv->battlerAtk], additionalEffect);
 
             // Activate effect if it's primary (chance == 0) or if RNGesus says so
-            if ((percentChance == 0) || RandomPercentage(RNG_SECONDARY_EFFECT + gBattleStruct->additionalEffectsCounter, percentChance))
+            if ((percentChance == 0) || RollSecondaryEffect(cv->battlerAtk, cv->abilities[cv->battlerAtk], additionalEffect, percentChance, RNG_SECONDARY_EFFECT + gBattleStruct->additionalEffectsCounter))
             {
                 se.additionalEffect = additionalEffect;
                 se.moveEffect = additionalEffect->moveEffect;
@@ -4215,19 +4239,23 @@ static enum MoveEndResult MoveEndDefrost(struct BattleCalcValues *cv)
 
 // Fantasy Retold: status rails after a damaging move (design.md §6). For the user and every battler it hit:
 // the type interaction (Fire thaws the Chill line, Water / Ice ease a Burn, Ground drains the Electric line),
-// a Water hit may Soak, and a hit takes a turn off the Sleep line. One message per call; railMoveEndStep walks
-// battler * 4 + step so nothing is applied twice.
+// Ice damage renews the Chill line, a Water hit may Soak (or douse a Burn), an Electric hit may paralyze a
+// Shocked mon, a critical Ghost / Psychic hit tops out the Sleep / Confusion line, and a hit may take a turn
+// off the Sleep line. One message per call; railMoveEndStep walks battler * RAIL_MOVEEND_STEPS + step so
+// nothing is applied twice.
+#define RAIL_MOVEEND_STEPS 5
+
 static enum MoveEndResult MoveEndStatusRails(struct BattleCalcValues *cv)
 {
     enum Type moveType = GetBattleMoveType(cv->move);
 
     if (IsBattleMoveStatus(cv->move) || gBattleStruct->unableToUseMove)
-        gBattleStruct->railMoveEndStep = gBattlersCount * 4; // nothing to do
+        gBattleStruct->railMoveEndStep = gBattlersCount * RAIL_MOVEEND_STEPS; // nothing to do
 
-    while (gBattleStruct->railMoveEndStep < gBattlersCount * 4)
+    while (gBattleStruct->railMoveEndStep < gBattlersCount * RAIL_MOVEEND_STEPS)
     {
-        enum BattlerId battler = gBattleStruct->railMoveEndStep / 4;
-        u32 step = gBattleStruct->railMoveEndStep % 4;
+        enum BattlerId battler = gBattleStruct->railMoveEndStep / RAIL_MOVEEND_STEPS;
+        u32 step = gBattleStruct->railMoveEndStep % RAIL_MOVEEND_STEPS;
         bool32 isUser = (battler == cv->battlerAtk);
         bool32 wasHit = !isUser && IsBattlerTurnDamaged(battler, EXCLUDING_SUBSTITUTES);
         u32 stringId = 0;
@@ -4243,11 +4271,22 @@ static enum MoveEndResult MoveEndStatusRails(struct BattleCalcValues *cv)
                 stringId = ApplyStatusRailTypeInteraction(battler, moveType);
             break;
         case 1:
-            if (wasHit && TrySoakFromHit(battler, moveType))
-                stringId = STRINGID_FRSOAKEDHIT;
+            if (wasHit)
+            {
+                TryRenewChillFromHit(battler, moveType);
+                stringId = TrySoakFromHit(battler, moveType);
+            }
             break;
         case 2:
-            if (wasHit && TrySleepRailValve(battler))
+            if (wasHit && TryShockedParalysisFromHit(cv->battlerAtk, battler, moveType))
+                stringId = STRINGID_FRSHOCKPARALYZED;
+            break;
+        case 3:
+            if (wasHit && gSpecialStatuses[battler].criticalHit)
+                stringId = TryCritStatusRailUpgrade(cv->battlerAtk, battler, moveType);
+            break;
+        case 4:
+            if (wasHit && TrySleepRailValve(battler, moveType))
             {
                 TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
                 gBattleMons[battler].volatiles.nightmare = FALSE;
@@ -4261,7 +4300,7 @@ static enum MoveEndResult MoveEndStatusRails(struct BattleCalcValues *cv)
         if (stringId != 0)
         {
             EmitStatusRailMirror(battler);
-            gBattleScripting.battler = battler;
+            gBattleScripting.battler = gEffectBattler = battler;
             gBattleScripting.savedStringId = stringId;
             BattleScriptCall(BattleScript_FRRailMessageRet);
             return MOVEEND_RESULT_RUN_SCRIPT;

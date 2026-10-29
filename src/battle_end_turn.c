@@ -1026,7 +1026,7 @@ static bool32 HandleEndTurnYawn(enum BattlerId battler)
     {
         gBattleMons[battler].volatiles.yawn--;
         if (!gBattleMons[battler].volatiles.yawn
-         && !(gBattleMons[battler].status1 & STATUS1_ANY)
+         && GetStatusRailLevel(battler, RAIL_SLEEP) == 1 // Fantasy Retold: still Drowsy (not cured, not deeper)
          && ability != ABILITY_VITAL_SPIRIT
          && ability != ABILITY_INSOMNIA
          && !UproarWakeUpCheck(battler)
