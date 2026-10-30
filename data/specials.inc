@@ -643,3 +643,8 @@ gSpecials::
 	def_special GymReward_BufferType
 	def_special GymReward_RollItem
 	def_special GymReward_GiveEgg
+	def_special EggShop_Restock
+	def_special EggShop_BufferMenu
+	def_special EggShop_BufferOffer
+	def_special EggShop_CanAfford
+	def_special EggShop_Buy

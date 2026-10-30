@@ -581,7 +581,7 @@ struct BattlerState
 // CurrentSta/BaseSta after the refill, so a typical Recuperate heals ~5-10%.
 #define RECUPERATE_HP_HEAL_PERCENT 12
 // Fantasy Retold: EXP is doubled (wild battles only) when the earner is within this many levels of the fainted mon, halved otherwise.
-#define EXP_LEVEL_BAND 3
+#define EXP_LEVEL_BAND 4
 
 // Fantasy Retold: per-rail status state (design.md §6). See enum StatusRail in constants/battle.h.
 struct StatusRailEntry

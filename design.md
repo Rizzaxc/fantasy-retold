@@ -424,7 +424,7 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 
 EXP rewards fighting opponents near your own level and discourages both over-levelling and power-levelling.
 
-* **Rule.** Each EXP earner compares its level to the fainted Pokémon's. Within **±`EXP_LEVEL_BAND` (3) levels** (inclusive), its EXP is **doubled in wild battles**; trainer battles keep the default rate. Outside the band, its EXP is **halved** in every battle (an award of 1 stays 1).
+* **Rule.** Each EXP earner compares its level to the fainted Pokémon's. Within **±`EXP_LEVEL_BAND` (4) levels** (inclusive), its EXP is **doubled in wild battles**; trainer battles keep the default rate. Outside the band, its EXP is **halved** in every battle (an award of 1 stays 1).
 * **Why wild-only.** Trainer EXP is fixed and can't be farmed, so the bonus would only inflate the planned level curve. Wild battles are the grindable source, and the bonus there pays for catching up to the route's level rather than grinding weak encounters.
 * **Per earner.** The band is checked per Pokémon, so in one battle a Pokémon close in level can earn double while an over-levelled teammate or an Exp. Share holder earns half.
 * **Engine.** This is the last step of `ApplyExperienceMultipliers` (`battle_script_commands.c`). It runs after the vanilla multipliers (traded, Lucky Egg, Exp. Charm, affection, Gen 5+ level scaling), so it stacks with them.
@@ -454,6 +454,21 @@ After the badge and TM, each Hoenn gym leader offers **one extra reward, picked 
 **Flow.** The offer is a two-option menu (`HELD ITEM` / `EGG`). A full bag, or a full party *and* PC, says so and returns to the menu; **B** puts it off, and the leader offers it again whenever talked to until it is claimed. It is offered once per gym (rematches don't repeat it).
 
 * **Engine.** `Common_EventScript_GymReward` (`data/scripts/gym_reward.inc`), called with `VAR_0x8008` = gym number at the end of each gym's give-TM scripts and in the leader's post-battle talk once the TM is owned. Specials: `GymReward_IsClaimed` / `GymReward_SetClaimed` (`FLAG_GYM_REWARD_1`–`_8`, the old unused flags 0x21–0x28), `GymReward_BufferType` (type name for the offer), `GymReward_RollItem`, `GymReward_GiveEgg` (`PickEggRewardSpecies`, then `ScriptGiveEgg`). Kanto (FRLG) gyms are not hooked.
+
+### Daycare Egg Shop
+
+The Route 117 **Day-Care Lady** also sells Eggs. Talking to her opens `DAY-CARE` / `BUY AN EGG` (B leaves); `DAY-CARE` is the vanilla flow. The shop is a **money sink**: prices are deliberately steep.
+
+* **Stock.** Three Eggs, **one per tier** (Starter, Strong, Powerhouse, in that order), each sold as **`<REGION> <TIER> EGG`** (e.g. `KANTO POWERHOUSE EGG`). Only the region is rolled, **evenly** among the regions that have at least one species in the tier. A bought slot shows `SOLD OUT`. With all three sold she says she has none left.
+* **Species is a surprise.** Like the gym Egg, the species is rolled **when the Egg is bought**, evenly among that tier's species of that region, and stays hidden until it hatches.
+* **Region** of a species: a regional form belongs to its form's region (Galarian Slowpoke → Galar, Paldean Wooper → Paldea, Hisuian Sneasel and White-Striped Basculin → Hisui); otherwise it's the region where its National Dex number debuted.
+* **Prices.** Starter **¥30,000**, Strong **¥60,000**, Powerhouse **¥120,000**. The money is taken only once the Egg is given (party, or PC when the party is full; refused when both are full).
+* **Refresh.** The stock rolls again after every **gym badge**, **rival battle** (May / Brendan on Route 103, Rustboro / Route 104, Route 110, Route 119, Lilycove; Wally in Mauville and at Victory Road) and **Elite Four clear** (Hall of Fame entry). It is refreshed lazily: the shop counts those milestones when opened and rerolls if the count changed since the last stock, so several milestones between visits give one fresh stock. The first visit always stocks.
+* **Pools.** Every species is the Egg that breeding gives (first stage, no incense babies), and only species **obtainable from an Egg in vanilla**: one in a real Egg Group, or a baby that evolves into one (`CanHatchFromEgg`), so fossil chimeras (Dracozolt, Dracovish) and Gimmighoul are out. All pools drop anything **from Hoenn** (the same rule as the gym Egg: neither it nor anything it evolves into has a Hoenn Pokédex number) and anything disabled in the build.
+  * *Starter:* every starter (Bulbasaur … Quaxly), plus **Eevee**.
+  * *Strong:* lines where some member, in any form, has been Smogon **OU or Ubers in any generation**, excluding Starter / Powerhouse lines, legendaries, mythicals, Ultra Beasts and Paradoxes: Bellsprout, Shellder, Gastly, Drowzee, Cubone, Exeggcute, Chansey, Kangaskhan, Smoochum, Scyther, Tauros, Lapras, Porygon, Aerodactyl, Snorlax, Slowpoke, Galarian Slowpoke, Meowth, Nidoran♂, Diglett, Cleffa, Poliwag, Tangela, Onix, Togepi, Pineco, Gligar, Sneasel, Swinub, Houndour, Miltank, Smeargle, Murkrow, Yanma, Aipom, Paldean Wooper, Teddiursa, Riolu, Bronzor, Hippopotas, Snover, Croagunk, Shellos, Rotom, Buneary, Ferroseed, Drilbur, Frillish, Timburr, Solosis, Gothita, Litwick, Axew, Mienfoo, Pawniard, Foongus, Darumaka, Galarian Darumaka, Vullaby, Tympole, Fletchling, Honedge, Klefki, Hawlucha, Mareanie, Mimikyu, Rookidee, Arrokuda, Impidimp, Hatenna, Nacli, Glimmet, Dondozo, Tinkatink, Tandemaus, Duraludon, Applin. (Hoenn-dex lines such as Gyarados, Skarmory, Heracross or Magnezone would qualify but are dropped by the Hoenn rule.)
+  * *Powerhouse:* the pseudo-legendaries (Dratini, Larvitar, Gible, Deino, Goomy, Jangmo-o, Dreepy, Frigibax; Bagon and Beldum are Hoenn), plus Larvesta, Greavard, White-Striped Basculin, Flittle, Mankey, Finizen and Hisuian Sneasel.
+* **Engine.** `src/egg_shop.c` + `Common_EventScript_EggShop` (`data/scripts/egg_shop.inc`), reached from `Route117_PokemonDayCare_EventScript_DaycareWoman`. Each slot is one var (`VAR_EGG_SHOP_SLOT_1`–`_3`, the old unused 0x40F8–0x40FA): tier in bits 0–3, `enum Region` in bits 4–11, bit 15 = in stock (0 = sold). `VAR_EGG_SHOP_STOCK_KEY` (0x40F7) holds milestones + 1 for the current stock (`GetEggShopMilestones`: badge flags, `HasTrainerBeenFought` on the rival trainer IDs, `GAME_STAT_ENTERED_HOF`). Specials: `EggShop_Restock` (restocks if needed, returns Eggs left), `EggShop_BufferMenu` (rows in `STR_VAR_1`–`3`), `EggShop_BufferOffer` / `EggShop_CanAfford` / `EggShop_Buy` (slot in `VAR_0x8004`; `Buy` rolls the species with `PickEggShopSpecies(tier, region)`). Region: `GetEggShopRegion`. The Hoenn rule is `IsInHoennFamily` (`gym_reward.c`, now shared through `gym_reward.h`). Prices are `sEggShopPrices`; slot *n* is tier *n*.
 
 ### Infinite Repel (start menu)
 
@@ -520,6 +535,7 @@ After the badge and TM, each Hoenn gym leader offers **one extra reward, picked 
 | Items      | Itemized Move (held TM)         | learnable TM's move in the L menu; 4 PP per battle, TM not used up |
 | Moves      | Signature Move PP               | 8, persists between battles, refilled by healing                   |
 | Gym reward | Choice per gym                  | random held item (shared pool), or Egg: random non-Hoenn, non-legendary, gym type |
+| Egg shop   | Prices (Starter / Strong / Powerhouse) | ¥30,000 / ¥60,000 / ¥120,000; one `<REGION> <TIER> EGG` per tier, region and species uniform (species hidden), restocked per badge / rival / E4 clear |
 | Pacing     | Time-to-death (physical)        | frail 5–7 / mid 7–10 / giga 10+ turns                              |
 | Sweep      | Optimal-case trade              | 1 for 2–2.5                                                        |
 

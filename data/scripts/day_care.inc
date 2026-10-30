@@ -71,6 +71,12 @@ Route117_EventScript_CheckOnTwoMons::
 Route117_PokemonDayCare_EventScript_DaycareWoman::
 	lock
 	faceplayer
+	@ Fantasy Retold: she also runs the egg shop (design.md §10).
+	message Route117_PokemonDayCare_Text_DayCareOrEggShop
+	waitmessage
+	dynmultichoice 19, 6, FALSE, 2, 0, DYN_MULTICHOICE_CB_NONE, gText_EggShopChoiceDayCare, gText_EggShopChoiceEggShop
+	goto_if_eq VAR_RESULT, 1, Common_EventScript_EggShop
+	goto_if_ne VAR_RESULT, 0, Route117_PokemonDayCare_EventScript_ComeAgain
 	specialvar VAR_RESULT, GetDaycareState
 	goto_if_eq VAR_RESULT, DAYCARE_EGG_WAITING, Route117_PokemonDayCare_EventScript_EggWaiting
 	goto_if_eq VAR_RESULT, DAYCARE_ONE_MON, Route117_PokemonDayCare_EventScript_OneMonInDaycare
@@ -319,6 +325,10 @@ Route117_Text_YourMonsAreDoingFine:
 Route117_Text_IWillKeepDoYouWantIt:
 	.string "I really will keep it.\n"
 	.string "You do want this, yes?$"
+
+Route117_PokemonDayCare_Text_DayCareOrEggShop:
+	.string "Hello, dear.\n"
+	.string "What can I do for you?$"
 
 Route117_PokemonDayCare_Text_WouldYouLikeUsToRaiseAMon:
 	.string "I'm the DAY-CARE LADY.\p"

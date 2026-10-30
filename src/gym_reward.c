@@ -1,6 +1,7 @@
 #include "global.h"
 #include "battle_main.h"
 #include "event_data.h"
+#include "gym_reward.h"
 #include "pokemon.h"
 #include "random.h"
 #include "script_pokemon_util.h"
@@ -87,8 +88,8 @@ u16 GymReward_RollItem(void)
     return sGymRewardItems[Random() % ARRAY_COUNT(sGymRewardItems)];
 }
 
-// TRUE if the species or anything it evolves into has a Hoenn Pokédex number.
-static bool32 IsInHoennFamily(enum Species species, u32 depth)
+// TRUE if the species or anything it evolves into has a Hoenn Pokédex number. Shared with the egg shop.
+bool32 IsInHoennFamily(enum Species species, u32 depth)
 {
     if (SpeciesToHoennPokedexNum(species) != 0)
         return TRUE;
