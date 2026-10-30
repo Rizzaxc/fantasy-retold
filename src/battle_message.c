@@ -945,7 +945,8 @@ const u8 *const gBattleStringsTable[STRINGID_COUNT] =
     [STRINGID_FRTOOWETTOBURN]                       = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} is too wet to be burned!"), // Fantasy Retold
     [STRINGID_FRTOOCOLDTOBURN]                      = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX} is too cold to be burned!"), // Fantasy Retold
     [STRINGID_FRTOOHOTTOCHILL]                      = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s burn keeps the cold away!"), // Fantasy Retold
-    [STRINGID_FRPOISONBLOCKSHEAL]                   = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX}'s poison kept it from healing!"), // Fantasy Retold
+    [STRINGID_FRPOISONBLOCKSHEAL]                   = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s poison kept it from healing!"), // Fantasy Retold
+    [STRINGID_FRPOISONBLOCKSLEECHSEED]              = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s poison stopped its Leech Seed!"), // Fantasy Retold
     [STRINGID_FRITEMIZEDMOVELOST]                   = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} no longer has its TM!"), // Fantasy Retold
 };
 

@@ -74,6 +74,7 @@ static void HandleSetEffectConfusion(struct BattleCalcValues *cv, struct SetEffe
         // Fantasy Retold: Confused (Lv1) -> Stupefied (Lv2) -> Frightened (Lv3); a status move starts at
         // Stupefied, a secondary at Confused. 3 turns, kept when the line advances (design.md §6).
         u8 level = ApplyStatusRailOrSynchronize(se->effectBattler, RAIL_CONFUSION, se->primary ? 2 : 1);
+        gBattleStruct->statusRailsAppliedByMove[se->effectBattler] |= STATUS_RAIL_BIT(RAIL_CONFUSION);
         gEffectBattler = se->effectBattler;
         BattleScriptPush(se->script);
         if (level == 1)

@@ -1214,7 +1214,12 @@ static void Cmd_healthbarupdate(void)
     // Fantasy Retold: the Poison line blocks heals of maxHP/16 or less (design.md §6).
     if (gBattleStruct->passiveHpUpdate[battler] < 0
      && IsHealBlockedByStatusRails(battler, -gBattleStruct->passiveHpUpdate[battler]))
+    {
         gBattleStruct->passiveHpUpdate[battler] = 0;
+        gBattleScripting.battler = battler;
+        BattleScriptCall(BattleScript_FRPoisonBlocksHeal);
+        return;
+    }
 
     BtlController_EmitHealthBarUpdate(battler, B_COMM_TO_CONTROLLER, min(gBattleStruct->passiveHpUpdate[battler], 10000));
     MarkBattlerForControllerExec(battler);
@@ -1776,6 +1781,8 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
     {
     case MOVE_EFFECT_SLEEP:
         level = ApplyStatusRailOrSynchronize(effectBattler, RAIL_SLEEP, railMinLevel);
+        if (trigger == TRIGGER_ON_MOVE)
+            gBattleStruct->statusRailsAppliedByMove[effectBattler] |= STATUS_RAIL_BIT(RAIL_SLEEP);
         if (level == 1)
         {
             gBattleScripting.savedStringId = STRINGID_FRDROWSY;

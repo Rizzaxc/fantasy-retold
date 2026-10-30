@@ -748,6 +748,8 @@ extern const u8 BattleScript_FRStatusBlocked[];          // Fantasy Retold: stat
 extern const u8 BattleScript_FRMoveUsedInNightmare[];    // Fantasy Retold: status rails
 extern const u8 BattleScript_FRRecuperatePoisoned[];     // Fantasy Retold: R innate command while poisoned
 extern const u8 BattleScript_FRRecuperatePoisonedCured[]; // Fantasy Retold: R innate command while poisoned
+extern const u8 BattleScript_FRPoisonBlocksHeal[]; // Fantasy Retold: poison blocks a healing effect
+extern const u8 BattleScript_FRPoisonBlocksLeechSeed[]; // Fantasy Retold: poison blocks Leech Seed drain damage
 extern const u8 BattleScript_AlreadyConfused[];
 extern const u8 BattleScript_FRRecuperateCured[]; // Fantasy Retold: R innate command that purged a status
 extern const u8 BattleScript_ToxicThread[];

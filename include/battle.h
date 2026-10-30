@@ -739,6 +739,7 @@ struct BattleStruct
     u8 dodgeAnimShown;  // Fantasy Retold: battlers whose Dodge animation already played ahead of their own (later) action this round
     enum Move moveUsedThisTurn[MAX_BATTLERS_COUNT]; // Fantasy Retold: move each battler is using this turn (Repeated Move Trapping)
     enum Move moveUsedLastTurn[MAX_BATTLERS_COUNT]; // Fantasy Retold: move each battler used the turn before; cleared when it leaves the field
+    u8 statusRailsAppliedByMove[MAX_BATTLERS_COUNT]; // Fantasy Retold: rails inflicted by the current move cannot also crit-upgrade
     u8 railMoveEndStep; // Fantasy Retold: progress through MoveEndStatusRails (battler * RAIL_MOVEEND_STEPS + step)
     u8 railsEndedMask;  // Fantasy Retold: status rails that ran out this end-turn tick, still to announce
     u8 synchronizeRailLevel;   // Fantasy Retold: rail level a Synchronize copies onto the attacker (0 = none)

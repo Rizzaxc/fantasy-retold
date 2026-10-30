@@ -503,7 +503,13 @@ static bool32 HandleEndTurnLeechSeed(enum BattlerId battler)
         s32 drainAmount = GetNonDynamaxMaxHP(drainedBattler) / 8;
         s32 healAmount = GetDrainedBigRootHp(receiverBattler, drainAmount);
 
-        if (GetBattlerAbility(drainedBattler) == ABILITY_LIQUID_OOZE)
+        ReconcileStatusRailsFromBridge(receiverBattler);
+        if (GetStatusRailLevel(receiverBattler, RAIL_POISON) != 0)
+        {
+            gBattleScripting.battler = receiverBattler;
+            BattleScriptCall(BattleScript_FRPoisonBlocksLeechSeed);
+        }
+        else if (GetBattlerAbility(drainedBattler) == ABILITY_LIQUID_OOZE)
         {
             SetPassiveDamageAmount(drainedBattler, drainAmount);
             SetPassiveDamageAmount(receiverBattler, healAmount);

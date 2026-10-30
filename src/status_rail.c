@@ -542,6 +542,7 @@ u32 GetStatusRailIncomingAccuracyPercent(enum BattlerId battlerDef)
 // The Poison line blocks Recuperate's heal and any heal of maxHP/16 or less (Leftovers, a weak drain, ...).
 bool32 IsHealBlockedByStatusRails(enum BattlerId battler, u32 healAmount)
 {
+    ReconcileStatusRailsFromBridge(battler);
     return GetStatusRailLevel(battler, RAIL_POISON) != 0
         && healAmount <= max(GetNonDynamaxMaxHP(battler) / POISON_HEAL_BLOCK_DIVISOR, 1);
 }
@@ -737,6 +738,7 @@ u32 TryCritStatusRailUpgrade(enum BattlerId battlerAtk, enum BattlerId battler, 
 
     ReconcileStatusRailsFromBridge(battler);
     if (GetStatusRailLevel(battler, rail) == 0 || GetStatusRailLevel(battler, rail) >= 3
+     || (gBattleStruct->statusRailsAppliedByMove[battler] & STATUS_RAIL_BIT(rail))
      || !CanAdvanceStatusRail(battlerAtk, battler, rail))
         return 0;
     RaiseStatusRailTo(battler, rail, 3, 0); // keeps the turns left
