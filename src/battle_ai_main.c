@@ -550,27 +550,33 @@ static u32 GetAIStaminaThreatMoveIndex(enum BattlerId battlerAtk, enum BattlerId
     return bestMoveIndex;
 }
 
-static u32 GetPredictedStaminaAttrition(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 threatIndex)
+// The physical Stamina attrition (design.md §2) that `move` (in moveIndex of `attacker`) deals to `target`.
+static u32 GetAIMoveStaminaAttrition(enum BattlerId attacker, enum BattlerId target, u32 moveIndex, enum Move move)
 {
-    enum Move threatMove;
     u32 attrition;
     uq4_12_t effectiveness;
 
-    if (threatIndex >= MAX_MON_MOVES)
+    if (moveIndex >= MAX_MON_MOVES)
         return 0;
 
-    threatMove = GetMovesArray(battlerDef)[threatIndex];
-    if (!IsBattleMovePhysical(threatMove) && GetMoveEffect(threatMove) != EFFECT_PSYSHOCK)
+    if (!IsBattleMovePhysical(move) && GetMoveEffect(move) != EFFECT_PSYSHOCK)
         return 0;
 
-    attrition = GetMovePower(threatMove) / 10;
-    effectiveness = gAiLogicData->effectiveness[battlerDef][battlerAtk][threatIndex];
+    attrition = GetMovePower(move) / 10;
+    effectiveness = gAiLogicData->effectiveness[attacker][target][moveIndex];
     if (effectiveness >= UQ_4_12(2.0))
         attrition *= 2;
     else if (effectiveness <= UQ_4_12(0.5))
         attrition /= 2;
 
     return attrition;
+}
+
+static u32 GetPredictedStaminaAttrition(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 threatIndex)
+{
+    if (threatIndex >= MAX_MON_MOVES)
+        return 0;
+    return GetAIMoveStaminaAttrition(battlerDef, battlerAtk, threatIndex, GetMovesArray(battlerDef)[threatIndex]);
 }
 
 static u32 FindBestAIDamagingMove(enum BattlerId battler, enum BattlerId target, bool32 safeOnly, u32 currentStamina, u32 attrition, u32 excludedMoveIndex)
@@ -649,6 +655,123 @@ static bool32 AIShouldDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef
     return FALSE;
 }
 
+// A status that can still land or climb its rail (design.md §6); a line already at its top level can't.
+static bool32 AICanProgressStatus(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum MoveEffect effect)
+{
+    enum Ability abilityAtk = gAiLogicData->abilities[battlerAtk];
+    enum Ability abilityDef = gAiLogicData->abilities[battlerDef];
+
+    switch (effect)
+    {
+    case MOVE_EFFECT_POISON:
+    case MOVE_EFFECT_TOXIC:
+    case MOVE_EFFECT_BURN:
+    case MOVE_EFFECT_PARALYSIS:
+    case MOVE_EFFECT_SLEEP:
+    case MOVE_EFFECT_FREEZE:
+    case MOVE_EFFECT_FROSTBITE:
+        return CanSetNonVolatileStatus(battlerAtk, battlerDef, abilityAtk, abilityDef, effect, CHECK_TRIGGER);
+    case MOVE_EFFECT_CONFUSION:
+        return CanBeConfused(battlerAtk, battlerDef);
+    default:
+        return FALSE;
+    }
+}
+
+// Whether `move` is a fair shot at landing or advancing a status on the target: a status move that inflicts
+// one, or an attack whose (doubled) status chance is at least AI_STATUS_PRESSURE_MIN_CHANCE.
+#define AI_STATUS_PRESSURE_MIN_CHANCE 30
+static bool32 AIMovePressuresStatus(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move)
+{
+    if (DoesSubstituteBlockMove(battlerAtk, battlerDef, move))
+        return FALSE;
+
+    if (GetMovePower(move) == 0)
+        return AICanProgressStatus(battlerAtk, battlerDef, GetMoveNonVolatileStatus(move));
+
+    for (u32 i = 0; i < GetMoveAdditionalEffectCount(move); i++)
+    {
+        const struct AdditionalEffect *additionalEffect = GetMoveAdditionalEffectById(move, i);
+        u32 chance = (additionalEffect->chance == 0) ? 100 : additionalEffect->chance * 2;
+
+        if (additionalEffect->self || chance < AI_STATUS_PRESSURE_MIN_CHANCE)
+            continue;
+        if (AICanProgressStatus(battlerAtk, battlerDef, additionalEffect->moveEffect))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// At the Recuperate threshold, a move that still moves the game forward this turn, or MAX_MON_MOVES. Every pick
+// is Stamina-safe (it leaves the AI above 0 after the predicted attrition):
+// - a physical hit that exhausts the target (its later hits taken auto-crit);
+// - a status the target can't shake off quickly, when the target is slow to KO the AI;
+// - unless the AI is the tankier one, the best attack when the target is at least as drained (trade hits).
+#define AI_STATUS_PRESSURE_MIN_HITS_TO_KO 3
+static u32 AI_FindProgressMoveOverRecuperate(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 currentStamina, u32 attrition)
+{
+    u32 targetStamina = gBattleStruct->battlerState[battlerDef].currentStamina;
+    u32 targetBaseStamina = GetBaseStamina(battlerDef);
+    u32 baseStamina = GetBaseStamina(battlerAtk);
+    bool32 slowThreat = NoOfHitsForTargetToFaintBattler(battlerDef, battlerAtk, AI_DEFENDING, DONT_CONSIDER_ENDURE) >= AI_STATUS_PRESSURE_MIN_HITS_TO_KO;
+    u32 statusMoveIndex = MAX_MON_MOVES;
+    s32 statusScore = -2147483647 - 1;
+
+    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    {
+        enum Move move = gBattleMons[battlerAtk].moves[moveIndex];
+
+        if (move == MOVE_NONE || gBattleMons[battlerAtk].pp[moveIndex] == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || !CanTargetBattler(battlerAtk, battlerDef, move))
+            continue;
+        if (currentStamina <= GetAIMoveStaminaCost(battlerAtk, move) + attrition)
+            continue;
+
+        if (GetMovePower(move) != 0 && targetStamina != 0 && GetAIMoveStaminaAttrition(battlerAtk, battlerDef, moveIndex, move) >= targetStamina)
+            return moveIndex;
+
+        if (slowThreat && gAiThinkingStruct->score[moveIndex] > statusScore && AIMovePressuresStatus(battlerAtk, battlerDef, move))
+        {
+            statusMoveIndex = moveIndex;
+            statusScore = gAiThinkingStruct->score[moveIndex];
+        }
+    }
+
+    if (statusMoveIndex != MAX_MON_MOVES)
+        return statusMoveIndex;
+
+    // Both drained: the target is at or below its own Recuperate threshold, with no more Stamina (as a share of
+    // its pool) than the AI has. Refilling now only hands the target a free turn.
+    if (!AIIsTankierThanTarget(battlerAtk, battlerDef) && targetBaseStamina != 0
+     && targetStamina * 100 <= targetBaseStamina * RECUPERATE_STAMINA_PERCENT
+     && targetStamina * baseStamina <= currentStamina * targetBaseStamina)
+        return FindBestAIDamagingMove(battlerAtk, battlerDef, TRUE, currentStamina, attrition, MAX_MON_MOVES);
+
+    return MAX_MON_MOVES;
+}
+
+// Recuperate is a wasted turn when, after the refill and the predicted attrition, the AI still can't attack
+// without emptying itself. A small pool (early levels: ~10 Stamina, where a 40 BP hit, the attack cost and the
+// refill are all ~4) otherwise loops Recuperate forever while the target hits it for free.
+static bool32 AIRecuperateIsFutile(enum BattlerId battlerAtk, u32 currentStamina, u32 attrition)
+{
+    u32 baseStamina = GetBaseStamina(battlerAtk);
+    u32 afterRecuperate = min(currentStamina + (baseStamina * RECUPERATE_STAMINA_PERCENT) / 100, baseStamina);
+    u32 cheapestCost = UINT32_MAX;
+
+    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    {
+        enum Move move = gBattleMons[battlerAtk].moves[moveIndex];
+        if (move == MOVE_NONE || gBattleMons[battlerAtk].pp[moveIndex] == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || GetMovePower(move) == 0)
+            continue;
+        cheapestCost = min(cheapestCost, GetAIMoveStaminaCost(battlerAtk, move));
+    }
+    if (cheapestCost == UINT32_MAX)
+        return FALSE;
+
+    afterRecuperate = (afterRecuperate > attrition) ? afterRecuperate - attrition : 0;
+    return afterRecuperate <= cheapestCost + attrition;
+}
+
 static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId battlerAtk, enum BattlerId battlerDef)
 {
     u32 currentStamina = gBattleStruct->battlerState[battlerAtk].currentStamina;
@@ -660,6 +783,7 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     u32 bestMoveIndex;
     enum Move chosenMove;
     bool32 canRecuperate;
+    bool32 recuperateFutile;
     bool32 chosenMoveKOs;
 
     if (!(gAiThinkingStruct->aiFlags[battlerAtk] & AI_FLAG_STAMINA_MANAGEMENT))
@@ -672,10 +796,11 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     attrition = GetPredictedStaminaAttrition(battlerAtk, battlerDef, threatIndex);
 
     canRecuperate = AICanUseRecuperate(battlerAtk);
+    recuperateFutile = canRecuperate && AIRecuperateIsFutile(battlerAtk, currentStamina, attrition);
 
     // At 0 Stamina every hit taken auto-crits, and Recuperate loses its priority (it resolves in speed
     // order), so leaving the Exhaustion Zone comes first: refill unless a KO lands before the target acts.
-    if (currentStamina == 0 && canRecuperate)
+    if (currentStamina == 0 && canRecuperate && !recuperateFutile)
     {
         for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
         {
@@ -729,6 +854,26 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     if (AIShouldDodge(battlerAtk, battlerDef, threatIndex, currentStamina, attrition))
     {
         chosen->action = B_ACTION_DODGE;
+        return;
+    }
+
+    // Refilling costs a turn of progress: exhaust the target, pressure it with a status, or trade hits instead.
+    if (canRecuperate)
+    {
+        u32 progressMoveIndex = AI_FindProgressMoveOverRecuperate(battlerAtk, battlerDef, currentStamina, attrition);
+        if (progressMoveIndex != MAX_MON_MOVES)
+        {
+            chosen->moveIndex = progressMoveIndex;
+            chosen->action = B_ACTION_USE_MOVE;
+            return;
+        }
+    }
+
+    // Recuperating can't buy a safe attack next turn either: fight now with the best attack, exhausting or not.
+    if (recuperateFutile)
+    {
+        chosen->moveIndex = bestMoveIndex;
+        chosen->action = B_ACTION_USE_MOVE;
         return;
     }
 

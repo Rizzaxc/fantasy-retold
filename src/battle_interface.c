@@ -40,7 +40,7 @@
 
 // Fantasy Retold healthbox (design.md, "Healthbox layout"). Each box is a dark corner-cut plate drawn at
 // the left of the two healthbox sprites (a 128px-wide canvas); generate_healthbox_art.py draws the static
-// plate, bar frames, Recuperate notch and EXP track, and everything else is drawn here in canvas pixels.
+// plate, bar frames, Recuperate tick and EXP track, and everything else is drawn here in canvas pixels.
 // The HB_* layout values below must match that script.
 
 // Healthbox palette slots (ball_status_bar.png)
@@ -49,7 +49,7 @@
 #define HB_COLOR_INK     3  // outlines, text shadow
 #define HB_COLOR_SLATE   4  // recoverable HP loss, unlit stage pips
 #define HB_COLOR_WHITE   5  // text
-#define HB_COLOR_RED     7  // current HP, female symbol, exhausted Stamina frame
+#define HB_COLOR_RED     7  // current HP and the HP bar frame, female symbol, exhausted Stamina frame
 #define HB_COLOR_GREEN   8  // Stamina
 #define HB_COLOR_PURPLE  9  // Trauma
 #define HB_COLOR_CYAN    10 // EXP
@@ -82,13 +82,14 @@ enum
 
 static const struct HealthboxLayout sHealthboxLayouts[] =
 {
-    [HB_LAYOUT_PLAYER]         = {.plateW = 104, .plateH = 32, .barX = 5, .barW = 94, .hpY = 13, .staY = 19, .hpNumbers = TRUE},
-    [HB_LAYOUT_PLAYER_SINGLES] = {.plateW = 104, .plateH = 32, .barX = 5, .barW = 94, .hpY = 13, .staY = 19, .hpNumbers = TRUE, .exp = TRUE},
-    [HB_LAYOUT_OPPONENT]       = {.plateW = 100, .plateH = 24, .barX = 5, .barW = 90, .hpY = 13, .staY = 19},
+    [HB_LAYOUT_PLAYER]         = {.plateW = 104, .plateH = 32, .barX = 5, .barW = 94, .hpY = 13, .staY = 20, .hpNumbers = TRUE},
+    [HB_LAYOUT_PLAYER_SINGLES] = {.plateW = 104, .plateH = 32, .barX = 5, .barW = 94, .hpY = 13, .staY = 20, .hpNumbers = TRUE, .exp = TRUE},
+    [HB_LAYOUT_OPPONENT]       = {.plateW = 100, .plateH = 25, .barX = 5, .barW = 90, .hpY = 13, .staY = 20},
 };
 
 #define HB_TEXT_Y        0  // printer y of the name / level row (small font caps land on rows 4-10)
-#define HB_HP_TEXT_Y     19 // printer y of the HP numbers (digits land on rows 23-30)
+#define HB_HP_TEXT_Y     20 // printer y of the HP numbers: digits on rows 24-30, a 1px gap under the Stamina frame;
+                            // their ink shadow (row 31) blends into the plate's ink bottom edge
 #define HB_EXP_X         6
 #define HB_EXP_Y         28
 #define HB_EXP_W         50
@@ -252,6 +253,7 @@ static void Task_HidePartyStatusSummary_DuringBattle(u8);
 static void SpriteCB_HealthBoxOther(struct Sprite *);
 static void SpriteCB_HealthBar(struct Sprite *);
 static void DrawStaminaGaugeOnHealthbox(u32 healthboxSpriteId, enum BattlerId battler);
+static void DrawHealthboxHpBar(u32 healthboxSpriteId, enum BattlerId battler, s32 barMaxHP, u32 hpPixels);
 static void SpriteCB_StatusSummaryBar_Enter(struct Sprite *);
 static void SpriteCB_StatusSummaryBar_Exit(struct Sprite *);
 static void SpriteCB_StatusSummaryBalls_Enter(struct Sprite *);
@@ -875,6 +877,41 @@ static void StepStaminaGauge(u32 healthboxSpriteId, enum BattlerId battler)
     DrawStaminaGaugeOnHealthbox(healthboxSpriteId, battler);
 }
 
+// Fantasy Retold: the Trauma value the HP bar's purple scar currently shows, slid toward the live Trauma at the
+// HP bar's pace like sStaminaShown, and snapped on a full healthbox redraw. The step redraws the HP bar with the
+// last HP fill it drew (sHpBarPixels / sHpBarMax), so it works whether or not the HP bar is moving too.
+static u16 sTraumaShown[MAX_BATTLERS_COUNT];
+static u16 sHpBarMax[MAX_BATTLERS_COUNT];
+static u8 sHpBarPixels[MAX_BATTLERS_COUNT];
+
+static u32 GetLiveTraumaForBar(enum BattlerId battler)
+{
+    return GetBattlerPartyState(battler)->trauma;
+}
+
+static void StepTraumaGauge(u32 healthboxSpriteId, enum BattlerId battler)
+{
+    u32 target = GetLiveTraumaForBar(battler);
+    u32 shown = sTraumaShown[battler];
+    u32 step;
+
+    if (shown == target)
+        return;
+    if (sHpBarMax[battler] == 0) // no HP bar drawn yet
+    {
+        sTraumaShown[battler] = target;
+        return;
+    }
+
+    step = B_FAST_HP_DRAIN == FALSE ? 1 : max(sHpBarMax[battler] / STAMINA_BAR_FULL_DRAIN_FRAMES, 1);
+    if (shown < target)
+        shown = min(shown + step, target);
+    else
+        shown = (shown > target + step) ? shown - step : target;
+    sTraumaShown[battler] = shown;
+    DrawHealthboxHpBar(healthboxSpriteId, battler, sHpBarMax[battler], sHpBarPixels[battler]);
+}
+
 // The healthbar sprite is the status column: keeps it beside the plate and redraws it whenever any
 // status stage changes (polled, since confusion and rails change without a healthbox update).
 static void SpriteCB_HealthBar(struct Sprite *sprite)
@@ -897,7 +934,10 @@ static void SpriteCB_HealthBar(struct Sprite *sprite)
         DrawHealthboxStatusColumn(sprite, battler);
 
     if (gBattleStruct != NULL)
+    {
         StepStaminaGauge(sprite->hBar_HealthBoxSpriteId, battler);
+        StepTraumaGauge(sprite->hBar_HealthBoxSpriteId, battler);
+    }
 }
 
 static void SpriteCB_HealthBoxOther(struct Sprite *sprite)
@@ -1109,18 +1149,22 @@ static void PrintHpOnHealthbox(u32 healthboxSpriteId, s16 currHp, s16 maxHp)
     *txtPtr++ = CHAR_SLASH;
     ConvertIntToDecimalStringN(txtPtr, maxHp, STR_CONV_MODE_LEFT_ALIGN, HP_MAX_DIGITS);
 
-    FillHealthboxRect(healthboxSpriteId, clearX, HB_HP_TEXT_Y + 3, right + 1 - clearX, 9, HEALTHBOX_BG_INDEX);
+    FillHealthboxRect(healthboxSpriteId, clearX, HB_HP_TEXT_Y + 3, right + 1 - clearX, 8, HEALTHBOX_BG_INDEX);
     PrintOnHealthbox(healthboxSpriteId, HP_FONT, right - GetStringWidth(HP_FONT, text, 0), HB_HP_TEXT_Y, text);
 }
 
 // Fantasy Retold: the HP bar spans the ORIGINAL max HP and reads, left to right: purple (Trauma,
 // permanently lost) -> red (current HP) -> slate (recoverable loss). Current HP is capped at
-// maxHP - trauma, so the red fill always starts where the scar ends.
+// maxHP - trauma, so the red fill always starts where the scar ends. The scar draws the animated Trauma
+// (sTraumaShown), not the live one.
 static void DrawHealthboxHpBar(u32 healthboxSpriteId, enum BattlerId battler, s32 barMaxHP, u32 hpPixels)
 {
     const struct HealthboxLayout *layout = GetHealthboxLayout(battler);
-    u32 trauma = GetBattlerPartyState(battler)->trauma;
+    u32 trauma = sTraumaShown[battler];
     u32 traumaPixels = 0, redEnd;
+
+    sHpBarMax[battler] = max(barMaxHP, 0);
+    sHpBarPixels[battler] = hpPixels;
 
     if (trauma != 0 && barMaxHP > 0)
     {
@@ -1132,13 +1176,19 @@ static void DrawHealthboxHpBar(u32 healthboxSpriteId, enum BattlerId battler, s3
     }
     redEnd = min(traumaPixels + hpPixels, layout->barW);
 
+    // The frame matches the fill (red), as the Stamina bar's does, so both bars read at their true size.
+    FillHealthboxRect(healthboxSpriteId, layout->barX - 1, layout->hpY - 1, layout->barW + 2, 1, HB_COLOR_RED);
+    FillHealthboxRect(healthboxSpriteId, layout->barX - 1, layout->hpY + 4, layout->barW + 2, 1, HB_COLOR_RED);
+    FillHealthboxRect(healthboxSpriteId, layout->barX - 1, layout->hpY, 1, 4, HB_COLOR_RED);
+    FillHealthboxRect(healthboxSpriteId, layout->barX + layout->barW, layout->hpY, 1, 4, HB_COLOR_RED);
+
     FillHealthboxRect(healthboxSpriteId, layout->barX, layout->hpY, traumaPixels, 4, HB_COLOR_PURPLE);
     FillHealthboxRect(healthboxSpriteId, layout->barX + traumaPixels, layout->hpY, redEnd - traumaPixels, 4, HB_COLOR_RED);
     FillHealthboxRect(healthboxSpriteId, layout->barX + redEnd, layout->hpY, layout->barW - redEnd, 4, HB_COLOR_SLATE);
 }
 
 // Fantasy Retold: the Stamina bar under the HP bar, same length. Green normally, yellow once Recuperate is
-// available (the plate art has a notch under the bar at that threshold), empty with a red frame at 0
+// available (a white tick through the frame marks that threshold), empty with a red frame at 0
 // Stamina. Any non-zero Stamina shows at least 1px, since exhaustion keys off the exact live value
 // (CurrentSta == 0), not the drawn bar. Draws the animated value (sStaminaShown), not the live one.
 static void DrawStaminaGaugeOnHealthbox(u32 healthboxSpriteId, enum BattlerId battler)
@@ -1158,13 +1208,16 @@ static void DrawStaminaGaugeOnHealthbox(u32 healthboxSpriteId, enum BattlerId ba
     if (curSta != 0 && filled == 0)
         filled = 1;
 
-    frameColor = (curSta == 0) ? HB_COLOR_RED : HB_COLOR_INK;
     fillColor = (curSta * 100 <= baseSta * RECUPERATE_STAMINA_PERCENT) ? HB_COLOR_YELLOW : HB_COLOR_GREEN;
+    frameColor = (curSta == 0) ? HB_COLOR_RED : fillColor; // the frame matches the fill
 
     FillHealthboxRect(healthboxSpriteId, x - 1, y - 1, w + 2, 1, frameColor);
     FillHealthboxRect(healthboxSpriteId, x - 1, y + 2, w + 2, 1, frameColor);
     FillHealthboxRect(healthboxSpriteId, x - 1, y, 1, 2, frameColor);
     FillHealthboxRect(healthboxSpriteId, x + w, y, 1, 2, frameColor);
+    // Recuperate threshold: a white tick through the frame.
+    FillHealthboxRect(healthboxSpriteId, x + (RECUPERATE_STAMINA_PERCENT * w) / 100, y - 1, 1, 1, HB_COLOR_WHITE);
+    FillHealthboxRect(healthboxSpriteId, x + (RECUPERATE_STAMINA_PERCENT * w) / 100, y + 2, 1, 1, HB_COLOR_WHITE);
 
     FillHealthboxRect(healthboxSpriteId, x, y, filled, 2, fillColor);
     FillHealthboxRect(healthboxSpriteId, x + filled, y, w - filled, 2, HB_COLOR_EMPTY);
@@ -1917,7 +1970,7 @@ static void UpdateLeftNoOfBallsTextOnHealthbox(u8 healthboxSpriteId)
     txtPtr = StringCopy(text, gText_SafariBallLeft);
     ConvertIntToDecimalStringN(txtPtr, gNumSafariBalls, STR_CONV_MODE_LEFT_ALIGN, 2);
 
-    FillHealthboxRect(healthboxSpriteId, 4, HB_HP_TEXT_Y + 3, 60, 9, HEALTHBOX_BG_INDEX);
+    FillHealthboxRect(healthboxSpriteId, 4, HB_HP_TEXT_Y + 3, 60, 8, HEALTHBOX_BG_INDEX);
     PrintOnHealthbox(healthboxSpriteId, FONT_SMALL, 5, HB_HP_TEXT_Y, text);
 }
 
@@ -1945,6 +1998,8 @@ void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elem
         {
             LoadBattleBarGfx(0);
             SetBattleBarStruct(battler, healthboxSpriteId, maxHp, currHp, 0);
+            if (elementId == HEALTHBOX_ALL)
+                sTraumaShown[battler] = GetLiveTraumaForBar(battler);
             MoveBattleBar(battler, healthboxSpriteId, HEALTH_BAR, 0);
             // Fantasy Retold: refresh the Stamina gauge whenever the HP bar redraws; a full redraw (send-out)
             // shows the live value at once instead of sliding to it.
@@ -1995,6 +2050,8 @@ void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elem
         {
             LoadBattleBarGfx(0);
             SetBattleBarStruct(battler, healthboxSpriteId, maxHp, currHp, 0);
+            if (elementId == HEALTHBOX_ALL)
+                sTraumaShown[battler] = GetLiveTraumaForBar(battler);
             MoveBattleBar(battler, healthboxSpriteId, HEALTH_BAR, 0);
             // Fantasy Retold: refresh the Stamina gauge whenever the HP bar redraws; a full redraw (send-out)
             // shows the live value at once instead of sliding to it.

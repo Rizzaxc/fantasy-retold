@@ -2,7 +2,7 @@
 """Generate the Fantasy Retold healthbox plates (design.md, "Healthbox layout").
 
 Each box is a dark corner-cut plate drawn at the left of a 128px-wide canvas (two 64px sprites).
-Only the static parts are drawn here: plate, HP / Stamina bar frames, the 40% Recuperate notch and
+Only the static parts are drawn here: plate, HP / Stamina bar frames, the 40% Recuperate tick and
 the EXP track. Name, level, HP numbers and every bar fill are drawn at runtime by battle_interface.c,
 whose HB_* layout constants must match the ones below.
 
@@ -18,12 +18,12 @@ PALETTE = [
     '#8888A0', '#D03040', '#70C040', '#8848A0', '#40B8C8', '#D87830',
     '#6070D0', '#F0D850', '#3890D8', '#E070B0',
 ]
-TRANSPARENT, NAVY, NAVY2, INK, SLATE, WHITE, GREY = 0, 1, 2, 3, 4, 5, 6
+TRANSPARENT, NAVY, NAVY2, INK, SLATE, WHITE, GREY, RED, GREEN = 0, 1, 2, 3, 4, 5, 6, 7, 8
 
 # Layouts (plate-local == canvas coords; the plate starts at x = 0, y = 0).
-PLAYER = dict(w=104, h=32, bar_x=5, bar_w=94, hp_y=13, sta_y=19, exp=None)
+PLAYER = dict(w=104, h=32, bar_x=5, bar_w=94, hp_y=13, sta_y=20, exp=None)
 PLAYER_EXP = dict(PLAYER, exp=(6, 28, 50))  # (x, y, width) of the 1px EXP track
-OPPONENT = dict(w=100, h=24, bar_x=5, bar_w=90, hp_y=13, sta_y=19, exp=None)
+OPPONENT = dict(w=100, h=25, bar_x=5, bar_w=90, hp_y=13, sta_y=20, exp=None)
 RECUPERATE_STAMINA_PERCENT = 40
 
 
@@ -53,11 +53,15 @@ def plate(im, w, h):
 
 def bars(im, L):
     x, w = L['bar_x'], L['bar_w']
-    rect(im, x - 1, L['hp_y'] - 1, x + w, L['hp_y'] + 4, INK)
+    # Frames match the fill; runtime redraws both (the Stamina frame follows its current fill colour).
+    rect(im, x - 1, L['hp_y'] - 1, x + w, L['hp_y'] + 4, RED)
     rect(im, x, L['hp_y'], x + w - 1, L['hp_y'] + 3, NAVY2)
-    rect(im, x - 1, L['sta_y'] - 1, x + w, L['sta_y'] + 2, INK)
+    rect(im, x - 1, L['sta_y'] - 1, x + w, L['sta_y'] + 2, GREEN)
     rect(im, x, L['sta_y'], x + w - 1, L['sta_y'] + 1, NAVY2)
-    im.putpixel((x + (RECUPERATE_STAMINA_PERCENT * w) // 100, L['sta_y'] + 3), GREY)
+    # Recuperate threshold: a white tick through the Stamina frame (also drawn at runtime).
+    tick = x + (RECUPERATE_STAMINA_PERCENT * w) // 100
+    im.putpixel((tick, L['sta_y'] - 1), WHITE)
+    im.putpixel((tick, L['sta_y'] + 2), WHITE)
     if L['exp']:
         ex, ey, ew = L['exp']
         rect(im, ex, ey, ex + ew - 1, ey, NAVY2)
