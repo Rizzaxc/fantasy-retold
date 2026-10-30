@@ -3079,6 +3079,45 @@ static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
         }
     }
 
+    // Fantasy Retold: field moves from the Signature Move and the Itemized Move (held TM) live outside the four
+    // slots. The menu holds Summary, Stat Edit, 4 field moves, Switch, Item, Cancel, so extras stop at 4 entries.
+    for (j = 0; j != FIELD_MOVES_COUNT; j++)
+    {
+        u8 action = j + MENU_FIELD_MOVES;
+        bool8 alreadyListed = FALSE;
+
+        if (!FieldMove_IsVisible(j) || !MonCanUseFieldMove(&mons[slotId], FieldMove_GetMoveId(j)))
+            continue;
+        for (i = 0; i < sPartyMenuInternal->numActions; i++)
+        {
+            if (sPartyMenuInternal->actions[i] == action)
+                alreadyListed = TRUE;
+        }
+        if (!alreadyListed && sPartyMenuInternal->numActions < 2 + MAX_MON_MOVES)
+            AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, action);
+    }
+
+    // Fantasy Retold: HMs usable without teaching (OW_HM_WITHOUT_TEACHING). Only the ones with no overworld
+    // trigger of their own need a menu entry.
+    if (OW_HM_WITHOUT_TEACHING)
+    {
+        static const u8 sFreeHMFieldMoves[] = { FIELD_MOVE_CUT, FIELD_MOVE_FLASH, FIELD_MOVE_FLY };
+
+        for (i = 0; i < ARRAY_COUNT(sFreeHMFieldMoves); i++)
+        {
+            u8 action = sFreeHMFieldMoves[i] + MENU_FIELD_MOVES;
+            bool8 alreadyListed = FALSE;
+
+            for (j = 0; j < sPartyMenuInternal->numActions; j++)
+            {
+                if (sPartyMenuInternal->actions[j] == action)
+                    alreadyListed = TRUE;
+            }
+            if (!alreadyListed && sPartyMenuInternal->numActions < 2 + MAX_MON_MOVES && IsFieldMoveFreeToUse(sFreeHMFieldMoves[i]))
+                AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, action);
+        }
+    }
+
     if (!InBattlePike())
     {
         if (GetMonData(&mons[1], MON_DATA_SPECIES) != SPECIES_NONE)
@@ -5727,6 +5766,17 @@ bool8 MonKnowsMove(struct Pokemon *mon, enum Move move)
             return TRUE;
     }
     return FALSE;
+}
+
+// Fantasy Retold: for the overworld, a mon "has" a field move if it knows it (slots or Signature Move) or its held
+// TM gives it that move as its Itemized Move.
+bool8 MonCanUseFieldMove(struct Pokemon *mon, enum Move move)
+{
+    if (move == MOVE_NONE)
+        return FALSE;
+    if (MonKnowsMove(mon, move))
+        return TRUE;
+    return GetItemizedMove(GetMonData(mon, MON_DATA_SPECIES_OR_EGG), GetMonData(mon, MON_DATA_HELD_ITEM)) == move;
 }
 
 bool8 BoxMonKnowsMove(struct BoxPokemon *boxMon, enum Move move)

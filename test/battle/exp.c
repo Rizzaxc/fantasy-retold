@@ -241,8 +241,8 @@ WILD_BATTLE_TEST("Fantasy Retold: EXP is doubled within the level band and halve
     u8 level = 0;
 
     PARAMETRIZE { level = 10; } // in band
-    PARAMETRIZE { level = 13; } // edge of band
-    PARAMETRIZE { level = 14; } // out of band
+    PARAMETRIZE { level = 14; } // edge of band
+    PARAMETRIZE { level = 15; } // out of band
 
     GIVEN {
         WITH_CONFIG(B_SCALED_EXP, GEN_3);
@@ -261,12 +261,12 @@ WILD_BATTLE_TEST("Fantasy Retold: EXP is doubled within the level band and halve
     }
 }
 
-SINGLE_BATTLE_TEST("Fantasy Retold: Trainer battles skip the level-band bonus but keep the penalty", s32 exp)
+SINGLE_BATTLE_TEST("Fantasy Retold: Trainer battles use the level-band bonus and penalty", s32 exp)
 {
     u8 level = 0;
 
-    PARAMETRIZE { level = 10; } // in band: default rate
-    PARAMETRIZE { level = 14; } // out of band: halved
+    PARAMETRIZE { level = 10; } // in band: doubled
+    PARAMETRIZE { level = 15; } // out of band: halved
 
     GIVEN {
         WITH_CONFIG(B_SCALED_EXP, GEN_3);
@@ -281,7 +281,7 @@ SINGLE_BATTLE_TEST("Fantasy Retold: Trainer battles skip the level-band bonus bu
         MESSAGE("The opposing Caterpie fainted!");
         EXPERIENCE_BAR(player, captureGainedExp: &results[i].exp);
     } FINALLY {
-        EXPECT_EQ(results[0].exp, gSpeciesInfo[SPECIES_CATERPIE].expYield * 10 / 7);
+        EXPECT_EQ(results[0].exp, gSpeciesInfo[SPECIES_CATERPIE].expYield * 10 / 7 * 2);
         EXPECT_EQ(results[1].exp, gSpeciesInfo[SPECIES_CATERPIE].expYield * 10 / 7 / 2);
     }
 }

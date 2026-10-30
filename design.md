@@ -427,8 +427,8 @@ Allows players to expand tactical flexibility by slotting an active, usable comb
 
 EXP rewards fighting opponents near your own level and discourages both over-levelling and power-levelling.
 
-* **Rule.** Each EXP earner compares its level to the fainted Pokémon's. Within **±`EXP_LEVEL_BAND` (4) levels** (inclusive), its EXP is **doubled in wild battles**; trainer battles keep the default rate. Outside the band, its EXP is **halved** in every battle (an award of 1 stays 1).
-* **Why wild-only.** Trainer EXP is fixed and can't be farmed, so the bonus would only inflate the planned level curve. Wild battles are the grindable source, and the bonus there pays for catching up to the route's level rather than grinding weak encounters.
+* **Rule.** Each EXP earner compares its level to the fainted Pokémon's. Within **±`EXP_LEVEL_BAND` (4) levels** (inclusive), its EXP is **doubled**, in wild **and trainer** battles. Outside the band, its EXP is **halved** in every battle (an award of 1 stays 1).
+* **Why trainers too.** The doubling makes grinding less necessary: following the planned route, trainer fights alone keep the party in step with the level curve, so the player doesn't have to farm wild encounters to keep up.
 * **Per earner.** The band is checked per Pokémon, so in one battle a Pokémon close in level can earn double while an over-levelled teammate or an Exp. Share holder earns half.
 * **Engine.** This is the last step of `ApplyExperienceMultipliers` (`battle_script_commands.c`). It runs after the vanilla multipliers (traded, Lucky Egg, Exp. Charm, affection, Gen 5+ level scaling), so it stacks with them.
 
@@ -484,6 +484,14 @@ The Route 117 **Day-Care Lady** also sells Eggs. Talking to her opens `DAY-CARE`
 
 * Battles always use **Set** (no "switch Pokémon?" prompt when a foe faints): `ClearSetBScriptingStruct` forces `OPTIONS_BATTLE_STYLE_SET`, new games default to Set, and the **BATTLE STYLE** row is removed from the Options menu (the save field is written as Set when the menu closes).
 
+### HMs Without Teaching
+
+* **Rule.** The badge-gated HM field moves (Cut, Flash, Rock Smash, Strength, Surf, Fly, Dive, Waterfall) can be used with **no Pokémon knowing the move**. The matching **badge is still required**. A Pokémon that does know the move is still preferred as the user. Teleport, Dig, Sweet Scent, Soft Boiled and the other non-badge field moves are unchanged.
+* **Flag.** `OW_HM_WITHOUT_TEACHING` (`include/config/overworld.h`), currently **TRUE**. Setting it to FALSE restores the vanilla "a party member must know it" rule.
+* **User.** With nobody knowing the move, the first non-egg party member performs it (its name and sprite appear in the "X used CUT!" text and animation).
+* **Engine.** `IsFieldMoveFreeToUse` (`field_move.h`) = flag on, `BADGE_UNLOCK` move, badge owned. `ScrCmd_checkfieldmove` falls back to the first non-egg mon when no one knows the move, which covers every script-driven use (Cut tree, Rock Smash, Strength, Waterfall, Dive). `PartyHasMonWithSurf` returns TRUE for Surf. Cut (grass), Flash and Fly have no overworld trigger, so `SetPartyMonFieldSelectionActions` adds them to **every** party member's menu while the badge is owned and there is room (the menu fits Summary, Stat Edit, 4 field moves, Switch, Item, Cancel; moves the Pokémon really knows are listed first).
+* **Itemized and Signature field moves.** Independent of the flag, a field move a Pokémon has **outside its four slots** counts for the overworld: its **Signature Move**, or its **Itemized Move** (a held TM it can learn, e.g. a Dig TM gives Dig). `MonCanUseFieldMove` (`party_menu.c`) = `MonKnowsMove` (slots + Signature) or `GetItemizedMove`; `ScrCmd_checkfieldmove` and `PartyHasMonWithSurf` use it, and the party menu lists such moves after the slot moves (same 4-entry cap, shared with the free HMs above). `MonKnowsMove` itself is unchanged, so teaching a TM the Pokémon already holds is still allowed.
+
 ### Repurposed Moves (consequence of unified Defense)
 
 * **Psyshock / Psystrike / Secret Sword** — their vanilla gimmick (special move that hits physical Def) is meaningless now that all special moves hit Def. Repurposed identity: **special damage that exhausts like a physical hit** — they apply the Physical Stamina attrition (`BP/10`, ×2 SE, per hit) and deal **no Trauma** (they opt out of the Special→Trauma split). The special-side stamina-shredders. *(Attrition implemented in Phase 2's hook; the no-Trauma opt-out lands with the Phase 3 split.)*
@@ -533,7 +541,7 @@ The Route 117 **Day-Care Lady** also sells Eggs. Talking to her opens `DAY-CARE`
 | Nature     | Calm / Careful                  | Resilient (+1 Sp.Def / Trauma-resist stage on entry)               |
 | Nature     | Relaxed / Lax                   | Regenerator (HP on switch-out)                                     |
 | Nature     | Sassy / Gentle                  | Natural Cure (status cleared on switch)                            |
-| EXP        | Level band                      | ×2 within ±3 levels (wild only; trainer ×1); ×0.5 outside          |
+| EXP        | Level band                      | ×2 within ±4 levels (wild and trainer); ×0.5 outside                |
 | Items      | Restored after battle           | all held items, incl. berries with a battle hold effect            |
 | Items      | Itemized Move (held TM)         | learnable TM's move in the L menu; 4 PP per battle, TM not used up |
 | Moves      | Signature Move PP               | 8, persists between battles, refilled by healing                   |
