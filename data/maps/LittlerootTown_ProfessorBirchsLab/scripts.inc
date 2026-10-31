@@ -22,10 +22,17 @@ LittlerootTown_ProfessorBirchsLab_MapScripts::
 LittlerootTown_ProfessorBirchsLab_OnTransition:
 	call Common_EventScript_SetupRivalGfxId
 	call ProfBirch_EventScript_UpdateLocation
+	call_if_eq VAR_BIRCH_LAB_STATE, 4, LittlerootTown_ProfessorBirchsLab_EventScript_SetAidePosForPokedex
 	goto_if_ge VAR_DEX_UPGRADE_JOHTO_STARTER_STATE, 6, LittlerootTown_ProfessorBirchsLab_EventScript_SetAfterJohtoStarterLayout
 	goto_if_ge VAR_DEX_UPGRADE_JOHTO_STARTER_STATE, 4, LittlerootTown_ProfessorBirchsLab_EventScript_SetJohtoStarterLayout
 	goto_if_eq VAR_DEX_UPGRADE_JOHTO_STARTER_STATE, 3, LittlerootTown_ProfessorBirchsLab_EventScript_CheckReadyForJohtoStarter
 	end
+
+@ Fantasy Retold: the Aide stands still for the Pokédex scene, so he can walk up to the player after it.
+LittlerootTown_ProfessorBirchsLab_EventScript_SetAidePosForPokedex::
+	setobjectxyperm LOCALID_BIRCHS_LAB_AIDE, 9, 8
+	setobjectmovementtype LOCALID_BIRCHS_LAB_AIDE, MOVEMENT_TYPE_FACE_LEFT
+	return
 
 LittlerootTown_ProfessorBirchsLab_EventScript_CheckReadyForJohtoStarter::
 	specialvar VAR_RESULT, HasAllHoennMons
@@ -269,6 +276,7 @@ LittlerootTown_ProfessorBirchsLab_Movement_PlayerEnterLabForJohtoStarter:
 LittlerootTown_ProfessorBirchsLab_EventScript_Aide::
 	lock
 	faceplayer
+	goto_if_ge VAR_BIRCH_LAB_STATE, 5, Common_EventScript_LabResearch
 	goto_if_ge VAR_BIRCH_LAB_STATE, 3, LittlerootTown_ProfessorBirchsLab_EventScript_AideReceivedStarter
 	goto_if_set FLAG_BIRCH_AIDE_MET, LittlerootTown_ProfessorBirchsLab_EventScript_AideAlreadyMet
 	msgbox LittlerootTown_ProfessorBirchsLab_Text_BirchAwayOnFieldwork, MSGBOX_DEFAULT
@@ -520,8 +528,39 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GivePokedex::
 	setvar VAR_OLDALE_TOWN_STATE, 1
 	setvar VAR_LITTLEROOT_RIVAL_STATE, 4
 	setvar VAR_LITTLEROOT_TOWN_STATE, 3
+	call LittlerootTown_ProfessorBirchsLab_EventScript_AideExplainResearch
 	releaseall
 	end
+
+@ Fantasy Retold: the Aide introduces his research trade (design.md §10). Player at (6,5), Aide at (9,8).
+LittlerootTown_ProfessorBirchsLab_EventScript_AideExplainResearch::
+	applymovement LOCALID_BIRCHS_LAB_AIDE, LittlerootTown_ProfessorBirchsLab_Movement_AideApproachPlayer
+	waitmovement 0
+	applymovement LOCALID_PLAYER, Common_Movement_WalkInPlaceFasterDown
+	waitmovement 0
+	msgbox gText_LabResearchIntro, MSGBOX_DEFAULT
+	closemessage
+	applymovement LOCALID_BIRCHS_LAB_AIDE, LittlerootTown_ProfessorBirchsLab_Movement_AideReturn
+	waitmovement 0
+	return
+
+LittlerootTown_ProfessorBirchsLab_Movement_AideApproachPlayer:
+	walk_up
+	walk_up
+	walk_left
+	walk_left
+	walk_left
+	walk_in_place_faster_up
+	step_end
+
+LittlerootTown_ProfessorBirchsLab_Movement_AideReturn:
+	walk_right
+	walk_right
+	walk_right
+	walk_down
+	walk_down
+	walk_in_place_faster_left
+	step_end
 
 LittlerootTown_ProfessorBirchsLab_EventScript_MayGivePokeBalls::
 	msgbox LittlerootTown_ProfessorBirchsLab_Text_MayGotPokedexTooTakeThese, MSGBOX_DEFAULT

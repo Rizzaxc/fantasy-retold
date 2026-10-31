@@ -71,8 +71,6 @@ enum
     MENU_ACTION_STAT_EDITOR,
     MENU_ACTION_DEBUG,
     MENU_ACTION_DEXNAV,
-    MENU_ACTION_REPEL_OFF, // Fantasy Retold: infinite Repel toggle, labelled with its current state
-    MENU_ACTION_REPEL_ON,
 };
 
 // Save status
@@ -116,7 +114,6 @@ static bool8 StartMenuBattlePyramidBagCallback(void);
 static bool8 StartMenuStatEditorCallback(void);
 static bool8 StartMenuDebugCallback(void);
 static bool8 StartMenuDexNavCallback(void);
-static bool8 StartMenuRepelCallback(void);
 
 // Menu callbacks
 static bool8 SaveStartCallback(void);
@@ -194,8 +191,6 @@ static const struct WindowTemplate sWindowTemplate_PyramidPeak = {
 };
 
 static const u8 sText_MenuDebug[] = _("DEBUG");
-static const u8 sText_MenuRepelOff[] = _("REPEL OFF");
-static const u8 sText_MenuRepelOn[] = _("REPEL ON");
 
 static const struct MenuAction sStartMenuItems[] =
 {
@@ -215,8 +210,6 @@ static const struct MenuAction sStartMenuItems[] =
     [MENU_ACTION_STAT_EDITOR]     = {gText_StatEditor,  {.u8_void = StartMenuStatEditorCallback}},
     [MENU_ACTION_DEBUG]           = {sText_MenuDebug,   {.u8_void = StartMenuDebugCallback}},
     [MENU_ACTION_DEXNAV]          = {gText_MenuDexNav,  {.u8_void = StartMenuDexNavCallback}},
-    [MENU_ACTION_REPEL_OFF]       = {sText_MenuRepelOff, {.u8_void = StartMenuRepelCallback}},
-    [MENU_ACTION_REPEL_ON]        = {sText_MenuRepelOn,  {.u8_void = StartMenuRepelCallback}},
 };
 
 static const struct BgTemplate sBgTemplates_LinkBattleSave[] =
@@ -350,9 +343,6 @@ static void BuildNormalStartMenu(void)
         AddStartMenuAction(MENU_ACTION_POKENAV);
     
     //AddStartMenuAction(MENU_ACTION_STAT_EDITOR);
-
-    if (FlagGet(FLAG_SYS_POKEMON_GET) == TRUE)
-        AddStartMenuAction(FlagGet(FLAG_INFINITE_REPEL) ? MENU_ACTION_REPEL_ON : MENU_ACTION_REPEL_OFF);
 
     AddStartMenuAction(MENU_ACTION_PLAYER);
     AddStartMenuAction(MENU_ACTION_SAVE);
@@ -669,7 +659,6 @@ static bool8 HandleStartMenuInput(void)
         gMenuCallback = sStartMenuItems[sCurrentStartMenuActions[sStartMenuCursorPos]].func.u8_void;
 
         if (gMenuCallback != StartMenuSaveCallback
-            && gMenuCallback != StartMenuRepelCallback
             && gMenuCallback != StartMenuExitCallback
             && gMenuCallback != StartMenuDebugCallback
             && gMenuCallback != StartMenuSafariZoneRetireCallback
@@ -1525,33 +1514,6 @@ static bool8 StartMenuDexNavCallback(void)
 {
     CreateTask(Task_OpenDexNavFromStartMenu, 0);
     return TRUE;
-}
-
-// Fantasy Retold: toggle the infinite Repel and relabel the entry in place; the menu stays open.
-static bool8 StartMenuRepelCallback(void)
-{
-    u8 windowId = GetStartMenuWindowId();
-    u8 y = (sStartMenuCursorPos << 4) + START_MENU_TEXT_TOP(sNumStartMenuActions);
-    u8 action;
-
-    if (FlagGet(FLAG_INFINITE_REPEL))
-    {
-        FlagClear(FLAG_INFINITE_REPEL);
-        action = MENU_ACTION_REPEL_OFF;
-    }
-    else
-    {
-        FlagSet(FLAG_INFINITE_REPEL);
-        action = MENU_ACTION_REPEL_ON;
-    }
-    sCurrentStartMenuActions[sStartMenuCursorPos] = action;
-
-    FillWindowPixelRect(windowId, PIXEL_FILL(1), 8, y, WindowWidthPx(windowId) - 8, 16);
-    AddTextPrinterParameterized(windowId, FONT_NORMAL, sStartMenuItems[action].text, 8, y, TEXT_SKIP_DRAW, NULL);
-    CopyWindowToVram(windowId, COPYWIN_GFX);
-
-    gMenuCallback = HandleStartMenuInput;
-    return FALSE;
 }
 
 void Script_ForceSaveGame(struct ScriptContext *ctx)

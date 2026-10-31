@@ -270,9 +270,9 @@
 #define VAR_EGG_SHOP_SLOT_1                              0x40F8 // Fantasy Retold: daycare egg shop
 #define VAR_EGG_SHOP_SLOT_2                              0x40F9 // Fantasy Retold: daycare egg shop
 #define VAR_EGG_SHOP_SLOT_3                              0x40FA // Fantasy Retold: daycare egg shop
-#define VAR_UNUSED_0x40FB                                0x40FB // Unused Var
-#define VAR_UNUSED_0x40FC                                0x40FC // Unused Var
-#define VAR_UNUSED_0x40FD                                0x40FD // Unused Var
+#define VAR_LAB_RESEARCH_KEY                             0x40FB // Fantasy Retold: Birch's Aide research trade
+#define VAR_LAB_RESEARCH_COUNT                           0x40FC // Fantasy Retold: Birch's Aide research trade
+#define VAR_LAB_RESEARCH_TYPE                            0x40FD // Fantasy Retold: Birch's Aide research trade
 #define VAR_UNUSED_0x40FE                                0x40FE // Unused Var
 #define VAR_UNUSED_0x40FF                                0x40FF // Unused Var
 

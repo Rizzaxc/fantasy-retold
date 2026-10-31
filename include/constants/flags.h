@@ -51,7 +51,7 @@
 
 #else
 
-#define FLAG_INFINITE_REPEL  0x20 // Fantasy Retold: start-menu Repel toggle (design.md §10)
+#define FLAG_INFINITE_REPEL  0x20 // Fantasy Retold: Select-menu Repel toggle (design.md §10)
 #define FLAG_GYM_REWARD_1    0x21 // Fantasy Retold: gym leader reward claimed, gyms 1-8 (design.md §10)
 #define FLAG_GYM_REWARD_2    0x22
 #define FLAG_GYM_REWARD_3    0x23
@@ -60,7 +60,7 @@
 #define FLAG_GYM_REWARD_6    0x26
 #define FLAG_GYM_REWARD_7    0x27
 #define FLAG_GYM_REWARD_8    0x28
-#define FLAG_UNUSED_0x029    0x29 // Unused Flag
+#define FLAG_EXP_SHARE       0x29 // Fantasy Retold: Select-menu Exp. Share toggle (design.md §10)
 #define FLAG_UNUSED_0x02A    0x2A // Unused Flag
 #define FLAG_UNUSED_0x02B    0x2B // Unused Flag
 #define FLAG_UNUSED_0x02C    0x2C // Unused Flag

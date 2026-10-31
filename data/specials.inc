@@ -648,3 +648,11 @@ gSpecials::
 	def_special EggShop_BufferOffer
 	def_special EggShop_CanAfford
 	def_special EggShop_Buy
+	def_special SelectMenu_BufferLabels
+	def_special SelectMenu_ToggleRepel
+	def_special SelectMenu_ToggleExpShare
+	def_special SelectMenu_QueueRegisteredItem
+	def_special LabResearch_GetState
+	def_special LabResearch_CheckPair
+	def_special LabResearch_Trade
+	def_special LabResearch_Skip

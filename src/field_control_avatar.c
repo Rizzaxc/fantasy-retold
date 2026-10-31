@@ -29,6 +29,7 @@
 #include "pokemon.h"
 #include "safari_zone.h"
 #include "script.h"
+#include "select_menu.h"
 #include "secret_base.h"
 #include "sound.h"
 #include "start_menu.h"
@@ -234,7 +235,15 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     if (input->tookStep && TryFindHiddenPokemon())
         return TRUE;
 
-    if (input->pressedSelectButton && UseRegisteredKeyItemOnField() == TRUE)
+    if (input->pressedSelectButton && !SelectMenu_IsBlocked())
+    {
+        PlaySE(SE_WIN_OPEN);
+        ScriptContext_SetupScript(Common_EventScript_SelectMenu);
+        return TRUE;
+    }
+
+    // Fantasy Retold: the Select menu's KEY ITEM entry runs the registered item once the menu script has ended.
+    if (SelectMenu_TakeQueuedRegisteredItem() && UseRegisteredKeyItemOnField() == TRUE)
         return TRUE;
 
     if (input->pressedRButton && TryStartDexNavSearch())

@@ -40,6 +40,7 @@
 #include "constants/item.h"
 #include "constants/items.h"
 #include "constants/heal_locations.h"
+#include "constants/lab_research.h"
 #include "constants/layouts.h"
 #include "constants/lilycove_lady.h"
 #include "constants/map_scripts.h"
@@ -1203,6 +1204,8 @@ EventScript_BackupMrBrineyLocation::
 	.include "data/scripts/set_gym_trainers.inc"
 	.include "data/scripts/gym_reward.inc"
 	.include "data/scripts/egg_shop.inc"
+	.include "data/scripts/select_menu.inc"
+	.include "data/scripts/lab_research.inc"
 
 EventScript_CancelMessageBox::
 	special UseBlankMessageToCancelPokemonPic
