@@ -1,8 +1,19 @@
 @ Fantasy Retold: Birch's Aide research trade (design.md §10).
 @ The player hands over two party Pokémon and gets back one stronger, non-Hoenn Lv5 Pokémon.
 @ One request after the Route 103 rival, then one more after every badge or Elite Four clear.
-@ Reached from LittlerootTown_ProfessorBirchsLab_EventScript_Aide, which has already locked the player.
+@ Reached from LittlerootTown_ProfessorBirchsLab_EventScript_Aide, which has already locked the player, or by
+@ PokéNav call from the Select menu (Common_EventScript_LabResearchCall, after its lockall).
+@ VAR_0x8009 is TRUE on a call, so the script doesn't turn a stray object to face the player.
 Common_EventScript_LabResearch::
+	setvar VAR_0x8009, FALSE
+	goto Common_EventScript_LabResearchStart
+
+Common_EventScript_LabResearchCall::
+	setvar VAR_0x8009, TRUE
+	playse SE_POKENAV_CALL
+	waitse
+	msgbox gText_LabResearchCalling, MSGBOX_DEFAULT
+Common_EventScript_LabResearchStart::
 	specialvar VAR_RESULT, LabResearch_GetState
 	goto_if_eq VAR_RESULT, LAB_RESEARCH_CLOSED, Common_EventScript_LabResearchClosed
 	goto_if_eq VAR_RESULT, LAB_RESEARCH_OPEN_TYPED, Common_EventScript_LabResearchAskTyped
@@ -16,8 +27,7 @@ Common_EventScript_LabResearchAnswer::
 Common_EventScript_LabResearchChooseFirst::
 	msgbox gText_LabResearchChooseFirst, MSGBOX_DEFAULT
 	special ChoosePartyMon
-	lock
-	faceplayer
+	call Common_EventScript_LabResearchRelock
 	goto_if_ge VAR_0x8004, PARTY_SIZE, Common_EventScript_LabResearchDecline
 	special IsSelectedMonEgg
 	goto_if_eq VAR_RESULT, TRUE, Common_EventScript_LabResearchFirstIsEgg
@@ -25,8 +35,7 @@ Common_EventScript_LabResearchChooseFirst::
 Common_EventScript_LabResearchChooseSecond::
 	msgbox gText_LabResearchChooseSecond, MSGBOX_DEFAULT
 	special ChoosePartyMon
-	lock
-	faceplayer
+	call Common_EventScript_LabResearchRelock
 	goto_if_ge VAR_0x8004, PARTY_SIZE, Common_EventScript_LabResearchDecline
 	goto_if_eq VAR_0x8004, VAR_0x8005, Common_EventScript_LabResearchSameMon
 	special IsSelectedMonEgg
@@ -51,6 +60,25 @@ Common_EventScript_LabResearchChooseSecond::
 	msgbox gText_LabResearchThanks, MSGBOX_DEFAULT
 	release
 	end
+
+@ Once the player has the PokéNav, the Aide calls once about the Select menu turn-in (ShouldDoLabResearchCall).
+Common_EventScript_LabResearchIncomingCall::
+	lockall
+	pokenavcall gText_LabResearchIncomingCall
+	waitmessage
+	special LabResearch_SetCalled
+	releaseall
+	end
+
+Common_EventScript_LabResearchRelock::
+	goto_if_eq VAR_0x8009, TRUE, Common_EventScript_LabResearchRelockCall
+	lock
+	faceplayer
+	return
+
+Common_EventScript_LabResearchRelockCall::
+	lockall
+	return
 
 Common_EventScript_LabResearchFirstIsEgg::
 	msgbox gText_LabResearchNoEggs, MSGBOX_DEFAULT
@@ -112,15 +140,34 @@ gText_LabResearchIntro::
 	.string "Talk to me once you've caught\n"
 	.string "a few POKéMON!$"
 
+gText_LabResearchCalling::
+	.string "… … … … … …\n"
+	.string "{PLAYER} called the PROF's AIDE.$"
+
+gText_LabResearchIncomingCall::
+	.string "… … … … … …\n"
+	.string "… … … … … Beep!\p"
+	.string "AIDE: Hi, {PLAYER}! It's the PROF's\n"
+	.string "AIDE in LITTLEROOT.\p"
+	.string "I heard you got a POKéNAV!\n"
+	.string "That makes my research easier.\p"
+	.string "You don't have to come all the way\n"
+	.string "to the LAB anymore.\p"
+	.string "Just pick LAB RESEARCH on the\n"
+	.string "SELECT menu to call me, and we can\l"
+	.string "trade from anywhere!\p"
+	.string "… … … … … …\n"
+	.string "… … … … … Click!$"
+
 gText_LabResearchRequest::
-	.string "{PLAYER}! Have you come to help\n"
-	.string "with my research?\p"
+	.string "{PLAYER}! Can you help me with\n"
+	.string "my research?\p"
 	.string "Lend me any two POKéMON, and I'll\n"
 	.string "give you a stronger one in return.$"
 
 gText_LabResearchRequestTyped::
-	.string "{PLAYER}! Have you come to help\n"
-	.string "with my research?\p"
+	.string "{PLAYER}! Can you help me with\n"
+	.string "my research?\p"
 	.string "This time I'm studying the\n"
 	.string "{STR_VAR_1} type.\p"
 	.string "Lend me any two POKéMON, as long as\n"

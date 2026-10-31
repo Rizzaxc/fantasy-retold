@@ -656,3 +656,4 @@ gSpecials::
 	def_special LabResearch_CheckPair
 	def_special LabResearch_Trade
 	def_special LabResearch_Skip
+	def_special LabResearch_SetCalled

@@ -4796,28 +4796,42 @@ Class: Leader
 Pic: Leader Roxanne
 Gender: Female
 Music: Female
-Items: Potion / Potion
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
+
+Aron (M) @ Rocky Helmet  
+Ability: Sturdy  
+Level: 10  
+Tera Type: Steel  
+Careful Nature  
+IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe  
+- Rock Tomb  
+- Body Slam  
+- Stealth Rock  
+- Roar
 
 Geodude
-Level: 12
+Level: 11
 IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
 - Tackle
 - Defense Curl
 - Rock Throw
 - Rock Tomb
 
-Geodude
-Level: 12
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
-- Tackle
-- Defense Curl
-- Rock Throw
-- Rock Tomb
+Corsola (F) @ Life Orb  
+Ability: Hustle  
+Level: 12  
+Tera Type: Water  
+Adamant Nature  
+IVs: 21 HP / 21 Atk / 21 Def / 21 SpA / 21 SpD / 21 Spe  
+- Icicle Spear  
+- Rock Blast  
+- Wave Crash  
+- Self-Destruct
 
 Nosepass @ Oran Berry
-Level: 15
+Level: 14
+Bold Nature
 IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
 - Block
 - Harden

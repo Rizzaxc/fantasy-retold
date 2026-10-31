@@ -4,7 +4,9 @@
 #include "event_object_movement.h"
 #include "gym_reward.h"
 #include "item.h"
+#include "lab_research.h"
 #include "mail.h"
+#include "overworld.h"
 #include "pokemon.h"
 #include "pokemon_storage_system.h"
 #include "random.h"
@@ -21,10 +23,16 @@
 // badge or Elite Four clear (missed ones don't stack). From the 4th request on, one of the two must have a rolled type.
 // Scripts pass the two party slots in VAR_0x8005 / VAR_0x8006.
 
-// Type var: the requested type in the low byte (kept after the request as the last type), plus this bit while
-// a request has rolled its type.
+// Type var: the requested type in the low byte (kept after the request as the last type), a bit while the open
+// request has rolled its type, and a bit (kept for good) once the Aide has called about the PokéNav turn-in.
 #define LAB_RESEARCH_TYPE_ROLLED (1 << 15)
+#define LAB_RESEARCH_CALLED      (1 << 14)
 #define LAB_RESEARCH_TYPE_MASK   0xFF
+
+// Outdoor steps after getting the PokéNav before the Aide's one call, so it doesn't ring the moment it's received.
+#define LAB_RESEARCH_CALL_STEPS 10
+
+static EWRAM_DATA u8 sLabResearchCallSteps = 0;
 
 #define LAB_RESEARCH_REWARD_LEVEL 5
 #define EVO_LINE_DEPTH 3
@@ -79,7 +87,7 @@ static enum Type GetRequestedType(void)
             types[count++] = type;
     }
     enum Type type = types[Random() % count];
-    VarSet(VAR_LAB_RESEARCH_TYPE, LAB_RESEARCH_TYPE_ROLLED | type);
+    VarSet(VAR_LAB_RESEARCH_TYPE, (var & LAB_RESEARCH_CALLED) | LAB_RESEARCH_TYPE_ROLLED | type);
     return type;
 }
 
@@ -87,7 +95,7 @@ static void CompleteLabResearch(void)
 {
     VarSet(VAR_LAB_RESEARCH_KEY, GetLabResearchMilestones());
     VarSet(VAR_LAB_RESEARCH_COUNT, VarGet(VAR_LAB_RESEARCH_COUNT) + 1);
-    VarSet(VAR_LAB_RESEARCH_TYPE, VarGet(VAR_LAB_RESEARCH_TYPE) & LAB_RESEARCH_TYPE_MASK);
+    VarSet(VAR_LAB_RESEARCH_TYPE, VarGet(VAR_LAB_RESEARCH_TYPE) & (LAB_RESEARCH_CALLED | LAB_RESEARCH_TYPE_MASK));
 }
 
 static u32 GetSpeciesBST(enum Species species)
@@ -356,4 +364,31 @@ u16 LabResearch_Trade(void)
 void LabResearch_Skip(void)
 {
     CompleteLabResearch();
+}
+
+// Once the player has the PokéNav, the Aide calls once to tell them about the Select menu turn-in.
+bool32 ShouldDoLabResearchCall(void)
+{
+    if (!FlagGet(FLAG_SYS_POKENAV_GET) || VarGet(VAR_BIRCH_LAB_STATE) < 5)
+        return FALSE;
+    if (VarGet(VAR_LAB_RESEARCH_TYPE) & LAB_RESEARCH_CALLED)
+        return FALSE;
+    switch (gMapHeader.mapType)
+    {
+    case MAP_TYPE_TOWN:
+    case MAP_TYPE_CITY:
+    case MAP_TYPE_ROUTE:
+    case MAP_TYPE_OCEAN_ROUTE:
+        if (++sLabResearchCallSteps < LAB_RESEARCH_CALL_STEPS)
+            return FALSE;
+        sLabResearchCallSteps = 0;
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
+void LabResearch_SetCalled(void)
+{
+    VarSet(VAR_LAB_RESEARCH_TYPE, VarGet(VAR_LAB_RESEARCH_TYPE) | LAB_RESEARCH_CALLED);
 }

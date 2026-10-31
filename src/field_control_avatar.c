@@ -22,6 +22,7 @@
 #include "fldeff_misc.h"
 #include "follower_npc.h"
 #include "item_menu.h"
+#include "lab_research.h"
 #include "link.h"
 #include "match_call.h"
 #include "metatile_behavior.h"
@@ -813,6 +814,11 @@ static bool8 TryStartStepCountScript(u16 metatileBehavior)
         if (ShouldDoRivalRayquazaCall() == TRUE)
         {
             ScriptContext_SetupScript(MossdeepCity_SpaceCenter_2F_EventScript_RivalRayquazaCall);
+            return TRUE;
+        }
+        if (ShouldDoLabResearchCall() == TRUE)
+        {
+            ScriptContext_SetupScript(Common_EventScript_LabResearchIncomingCall);
             return TRUE;
         }
         if (UpdateVsSeekerStepCounter())
