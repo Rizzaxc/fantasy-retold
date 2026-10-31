@@ -580,7 +580,7 @@ struct BattlerState
 // Fantasy Retold: Recuperate's HP heal at a full post-refill Stamina bar, as a % of max HP. Scaled down by
 // CurrentSta/BaseSta after the refill, so a typical Recuperate heals ~5-10%.
 #define RECUPERATE_HP_HEAL_PERCENT 12
-// Fantasy Retold: EXP is doubled (wild battles only) when the earner is within this many levels of the fainted mon, halved otherwise.
+// Fantasy Retold: EXP is doubled when the earner is within this many levels of the fainted mon, halved otherwise.
 #define EXP_LEVEL_BAND 4
 
 // Fantasy Retold: per-rail status state (design.md §6). See enum StatusRail in constants/battle.h.
@@ -739,6 +739,7 @@ struct BattleStruct
     u8 dodgeAnimShown;  // Fantasy Retold: battlers whose Dodge animation already played ahead of their own (later) action this round
     enum Move moveUsedThisTurn[MAX_BATTLERS_COUNT]; // Fantasy Retold: move each battler is using this turn (Repeated Move Trapping)
     enum Move moveUsedLastTurn[MAX_BATTLERS_COUNT]; // Fantasy Retold: move each battler used the turn before; cleared when it leaves the field
+    u8 statusRailsAppliedByMove[MAX_BATTLERS_COUNT]; // Fantasy Retold: rails inflicted by the current move cannot also crit-upgrade
     u8 railMoveEndStep; // Fantasy Retold: progress through MoveEndStatusRails (battler * RAIL_MOVEEND_STEPS + step)
     u8 railsEndedMask;  // Fantasy Retold: status rails that ran out this end-turn tick, still to announce
     u8 synchronizeRailLevel;   // Fantasy Retold: rail level a Synchronize copies onto the attacker (0 = none)

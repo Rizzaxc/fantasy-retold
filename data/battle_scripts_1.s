@@ -147,6 +147,18 @@ BattleScript_FRRecuperatePoisonedCured::
 	waitmessage B_WAIT_TIME_LONG
 	finishaction
 
+BattleScript_FRPoisonBlocksHeal::
+	printstring STRINGID_FRPOISONBLOCKSHEAL
+	waitmessage B_WAIT_TIME_LONG
+	return
+
+BattleScript_FRPoisonBlocksLeechSeed::
+	printstring STRINGID_FRPOISONBLOCKSHEAL
+	waitmessage B_WAIT_TIME_LONG
+	printstring STRINGID_FRPOISONBLOCKSLEECHSEED
+	waitmessage B_WAIT_TIME_LONG
+	return
+
 @ Same, when Recuperate also purged a Level 1 status.
 BattleScript_FRRecuperateCured::
 	printstring STRINGID_FRRECUPERATING

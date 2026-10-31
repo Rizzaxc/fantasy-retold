@@ -488,6 +488,8 @@ void HandleAction_UseMove(void)
         return;
     }
 
+    memset(gBattleStruct->statusRailsAppliedByMove, 0, sizeof(gBattleStruct->statusRailsAppliedByMove));
+
     gCurrMovePos = gChosenMovePos = gBattleStruct->chosenMovePositions[gBattlerAttacker];
 
     // choose move
@@ -980,6 +982,7 @@ void HandleAction_Recuperate(void)
     u32 r, healAmount;
 
     gBattlerAttacker = battler;
+    gBattleScripting.battler = battler;
     // An exhausted Recuperate resolves in its speed slot, so a faster foe can KO the user first. Drop the
     // action then, or the heal would lift it off 0 HP and it would never faint.
     if (!IsBattlerAlive(battler))

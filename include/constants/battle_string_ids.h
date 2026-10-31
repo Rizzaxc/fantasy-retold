@@ -767,6 +767,7 @@ enum StringID
     STRINGID_FRTOOCOLDTOBURN, // Fantasy Retold: status rails
     STRINGID_FRTOOHOTTOCHILL, // Fantasy Retold: status rails
     STRINGID_FRPOISONBLOCKSHEAL, // Fantasy Retold: status rails
+    STRINGID_FRPOISONBLOCKSLEECHSEED, // Fantasy Retold: poison prevents Leech Seed drain damage
     STRINGID_FRITEMIZEDMOVELOST, // Fantasy Retold: Itemized Move
     STRINGID_COUNT
 };

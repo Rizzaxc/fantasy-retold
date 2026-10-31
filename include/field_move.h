@@ -42,6 +42,14 @@ static inline bool32 IsFieldMoveUnlocked(enum FieldMove fieldMove)
     return gFieldMoveUnlocks[gFieldMoveInfo[fieldMove].unlockType].isUnlockedFunc(fieldMove);
 }
 
+// Fantasy Retold: with OW_HM_WITHOUT_TEACHING, a badge-gated (HM) field move needs no Pokémon that knows it, only its badge.
+static inline bool32 IsFieldMoveFreeToUse(enum FieldMove fieldMove)
+{
+    return OW_HM_WITHOUT_TEACHING
+        && gFieldMoveInfo[fieldMove].unlockType == BADGE_UNLOCK
+        && IsFieldMoveUnlocked(fieldMove);
+}
+
 static inline const u8 *FieldMove_GetLockedMessage(enum FieldMove fieldMove)
 {
     return gFieldMoveUnlocks[gFieldMoveInfo[fieldMove].unlockType].lockedMessage;

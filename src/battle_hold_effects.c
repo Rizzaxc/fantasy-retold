@@ -605,9 +605,15 @@ static enum ItemEffect TryLeftovers(enum BattlerId battler, enum HoldEffect hold
     enum ItemEffect effect = ITEM_NO_EFFECT;
 
     if (gBattleMons[battler].hp < gBattleMons[battler].maxHP
-     && !(GetConfig(B_HEAL_BLOCKING) >= GEN_5 && gBattleMons[battler].volatiles.healBlockTimer)
-     && !IsHealBlockedByStatusRails(battler, GetNonDynamaxMaxHP(battler) / 16)) // Fantasy Retold
+     && !(GetConfig(B_HEAL_BLOCKING) >= GEN_5 && gBattleMons[battler].volatiles.healBlockTimer))
     {
+        if (IsHealBlockedByStatusRails(battler, GetNonDynamaxMaxHP(battler) / 16)) // Fantasy Retold
+        {
+            // a non-zero effect makes the caller run the script (and ItemBattleEffects sets the scripting battler)
+            BattleScriptCall(BattleScript_FRPoisonBlocksHeal);
+            return ITEM_EFFECT_OTHER;
+        }
+
         SetHealAmount(battler, GetNonDynamaxMaxHP(battler) / 16);
         RecordItemEffectBattle(battler, holdEffect);
         BattleScriptCall(BattleScript_ItemHealHP_Ret);

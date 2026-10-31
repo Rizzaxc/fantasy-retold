@@ -1214,7 +1214,12 @@ static void Cmd_healthbarupdate(void)
     // Fantasy Retold: the Poison line blocks heals of maxHP/16 or less (design.md §6).
     if (gBattleStruct->passiveHpUpdate[battler] < 0
      && IsHealBlockedByStatusRails(battler, -gBattleStruct->passiveHpUpdate[battler]))
+    {
         gBattleStruct->passiveHpUpdate[battler] = 0;
+        gBattleScripting.battler = battler;
+        BattleScriptCall(BattleScript_FRPoisonBlocksHeal);
+        return;
+    }
 
     BtlController_EmitHealthBarUpdate(battler, B_COMM_TO_CONTROLLER, min(gBattleStruct->passiveHpUpdate[battler], 10000));
     MarkBattlerForControllerExec(battler);
@@ -1776,6 +1781,8 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
     {
     case MOVE_EFFECT_SLEEP:
         level = ApplyStatusRailOrSynchronize(effectBattler, RAIL_SLEEP, railMinLevel);
+        if (trigger == TRIGGER_ON_MOVE)
+            gBattleStruct->statusRailsAppliedByMove[effectBattler] |= STATUS_RAIL_BIT(RAIL_SLEEP);
         if (level == 1)
         {
             gBattleScripting.savedStringId = STRINGID_FRDROWSY;
@@ -9427,19 +9434,14 @@ void ApplyExperienceMultipliers(s32 *expAmount, u8 expGetterMonId, u8 faintedBat
         *expAmount = value + 1;
     }
 
-    // Fantasy Retold: reward fighting at your level (design.md §10, Level-Band EXP). The in-band bonus is wild-only.
+    // Fantasy Retold: reward fighting at your level (design.md §10, Level-Band EXP), in wild and trainer battles.
     {
         s32 levelDiff = (s32)GetMonData(&gParties[B_TRAINER_PLAYER][expGetterMonId], MON_DATA_LEVEL) - gBattleMons[faintedBattler].level;
 
         if (levelDiff >= -EXP_LEVEL_BAND && levelDiff <= EXP_LEVEL_BAND)
-        {
-            if (!(gBattleTypeFlags & BATTLE_TYPE_TRAINER))
-                *expAmount *= 2;
-        }
+            *expAmount *= 2;
         else if (*expAmount > 1)
-        {
             *expAmount /= 2;
-        }
     }
 }
 
