@@ -61,14 +61,14 @@
 #define FLAG_GYM_REWARD_7    0x27
 #define FLAG_GYM_REWARD_8    0x28
 #define FLAG_EXP_SHARE       0x29 // Fantasy Retold: Select-menu Exp. Share toggle (design.md §10)
-#define FLAG_UNUSED_0x02A    0x2A // Unused Flag
-#define FLAG_UNUSED_0x02B    0x2B // Unused Flag
-#define FLAG_UNUSED_0x02C    0x2C // Unused Flag
-#define FLAG_UNUSED_0x02D    0x2D // Unused Flag
-#define FLAG_UNUSED_0x02E    0x2E // Unused Flag
-#define FLAG_UNUSED_0x02F    0x2F // Unused Flag
-#define FLAG_UNUSED_0x030    0x30 // Unused Flag
-#define FLAG_UNUSED_0x031    0x31 // Unused Flag
+#define FLAG_GUEST_BEATEN_BROCK    0x2A // Fantasy Retold: guest gym leader beaten (once per save)
+#define FLAG_GUEST_BEATEN_MISTY    0x2B
+#define FLAG_GUEST_BEATEN_LT_SURGE    0x2C
+#define FLAG_GUEST_BEATEN_ERIKA    0x2D
+#define FLAG_GUEST_BEATEN_KOGA    0x2E
+#define FLAG_GUEST_BEATEN_SABRINA    0x2F
+#define FLAG_GUEST_BEATEN_BLAINE    0x30
+#define FLAG_GUEST_BEATEN_GIOVANNI    0x31
 #define FLAG_UNUSED_0x032    0x32 // Unused Flag
 #define FLAG_UNUSED_0x033    0x33 // Unused Flag
 #define FLAG_UNUSED_0x034    0x34 // Unused Flag

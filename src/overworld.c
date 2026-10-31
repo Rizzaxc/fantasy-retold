@@ -28,6 +28,7 @@
 #include "fldeff.h"
 #include "follower_npc.h"
 #include "gpu_regs.h"
+#include "guest_leader.h"
 #include "heal_location.h"
 #include "io_reg.h"
 #include "item.h"
@@ -394,6 +395,7 @@ static void (*const sMovementStatusHandler[])(struct LinkPlayerObjectEvent *, st
 void DoWhiteOut(void)
 {
     RunScriptImmediately(EventScript_WhiteOut);
+    GuestLeader_OnWhiteOut();
     HealPlayerParty();
     Overworld_ResetStateAfterWhiteOut();
     SetWarpDestinationToLastHealLocation();

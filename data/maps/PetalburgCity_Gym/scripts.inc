@@ -371,8 +371,13 @@ PetalburgCity_Gym_EventScript_GiveEnigmaBerry::
 	end
 
 PetalburgCity_Gym_EventScript_NormanBattle::
+	setvar VAR_0x8008, 5
+	call Common_EventScript_GuestLeader
+	goto_if_eq VAR_RESULT, GUEST_LEADER_RESULT_WON, PetalburgCity_Gym_EventScript_NormanDefeated
+	goto_if_eq VAR_RESULT, GUEST_LEADER_RESULT_BLOCKED, Common_EventScript_GuestLeaderEnd
 	msgbox PetalburgCity_Gym_Text_NormanIntro, MSGBOX_DEFAULT
 	trainerbattle_no_intro TRAINER_NORMAN_1, PetalburgCity_Gym_Text_NormanDefeat
+PetalburgCity_Gym_EventScript_NormanDefeated::
 	message PetalburgCity_Gym_Text_ReceivedBalanceBadge
 	waitmessage
 	call Common_EventScript_PlayGymBadgeFanfare

@@ -37,6 +37,7 @@
 #include "constants/follower_npc.h"
 #include "constants/frontier_util.h"
 #include "constants/game_stat.h"
+#include "constants/guest_leader.h"
 #include "constants/item.h"
 #include "constants/items.h"
 #include "constants/heal_locations.h"
@@ -1206,6 +1207,7 @@ EventScript_BackupMrBrineyLocation::
 	.include "data/scripts/egg_shop.inc"
 	.include "data/scripts/select_menu.inc"
 	.include "data/scripts/lab_research.inc"
+	.include "data/scripts/guest_leader.inc"
 
 EventScript_CancelMessageBox::
 	special UseBlankMessageToCancelPokemonPic

@@ -24,6 +24,7 @@
 #include "fldeff.h"
 #include "fldeff_misc.h"
 #include "follower_npc.h"
+#include "guest_leader.h"
 #include "gym_leader_rematch.h"
 #include "item.h"
 #include "load_save.h"
@@ -2217,6 +2218,9 @@ void CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Traine
 
 static void CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum)
 {
+    if (GuestLeader_TryCreateParty(party, trainerNum))
+        return;
+
     if (!GetTrainerStructFromId(trainerNum)->overrideTrainer)
     {
         CreateNPCTrainerPartyFromTrainer(party, GetTrainerStructFromId(trainerNum));

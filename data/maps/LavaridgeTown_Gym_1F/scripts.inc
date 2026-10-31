@@ -44,6 +44,10 @@ LavaridgeTown_Gym_1F_EventScript_EndCheckBuryTrainers::
 	return
 
 LavaridgeTown_Gym_1F_EventScript_Flannery::
+	setvar VAR_0x8008, 4
+	call Common_EventScript_GuestLeader
+	goto_if_eq VAR_RESULT, GUEST_LEADER_RESULT_WON, LavaridgeTown_Gym_1F_EventScript_FlanneryDefeated
+	goto_if_eq VAR_RESULT, GUEST_LEADER_RESULT_BLOCKED, Common_EventScript_GuestLeaderEnd
 	trainerbattle_single TRAINER_FLANNERY_1, LavaridgeTown_Gym_1F_Text_FlanneryIntro, LavaridgeTown_Gym_1F_Text_FlanneryDefeat, LavaridgeTown_Gym_1F_EventScript_FlanneryDefeated, NO_MUSIC
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, LavaridgeTown_Gym_1F_EventScript_FlanneryRematch

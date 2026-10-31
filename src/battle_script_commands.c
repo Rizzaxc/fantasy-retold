@@ -38,6 +38,7 @@
 #include "m4a.h"
 #include "mail.h"
 #include "event_data.h"
+#include "guest_leader.h"
 #include "pokemon_storage_system.h"
 #include "task.h"
 #include "naming_screen.h"
@@ -4191,7 +4192,7 @@ static u32 GetTrainerMoneyToGive(u16 trainerId)
         const struct TrainerMon *party = GetTrainerPartyFromId(trainerId);
         if (party == NULL)
             return 20;
-        lastMonLevel = party[GetTrainerPartySizeFromId(trainerId) - 1].lvl;
+        lastMonLevel = GuestLeader_GetPrizeLevel(trainerId, party[GetTrainerPartySizeFromId(trainerId) - 1].lvl);
         trainerMoney = gTrainerClasses[GetTrainerClassFromId(trainerId)].money ?: 5;
 
         if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)

@@ -657,3 +657,10 @@ gSpecials::
 	def_special LabResearch_Trade
 	def_special LabResearch_Skip
 	def_special LabResearch_SetCalled
+	def_special GuestLeader_GetState
+	def_special GuestLeader_BufferNames
+	def_special GuestLeader_BufferIntro
+	def_special GuestLeader_RollFormat
+	def_special GuestLeader_NeedsTwoMons
+	def_special GuestLeader_ConfigureBattle
+	def_special GuestLeader_OnWin

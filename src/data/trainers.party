@@ -4804,7 +4804,7 @@ Ability: Sturdy
 Level: 10  
 Tera Type: Steel  
 Careful Nature  
-IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 14 SpD / 14 Spe  
+IVs: 14 HP / 14 Atk / 14 Def / 14 SpA / 12 SpD / 12 Spe  
 - Rock Tomb  
 - Body Slam  
 - Stealth Rock  
@@ -4823,7 +4823,7 @@ Ability: Hustle
 Level: 12  
 Tera Type: Water  
 Adamant Nature  
-IVs: 21 HP / 21 Atk / 21 Def / 21 SpA / 21 SpD / 21 Spe  
+IVs: 21 HP / 21 Atk / 17 Def / 21 SpA / 17 SpD / 17 Spe  
 - Icicle Spear  
 - Rock Blast  
 - Wave Crash  
@@ -16891,3 +16891,203 @@ Double Battle: No
 Kyogre
 Level: 5
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+
+=== TRAINER_GUEST_BROCK ===
+Name: BROCK
+Class: Leader
+Pic: Leader Brock Frlg
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Basic Trainer
+
+Golem
+Level: 12
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Steelix
+Level: 12
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Omastar
+Level: 13
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Kabutops
+Level: 14
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+=== TRAINER_GUEST_MISTY ===
+Name: MISTY
+Class: Leader
+Pic: Leader Misty Frlg
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Basic Trainer
+
+Golduck
+Level: 18
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Lapras
+Level: 19
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Gyarados
+Level: 19
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Starmie
+Level: 21
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+=== TRAINER_GUEST_LT_SURGE ===
+Name: LT. SURGE
+Class: Leader
+Pic: Leader Lt Surge Frlg
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Basic Trainer
+
+Electrode
+Level: 21
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Magnezone
+Level: 22
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Electivire
+Level: 23
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Raichu
+Level: 24
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+=== TRAINER_GUEST_ERIKA ===
+Name: ERIKA
+Class: Leader
+Pic: Leader Erika Frlg
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Basic Trainer
+
+Tangrowth
+Level: 24
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Victreebel
+Level: 26
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Bellossom
+Level: 27
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Vileplume
+Level: 29
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+=== TRAINER_GUEST_KOGA ===
+Name: KOGA
+Class: Leader
+Pic: Leader Koga Frlg
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Basic Trainer
+
+Crobat
+Level: 37
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Muk
+Level: 39
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Venomoth
+Level: 41
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Weezing
+Level: 43
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+=== TRAINER_GUEST_SABRINA ===
+Name: SABRINA
+Class: Leader
+Pic: Leader Sabrina Frlg
+Gender: Female
+Music: Female
+Double Battle: No
+AI: Basic Trainer
+
+Mr Mime
+Level: 37
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Slowbro
+Level: 39
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Espeon
+Level: 41
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Alakazam
+Level: 43
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+=== TRAINER_GUEST_BLAINE ===
+Name: BLAINE
+Class: Leader
+Pic: Leader Blaine Frlg
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Basic Trainer
+
+Ninetales
+Level: 42
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Magmortar
+Level: 45
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Rapidash
+Level: 44
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Arcanine
+Level: 47
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+=== TRAINER_GUEST_GIOVANNI ===
+Name: GIOVANNI
+Class: Leader
+Pic: Leader Giovanni Frlg
+Gender: Male
+Music: Male
+Double Battle: No
+AI: Basic Trainer
+
+Dugtrio
+Level: 45
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Nidoqueen
+Level: 46
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Rhyperior
+Level: 48
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+
+Nidoking
+Level: 50
+IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe

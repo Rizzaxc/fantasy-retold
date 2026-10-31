@@ -54,6 +54,10 @@ MossdeepCity_Gym_EventScript_SetSwitch4Metatiles::
 	end
 
 MossdeepCity_Gym_EventScript_TateAndLiza::
+	setvar VAR_0x8008, 7
+	call Common_EventScript_GuestLeader
+	goto_if_eq VAR_RESULT, GUEST_LEADER_RESULT_WON, MossdeepCity_Gym_EventScript_TateAndLizaDefeated
+	goto_if_eq VAR_RESULT, GUEST_LEADER_RESULT_BLOCKED, Common_EventScript_GuestLeaderEnd
 	trainerbattle_double TRAINER_TATE_AND_LIZA_1, MossdeepCity_Gym_Text_TateAndLizaIntro, MossdeepCity_Gym_Text_TateAndLizaDefeat, MossdeepCity_Gym_Text_TateAndLizaNeedTwoMons, MossdeepCity_Gym_EventScript_TateAndLizaDefeated, NO_MUSIC
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, MossdeepCity_Gym_EventScript_TateAndLizaRematch

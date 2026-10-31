@@ -80,6 +80,10 @@ SootopolisCity_Gym_1F_Movement_FallThroughIce:
 	step_end
 
 SootopolisCity_Gym_1F_EventScript_Juan::
+	setvar VAR_0x8008, 8
+	call Common_EventScript_GuestLeader
+	goto_if_eq VAR_RESULT, GUEST_LEADER_RESULT_WON, SootopolisCity_Gym_1F_EventScript_JuanDefeated
+	goto_if_eq VAR_RESULT, GUEST_LEADER_RESULT_BLOCKED, Common_EventScript_GuestLeaderEnd
 	trainerbattle_single TRAINER_JUAN_1, SootopolisCity_Gym_1F_Text_JuanIntro, SootopolisCity_Gym_1F_Text_JuanDefeat, SootopolisCity_Gym_1F_EventScript_JuanDefeated, NO_MUSIC
 	specialvar VAR_RESULT, ShouldTryRematchBattle
 	goto_if_eq VAR_RESULT, TRUE, SootopolisCity_Gym_1F_EventScript_JuanRematch
