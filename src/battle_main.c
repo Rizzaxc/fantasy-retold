@@ -2,6 +2,7 @@
 #include "battle.h"
 #include "battle_anim.h"
 #include "battle_ai_main.h"
+#include "battle_ai_fr_tactics.h"
 #include "battle_ai_record.h"
 #include "battle_arena.h"
 #include "battle_controllers.h"
@@ -2987,6 +2988,7 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
         {
             gBattleMons[battler].volatiles.confusionTimer = 0; // still the previous occupant's; reset below anyway
             ReconcileStatusRailsFromBridge(battler);
+            SeedStatusRailsFromSavedStatus(battler);
         }
         SyncStatusRailBridge(battler);
     }
@@ -3088,7 +3090,7 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
     }
     #endif // TESTING
 
-    // Fantasy Retold: apply on-switch-in Nature innates (Quick Start / Resilient) after the stat-stage
+    // Fantasy Retold: apply on-switch-in Nature innates (Quick Start) after the stat-stage
     // reset above, so the +1 lands on the fresh stages and doesn't compound across switches.
     ApplyNatureSwitchInInnates(battler);
 
@@ -3567,7 +3569,7 @@ static void TryDoEventsBeforeFirstTurn(void)
             gBattleStruct->battlerState[battler].switchIn = TRUE;
             // Fantasy Retold: initial send-outs enter at full Stamina.
             gBattleStruct->battlerState[battler].currentStamina = GetBaseStamina(battler);
-            ApplyNatureSwitchInInnates(battler); // Fantasy Retold: Quick Start / Resilient on the opening send-out
+            ApplyNatureSwitchInInnates(battler); // Fantasy Retold: Quick Start on the opening send-out
             // Fantasy Retold: the healthbox was first drawn before Stamina existed (showing 0); refresh
             // it now that the real value is set, so the readout is correct from the opening turn.
             UpdateStaminaGaugeOnHealthbox(battler);
@@ -3663,6 +3665,8 @@ void SetBattleCallback(void (*func)(void))
 
 void BattleTurnPassed(void)
 {
+    AI_RecordDodgeSpots(); // Fantasy Retold: before this turn's chosen actions are cleared
+
     // Fantasy Retold: Repeated Move Trapping only looks back one turn (a turn without a move clears it).
     for (enum BattlerId battler = 0; battler < gBattlersCount; battler++)
     {
@@ -4506,12 +4510,25 @@ u32 GetDodgeCost(enum BattlerId battler)
 
 // Fantasy Retold: Stamina action cost of a move (design.md §2): BP/10 + 2% BaseSta body tax, or a flat 10 for
 // a status move, plus the Chilled / Drowsy surcharge (design.md §6).
+// Fantasy Retold: a status move that raises the user's Speed (Dragon Dance, Agility, Shell Smash, ...), which costs no
+// Stamina (design.md §7).
+static bool32 IsSpeedBoostingSetupMove(enum Move move)
+{
+    for (u32 i = 0; i < GetMoveAdditionalEffectCount(move); i++)
+    {
+        const struct AdditionalEffect *effect = GetMoveAdditionalEffectById(move, i);
+        if (effect->moveEffect == STAT_CHANGE_EFFECT_PLUS && effect->speed != 0)
+            return TRUE;
+    }
+    return FALSE;
+}
+
 u32 GetMoveStaminaCost(enum BattlerId battler, enum Move move)
 {
     u32 cost;
 
     if (IsBattleMoveStatus(move))
-        cost = 10;
+        cost = IsSpeedBoostingSetupMove(move) ? 0 : 10;
     else
         cost = (GetMovePower(move) / 10) + ((GetBaseStamina(battler) * 2) / 100);
     return cost + GetStatusRailStaminaSurcharge(battler);

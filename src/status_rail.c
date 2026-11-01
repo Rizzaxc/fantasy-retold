@@ -361,6 +361,22 @@ static u32 BuildStatusRailMirror(const struct StatusRailEntry *rails)
     return status1;
 }
 
+// The saved-level bits (STATUS1_SAVED_*) for the lines that vanilla status1 can't hold at their level.
+static u32 BuildStatusRailSavedBits(const struct StatusRailEntry *rails)
+{
+    u32 saved = 0;
+
+    if (rails[RAIL_ELECTRIC].level >= 2)
+        saved |= rails[RAIL_ELECTRIC].level << __builtin_ctz(STATUS1_SAVED_ELECTRIC);
+    if (rails[RAIL_SLEEP].level >= 2)
+        saved |= rails[RAIL_SLEEP].level << __builtin_ctz(STATUS1_SAVED_SLEEP);
+    if (rails[RAIL_CONFUSION].level >= 2)
+        saved |= rails[RAIL_CONFUSION].level << __builtin_ctz(STATUS1_SAVED_CONFUSION);
+    if (rails[RAIL_BURN].level >= 2)
+        saved |= rails[RAIL_BURN].level << __builtin_ctz(STATUS1_SAVED_BURN);
+    return saved;
+}
+
 u32 GetStatusRailPartyStatusAfterBattle(const struct StatusRailEntry *rails)
 {
     struct StatusRailEntry kept[NUM_STATUS_RAILS];
@@ -372,14 +388,55 @@ u32 GetStatusRailPartyStatusAfterBattle(const struct StatusRailEntry *rails)
         if (kept[rail].level == 1) // Lv1 is volatile: the battle ending drops it like a switch-out
             kept[rail].level = 0;
     }
-    return BuildStatusRailMirror(kept);
+    return BuildStatusRailMirror(kept) | BuildStatusRailSavedBits(kept);
+}
+
+u32 GetStatusRailSavedBitsToCure(u32 healMask)
+{
+    u32 saved = 0;
+
+    if (healMask & STATUS1_BURN)
+        saved |= STATUS1_SAVED_BURN;
+    if (healMask & STATUS1_SLEEP)
+        saved |= STATUS1_SAVED_SLEEP;
+    if (healMask & STATUS1_PARALYSIS)
+        saved |= STATUS1_SAVED_ELECTRIC;
+    if ((healMask & STATUS1_ANY) == STATUS1_ANY) // a full cure also takes the confusion line
+        saved |= STATUS1_SAVED_CONFUSION;
+    return saved;
+}
+
+void SeedStatusRailsFromSavedStatus(enum BattlerId battler)
+{
+    struct PartyState *ps = GetBattlerPartyState(battler);
+    u32 status1 = gBattleMons[battler].status1;
+    u32 level;
+
+    level = (status1 & STATUS1_SAVED_ELECTRIC) >> __builtin_ctz(STATUS1_SAVED_ELECTRIC);
+    if (level > ps->rails[RAIL_ELECTRIC].level)
+        ps->rails[RAIL_ELECTRIC].level = level;
+
+    level = (status1 & STATUS1_SAVED_SLEEP) >> __builtin_ctz(STATUS1_SAVED_SLEEP);
+    if (level > ps->rails[RAIL_SLEEP].level && ps->rails[RAIL_SLEEP].level >= 2) // the sleep turns are still mirrored
+        ps->rails[RAIL_SLEEP].level = level;
+
+    level = (status1 & STATUS1_SAVED_BURN) >> __builtin_ctz(STATUS1_SAVED_BURN);
+    if (level > ps->rails[RAIL_BURN].level && ps->rails[RAIL_BURN].level >= 1) // the burn bit is still mirrored
+        ps->rails[RAIL_BURN].level = level;
+
+    level = (status1 & STATUS1_SAVED_CONFUSION) >> __builtin_ctz(STATUS1_SAVED_CONFUSION);
+    if (level > ps->rails[RAIL_CONFUSION].level)
+    {
+        ps->rails[RAIL_CONFUSION].level = level;
+        ps->rails[RAIL_CONFUSION].counter = CONFUSION_DURATION; // the timer isn't kept; it restarts
+    }
 }
 
 void SyncStatusRailBridge(enum BattlerId battler)
 {
     struct PartyState *ps = GetBattlerPartyState(battler);
 
-    gBattleMons[battler].status1 = (gBattleMons[battler].status1 & ~STATUS1_RAIL_MIRROR) | BuildStatusRailMirror(ps->rails);
+    gBattleMons[battler].status1 = (gBattleMons[battler].status1 & ~(STATUS1_RAIL_MIRROR | STATUS1_SAVED_ANY)) | BuildStatusRailMirror(ps->rails);
 
     // Confusion: the whole line reads as "confused" to vanilla code; the timer holds the turns left.
     if (ps->rails[RAIL_CONFUSION].level != 0)

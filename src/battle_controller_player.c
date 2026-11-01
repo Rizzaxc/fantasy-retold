@@ -111,6 +111,11 @@ static const u8 sText_DodgeCostThreshold[] = _(
     "Not enough Stamina to Dodge!\p"
 );
 
+static const u8 sText_InnateChoiceLocked[] = _(
+    "A Choice item rules out\n"
+    "Dodge and Recuperate!\p"
+);
+
 // Fantasy Retold: innate command menu (design.md §3). L (R in L=A mode) swaps the four move slots for
 // Dodge / Recuperate / the Signature Move / the Itemized Move; L or B swaps back. Dodge and Recuperate always
 // take slots 0 and 1; the two moves fill slots 2 and 3 in that order, only when the mon has them.
@@ -800,9 +805,10 @@ static bool32 IsInnateMenuEntryUsable(enum BattlerId battler, enum InnateMenuEnt
     switch (entry)
     {
     case INNATE_ENTRY_DODGE:
-        return gBattleStruct->battlerState[battler].currentStamina >= GetDodgeCost(battler);
+        return !IsInnateCommandBlockedByChoice(battler)
+            && gBattleStruct->battlerState[battler].currentStamina >= GetDodgeCost(battler);
     case INNATE_ENTRY_RECUPERATE:
-        return CanUseRecuperate(battler);
+        return !IsInnateCommandBlockedByChoice(battler) && CanUseRecuperate(battler);
     case INNATE_ENTRY_SIGNATURE:
     case INNATE_ENTRY_ITEMIZED:
         return GetBattlerExtraMovePP(battler, GetInnateEntryMovePosition(entry)) != 0;
@@ -985,6 +991,8 @@ static void HandleInputChooseInnate(enum BattlerId battler)
         PlaySE(SE_SELECT);
         if (IsInnateMenuEntryUsable(battler, entry))
             ConfirmInnateMenuEntry(battler, cursor);
+        else if ((entry == INNATE_ENTRY_DODGE || entry == INNATE_ENTRY_RECUPERATE) && IsInnateCommandBlockedByChoice(battler))
+            ShowInnateMenuMessage(battler, sText_InnateChoiceLocked, WaitForDodgeSelectionMessage);
         else if (entry == INNATE_ENTRY_DODGE)
             ShowInnateMenuMessage(battler, sText_DodgeCostThreshold, WaitForDodgeSelectionMessage);
         else if (entry == INNATE_ENTRY_RECUPERATE)

@@ -5,6 +5,7 @@
 #include "battle_ai_switch.h"
 #include "battle_ai_util.h"
 #include "battle_util.h"
+#include "status_rail.h"
 #include "battle_anim.h"
 #include "battle_controllers.h"
 #include "battle_main.h"
@@ -69,6 +70,15 @@ static enum Ability GetPartyMonAbilityForSwitchCalc(enum BattlerId battler, u32 
 #endif
 
     return ability;
+}
+
+// Fantasy Retold: the opposing battler's move in an AI move slot for the switch checks, the Signature / Itemized
+// Move (slots 4 and 5) included when the AI thinks in all six (AI_GetMoveSlotCount).
+static enum Move GetSwitchPlayerMove(enum BattlerId opposingBattler, u32 slot, enum Move *playerMoves)
+{
+    if (slot < MAX_MON_MOVES)
+        return SMART_SWITCHING_OMNISCIENT ? gBattleMons[opposingBattler].moves[slot] : playerMoves[slot];
+    return SMART_SWITCHING_OMNISCIENT ? AI_GetBattlerMoveAtSlot(opposingBattler, slot) : AI_GetKnownMoveAtSlot(opposingBattler, slot);
 }
 
 static void InitializeSwitchinCandidate(enum BattlerId switchinBattler, u32 monIndex, struct Pokemon *mon)
@@ -1000,8 +1010,79 @@ static bool32 ShouldSwitchIfIntimidateBenefit(struct SwitchAiContext *switchCont
     return hasValidTarget;
 }
 
+// Fantasy Retold: a Stupefied / Frightened battler in doubles may turn a single-target hit on its own ally (design.md
+// §6). Half the time, take it out while such a hit could KO that ally and the line has 2+ turns left. The line is
+// Lv2+, so it keeps (and doesn't count down) on the bench: this only shields the ally for now.
+#define FR_SWITCH_STUPEFIED_CHANCE 50
+static bool32 ShouldSwitchStupefiedFromAlly(enum BattlerId battler)
+{
+    enum BattlerId partner = GetPartnerBattler(battler);
+
+    if (!IsDoubleBattle() || !IsBattlerAlive(partner)
+     || GetStatusRailLevel(battler, RAIL_CONFUSION) < 2 || GetStatusRailCounter(battler, RAIL_CONFUSION) < 2)
+        return FALSE;
+
+    for (u32 slot = 0; slot < AI_GetMoveSlotCount(battler); slot++)
+    {
+        enum Move move = AI_GetBattlerMoveAtSlot(battler, slot);
+        if (move == MOVE_NONE || GetMovePower(move) == 0 || AI_GetBattlerMoveTargetType(battler, move) != TARGET_SELECTED)
+            continue;
+        if (CanIndexMoveFaintTarget(battler, partner, slot, AI_ATTACKING_PARTNER))
+            return RandomPercentage(RNG_AI_FR_SWITCH_STUPEFIED, FR_SWITCH_STUPEFIED_CHANCE);
+    }
+    return FALSE;
+}
+
+// Fantasy Retold: the nature innates that reward pivoting (design.md §5), for AI_FLAG_FR_TACTICS, with the same
+// switch chances as the matching abilities. Innates aren't abilities, so Gastro Acid / Neutralizing Gas don't stop
+// them. Never while the AI has a KO on its target this turn. Also a Stupefied battler next to a frail ally.
+static bool32 ShouldSwitchForNatureInnate(struct SwitchAiContext *switchContext)
+{
+    enum BattlerId battler = switchContext->battler;
+    bool32 statsRaised = switchContext->hasStatRaised;
+
+    if (!(gAiThinkingStruct->aiFlags[battler] & AI_FLAG_FR_TACTICS)
+     || gAiLogicData->mostSuitableMonId[battler] == PARTY_SIZE
+     || CanAIFaintTarget(battler, switchContext->opposingBattler, 0))
+        return FALSE;
+
+    if (ShouldSwitchStupefiedFromAlly(battler))
+        return TRUE;
+
+    // Natural Cure: clears every line below Lv3 (a Lv3 drops to Lv1) on the way out.
+    if (BattlerHasInnate(battler, INNATE_NATURAL_CURE) && HasStatusRailCondition(battler))
+    {
+        bool32 badLine = GetStatusRailLevel(battler, RAIL_POISON) >= 2 || GetStatusRailLevel(battler, RAIL_SLEEP) >= 2
+                      || GetStatusRailLevel(battler, RAIL_CHILL) >= 2 || GetStatusRailLevel(battler, RAIL_ELECTRIC) >= 3;
+        if (badLine && RandomPercentage(RNG_AI_SWITCH_NATURAL_CURE, GetSwitchChance(statsRaised ? SHOULD_SWITCH_NATURAL_CURE_STRONG_STATS_RAISED : SHOULD_SWITCH_NATURAL_CURE_STRONG)))
+            return TRUE;
+        if (gBattleMons[battler].hp >= gBattleMons[battler].maxHP / 2
+         && RandomPercentage(RNG_AI_SWITCH_NATURAL_CURE, GetSwitchChance(statsRaised ? SHOULD_SWITCH_NATURAL_CURE_WEAK_STATS_RAISED : SHOULD_SWITCH_NATURAL_CURE_WEAK)))
+            return TRUE;
+    }
+
+    // Regenerator: heals a third on the way out, up to the Trauma cap.
+    if (BattlerHasInnate(battler, INNATE_REGENERATOR) && !HasStatusRailCondition(battler)
+     && gBattleMons[battler].hp <= (gBattleMons[battler].maxHP * 2) / 3
+     && gBattleMons[battler].hp < GetBattlerEffectiveMaxHP(battler)
+     && RandomPercentage(RNG_AI_SWITCH_REGENERATOR, GetSwitchChance(statsRaised ? SHOULD_SWITCH_REGENERATOR_STATS_RAISED : SHOULD_SWITCH_REGENERATOR)))
+        return TRUE;
+
+    // Quick Start: its Speed was dropped below neutral and it is now outsped; coming back resets the drop and adds +1.
+    if (BattlerHasInnate(battler, INNATE_QUICK_START) && !statsRaised
+     && gBattleMons[battler].statStages[STAT_SPEED] < DEFAULT_STAT_STAGE
+     && gAiLogicData->speedStats[battler] < gAiLogicData->speedStats[switchContext->opposingBattler]
+     && RandomPercentage(RNG_AI_SWITCH_REGENERATOR, GetSwitchChance(SHOULD_SWITCH_REGENERATOR)))
+        return TRUE;
+
+    return FALSE;
+}
+
 static bool32 ShouldSwitchIfAbilityBenefit(struct SwitchAiContext *switchContext)
 {
+    if (ShouldSwitchForNatureInnate(switchContext))
+        return SetSwitchinAndSwitch(switchContext->battler, PARTY_SIZE);
+
     //Check if ability is blocked
     if (gBattleMons[switchContext->battler].volatiles.gastroAcid
         || IsNeutralizingGasOnField())
@@ -1332,10 +1413,10 @@ void GetShouldSwitchMoveData(struct SwitchAiContext *switchContext)
     bool32 isBattlerFirst, isBattlerFirstPriority;
 
     // Get max damage mon could take
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(switchContext->battler); moveIndex++)
     {
-        playerMove = SMART_SWITCHING_OMNISCIENT ? gBattleMons[switchContext->opposingBattler].moves[moveIndex] : playerMoves[moveIndex];
-        if (playerMove != MOVE_NONE && !IsBattleMoveStatus(playerMove) && GetMoveEffect(playerMove) != EFFECT_FOCUS_PUNCH && gBattleMons[switchContext->opposingBattler].pp[moveIndex] > 0)
+        playerMove = GetSwitchPlayerMove(switchContext->opposingBattler, moveIndex, playerMoves);
+        if (playerMove != MOVE_NONE && !IsBattleMoveStatus(playerMove) && GetMoveEffect(playerMove) != EFFECT_FOCUS_PUNCH && AI_GetMoveSlotPP(switchContext->opposingBattler, moveIndex) > 0)
         {
             hitsToKOAI = GetNoOfHitsToKOBattler(switchContext->opposingBattler, switchContext->battler, moveIndex, AI_DEFENDING, CONSIDER_ENDURE);
             if (hitsToKOAI < minHitsToKOAI && !AI_DoesChoiceEffectBlockMove(switchContext->opposingBattler, playerMove))
@@ -2078,10 +2159,10 @@ static s32 GetMaxDamagePlayerCouldDealToSwitchin(enum BattlerId battler, enum Ba
     enum Move *playerMoves = GetMovesArray(opposingBattler);
     s32 damageTaken = 0, maxDamageTaken = 0;
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battler); moveIndex++)
     {
-        playerMove = SMART_SWITCHING_OMNISCIENT ? gBattleMons[opposingBattler].moves[moveIndex] : playerMoves[moveIndex];
-        if (playerMove != MOVE_NONE && !IsBattleMoveStatus(playerMove) && GetMoveEffect(playerMove) != EFFECT_FOCUS_PUNCH && gBattleMons[opposingBattler].pp[moveIndex] > 0)
+        playerMove = GetSwitchPlayerMove(opposingBattler, moveIndex, playerMoves);
+        if (playerMove != MOVE_NONE && !IsBattleMoveStatus(playerMove) && GetMoveEffect(playerMove) != EFFECT_FOCUS_PUNCH && AI_GetMoveSlotPP(opposingBattler, moveIndex) > 0)
         {
             damageTaken = AI_GetDamage(opposingBattler, battler, moveIndex, AI_SWITCHIN_DEFENDING, gAiLogicData);
             if (playerMove == gBattleStruct->choicedMove[opposingBattler]) // If player is choiced, only care about the choice locked move
@@ -2105,14 +2186,14 @@ static s32 GetMaxPriorityDamagePlayerCouldDealToSwitchin(enum BattlerId battler,
     enum Move *playerMoves = GetMovesArray(opposingBattler);
     s32 damageTaken = 0, maxDamageTaken = 0;
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battler); moveIndex++)
     {
         // If player is choiced into a non-priority move, AI understands that it can't deal priority damage
         if (gBattleStruct->choicedMove[opposingBattler] != MOVE_NONE && GetMovePriority(gBattleStruct->choicedMove[opposingBattler]) < 1)
             break;
-        playerMove = SMART_SWITCHING_OMNISCIENT ? gBattleMons[opposingBattler].moves[moveIndex] : playerMoves[moveIndex];
+        playerMove = GetSwitchPlayerMove(opposingBattler, moveIndex, playerMoves);
         if (GetBattleMovePriority(opposingBattler, gAiLogicData->abilities[opposingBattler], playerMove) > 0
-            && playerMove != MOVE_NONE && !IsBattleMoveStatus(playerMove) && GetMoveEffect(playerMove) != EFFECT_FOCUS_PUNCH && gBattleMons[opposingBattler].pp[moveIndex] > 0)
+            && playerMove != MOVE_NONE && !IsBattleMoveStatus(playerMove) && GetMoveEffect(playerMove) != EFFECT_FOCUS_PUNCH && AI_GetMoveSlotPP(opposingBattler, moveIndex) > 0)
         {
             damageTaken = AI_GetDamage(opposingBattler, battler, moveIndex, AI_SWITCHIN_DEFENDING, gAiLogicData);
             if (playerMove == gBattleStruct->choicedMove[opposingBattler]) // If player is choiced, only care about the choice locked move
@@ -2274,14 +2355,14 @@ static u32 GetBestMonIntegrated(struct Pokemon *party, int lastId, enum BattlerI
         canSwitchinWin1v1 = FALSE;
         bool32 anyMoveCanWin1v1 = FALSE;
 
-        // Check through current mon's moves
-        for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+        // Check through current mon's moves (Fantasy Retold: and its Signature / Itemized Move)
+        for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battler); moveIndex++)
         {
             // Check that move has PP remaining before running calcs
-            if (gBattleMons[battler].pp[moveIndex] < 1)
+            if (AI_GetMoveSlotPP(battler, moveIndex) < 1)
                 continue;
 
-            aiMove = gBattleMons[battler].moves[moveIndex];
+            aiMove = AI_GetBattlerMoveAtSlot(battler, moveIndex);
             damageDealt = AI_GetDamage(battler, opposingBattler, moveIndex, AI_SWITCHIN_ATTACKING, gAiLogicData);
             hitsToKOPlayer = GetNoOfHitsToKOBattler(battler, opposingBattler, moveIndex, AI_SWITCHIN_ATTACKING, CONSIDER_ENDURE);
 
@@ -2520,13 +2601,13 @@ static u32 GetBestMonVanilla(struct Pokemon *party, int lastId, enum BattlerId b
 
         typeMatchup = GetBattlerTypeMatchup(opposingBattler, battler);
 
-        for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+        for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battler); moveIndex++)
         {
             // Check that move has PP remaining before running calcs
-            if (gBattleMons[battler].pp[moveIndex] < 1)
+            if (AI_GetMoveSlotPP(battler, moveIndex) < 1)
                 continue;
 
-            enum Move aiMove = gBattleMons[battler].moves[moveIndex];
+            enum Move aiMove = AI_GetBattlerMoveAtSlot(battler, moveIndex);
 
             // Baton Pass
             if (GetMoveEffect(aiMove) == EFFECT_BATON_PASS)
@@ -2683,10 +2764,10 @@ u32 AI_SelectRevivalBlessingMon(enum BattlerId battler)
             continue;
 
         s32 bestDamage = 0;
-        for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+        for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battler); moveIndex++)
         {
-            enum Move aiMove = gBattleMons[battler].moves[moveIndex];
-            if (aiMove == MOVE_NONE || gBattleMons[battler].pp[moveIndex] == 0)
+            enum Move aiMove = AI_GetBattlerMoveAtSlot(battler, moveIndex);
+            if (aiMove == MOVE_NONE || AI_GetMoveSlotPP(battler, moveIndex) == 0)
                 continue;
 
             s32 damage = AI_GetDamage(battler, opposingBattler, moveIndex, AI_SWITCHIN_ATTACKING, gAiLogicData);

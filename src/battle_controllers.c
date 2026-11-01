@@ -3375,7 +3375,8 @@ void SetFinalChosenTarget(enum BattlerId battler, bool32 checkPartner)
 
     enum BattlerId chosenTarget = gAiBattleData->chosenTarget[battler];
     u32 chosenMoveIndex = gAiBattleData->chosenMoveIndex[battler];
-    u32 chosenMove = moveInfo->moves[chosenMoveIndex];
+    // Fantasy Retold: the AI's slots 4 and 5 are the Signature / Itemized Move positions (design.md §10).
+    u32 chosenMove = (chosenMoveIndex < MAX_MON_MOVES) ? moveInfo->moves[chosenMoveIndex] : GetBattlerMoveAtPosition(battler, chosenMoveIndex);
     enum MoveTarget targetType = GetBattlerMoveSelectionTargetType(battler, chosenMove);
 
     switch (targetType)
@@ -3414,6 +3415,9 @@ void SetFinalChosenTarget(enum BattlerId battler, bool32 checkPartner)
 
     enum Gimmick usableGimmick = gBattleStruct->gimmick.usableGimmick[battler];
     bool32 isAIUsingGimmick = gAiBattleData->aiUsingGimmick & (1u << battler);
+    // Fantasy Retold: nothing goes with the Signature Move, only transformations with the Itemized Move.
+    if (chosenMoveIndex >= MAX_MON_MOVES && (chosenMoveIndex == SIGNATURE_MOVE_POSITION || !CanUseGimmickWithInnateCommand(battler)))
+        isAIUsingGimmick = FALSE;
     if (usableGimmick != GIMMICK_NONE && isAIUsingGimmick && !HasTrainerUsedGimmick(battler, usableGimmick))
     {
         gBattleStruct->gimmick.toActivate |= 1u << battler;

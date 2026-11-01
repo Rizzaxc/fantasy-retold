@@ -57,6 +57,17 @@ void HandleAction_Recuperate(void);  // Fantasy Retold: R innate command
 bool32 BattlerIsDodging(enum BattlerId battler);
 bool32 IsMoveFullyDodged(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move);
 bool32 IsMoveHalvedByDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef);
+// Fantasy Retold: how far an attack gets through a Dodge, by the attacker's held Choice item and whether it is its
+// Signature Move (design.md §3 / §9 / §10). Weakest to strongest.
+enum DodgeBypass
+{
+    DODGE_BYPASS_NONE,           // normal Dodge outcomes
+    DODGE_BYPASS_NO_REPEAT_TRAP, // Choice Band / Specs: repeating the move isn't a full miss (speed still is)
+    DODGE_BYPASS_NEVER_FULL,     // Signature Move, Choice Scarf: never a full miss, a halved hit at worst
+    DODGE_BYPASS_IGNORED,        // Signature Move from a Choice Scarf holder: lands at full damage
+};
+enum DodgeBypass GetDodgeBypass(enum BattlerId battlerAtk, u32 movePosition);
+bool32 IsInnateCommandBlockedByChoice(enum BattlerId battler);
 enum BattleWeather GetBattleWeather(u32 weather);
 bool32 EndOrContinueWeather(void);
 enum DamageCategory GetReflectDamageMoveDamageCategory(enum BattlerId battler, enum Move move);
@@ -94,6 +105,7 @@ void BattleScriptCall(const u8 *bsPtr);
 void BattleScriptPop(void);
 u32 TrySetCantSelectMoveBattleScript(enum BattlerId battler);
 u32 CheckMoveLimitations(enum BattlerId battler, u8 unusableMoves, u32 check);
+u32 CheckExtraMoveLimitations(enum BattlerId battler, u32 check);
 bool32 AreAllMovesUnusable(enum BattlerId battler);
 u8 GetImprisonedMovesCount(enum BattlerId battler, enum Move move);
 s32 GetDrainedBigRootHp(enum BattlerId battler, s32 hp);
@@ -341,7 +353,7 @@ enum NatureInnate
     INNATE_SHEER_FORCE,  // Adamant / Modest: +30% damage, no Lv1 status secondaries
     INNATE_QUICK_START,  // Jolly / Timid: +1 Speed stage on switch-in
     INNATE_BATTLE_ARMOR, // Bold / Impish: critical-hit immune (incl. the 0-Stamina auto-crit)
-    INNATE_RESILIENT,    // Calm / Careful: +1 Sp.Def (Trauma-resist) stage on switch-in
+    INNATE_RESILIENT,    // Calm / Careful: immune to Special Trauma (damage stays normal HP)
     INNATE_REGENERATOR,  // Relaxed / Lax: restores HP on switch-out (Trauma-capped)
     INNATE_NATURAL_CURE, // Sassy / Gentle: cured of status on switch-out
 };

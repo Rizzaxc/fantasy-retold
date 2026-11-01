@@ -3886,6 +3886,7 @@ void TestRunner_Battle_AILogScore(const char *file, u32 line, enum BattlerId bat
     struct AILogLine *log;
 
     if (!DATA.logAI) return;
+    if (moveIndex >= MAX_MON_MOVES) return; // Fantasy Retold: the Signature / Itemized slots aren't logged
 
     log = GetLogLine(battlerId, moveIndex);
     log->file = file;

@@ -230,6 +230,8 @@ enum RandomTag
     RNG_AI_RANDOM_VALID_SWITCHIN_MID_BATTLE,
     RNG_AI_STAMINA_DODGE,      // Fantasy Retold: AI_FLAG_STAMINA_MANAGEMENT optional Dodge
     RNG_AI_STAMINA_RECUPERATE, // Fantasy Retold: AI_FLAG_STAMINA_MANAGEMENT Recuperate vs. alternate attack
+    RNG_AI_FR_DODGE_READ,      // Fantasy Retold: AI_FLAG_FR_TACTICS expecting the player to Dodge
+    RNG_AI_FR_SWITCH_STUPEFIED, // Fantasy Retold: AI_FLAG_FR_TACTICS moving a Stupefied mon away from its ally
     RNG_HEALER,
     RNG_DEXNAV_ENCOUNTER_LEVEL,
     RNG_POKERUS_PARTY_MEMBER,

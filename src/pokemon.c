@@ -51,6 +51,7 @@
 #include "regions.h"
 #include "rtc.h"
 #include "sound.h"
+#include "status_rail.h"
 #include "string_util.h"
 #include "strings.h"
 #include "task.h"
@@ -3954,7 +3955,7 @@ bool8 HealStatusConditions(struct Pokemon *mon, u32 healMask, enum BattlerId bat
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FREEZE;
         else if (status & STATUS1_FROSTBITE)
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FROSTBITE;
-        status &= ~healMask;
+        status &= ~(healMask | GetStatusRailSavedBitsToCure(healMask));
         SetMonData(mon, MON_DATA_STATUS, &status);
         if (gMain.inBattle && battler != MAX_BATTLERS_COUNT)
         {

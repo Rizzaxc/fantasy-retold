@@ -31,6 +31,12 @@ void RecordKnownMove(enum BattlerId battler, enum Move move)
         gBattleHistory->usedMoves[battler][moveIndex] = move;
         gAiPartyData->mons[GetBattlerSide(battler)][gBattlerPartyIndexes[battler]].moves[moveIndex] = move;
     }
+
+    // Fantasy Retold: the Signature / Itemized Move is known once seen in use (AI_GetKnownMoveAtSlot).
+    if (move != MOVE_NONE && move == GetBattlerMoveAtPosition(battler, SIGNATURE_MOVE_POSITION))
+        gAiPartyData->mons[GetBattlerSide(battler)][gBattlerPartyIndexes[battler]].extraMovesSeen |= 1u << 0;
+    if (move != MOVE_NONE && move == GetBattlerMoveAtPosition(battler, ITEMIZED_MOVE_POSITION))
+        gAiPartyData->mons[GetBattlerSide(battler)][gBattlerPartyIndexes[battler]].extraMovesSeen |= 1u << 1;
 }
 
 void RecordAllMoves(enum BattlerId battler)
@@ -60,6 +66,12 @@ void ClearBattlerMoveHistory(enum BattlerId battlerId)
     memset(gBattleHistory->usedMoves[battlerId], 0, sizeof(gBattleHistory->usedMoves[battlerId]));
     memset(gBattleHistory->moveHistory[battlerId], 0, sizeof(gBattleHistory->moveHistory[battlerId]));
     gBattleHistory->moveHistoryIndex[battlerId] = 0;
+}
+
+// Fantasy Retold: the battler's nature innate visibly fired, so the AI may now play around it (AI_IsInnateKnown).
+void RecordNatureInnate(enum BattlerId battler)
+{
+    gAiPartyData->mons[GetBattlerSide(battler)][gBattlerPartyIndexes[battler]].innateRevealed = TRUE;
 }
 
 void ClearBattlerItemEffectHistory(enum BattlerId battlerId)

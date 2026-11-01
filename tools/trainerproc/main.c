@@ -97,6 +97,9 @@ struct Pokemon
     int moves_n;
     int move1_line;
 
+    struct String signature_move;
+    int signature_move_line;
+
     struct String tags[MAX_MON_TAGS];
     int tags_n;
     int tags_line;
@@ -184,6 +187,11 @@ static bool is_literal_string(struct String s1, const char *s2)
         else if (s1.string[i] != s2[i])
             return false;
     }
+}
+
+static bool strings_equal(struct String s1, struct String s2)
+{
+    return s1.string_n == s2.string_n && memcmp(s1.string, s2.string, s1.string_n) == 0;
 }
 
 static bool __attribute__((unused)) starts_with(struct String s, const char *prefix)
@@ -1511,6 +1519,13 @@ static bool parse_trainer(struct Parser *p, const struct Parsed *parsed, struct 
                 pokemon->tera_type_line = value.location.line;
                 pokemon->tera_type = token_string(&value);
             }
+            else if (is_literal_token(&key, "Signature Move"))
+            {
+                if (pokemon->signature_move_line)
+                    any_error = !set_show_parse_error(p, key.location, "duplicate 'Signature Move'");
+                pokemon->signature_move_line = value.location.line;
+                pokemon->signature_move = token_string(&value);
+            }
             else if (is_literal_token(&key, "Tags"))
             {
                 if (pokemon->tags_line)
@@ -1521,7 +1536,7 @@ static bool parse_trainer(struct Parser *p, const struct Parsed *parsed, struct 
             }
             else
             {
-                any_error = !set_show_parse_error(p, key.location, "expected one of 'EVs', 'IVs', 'Ability', 'Level', 'Ball', 'Happiness', 'Nature', 'Shiny', 'Dynamax Level', 'Gigantamax', or 'Tera Type'");
+                any_error = !set_show_parse_error(p, key.location, "expected one of 'EVs', 'IVs', 'Ability', 'Level', 'Ball', 'Happiness', 'Nature', 'Shiny', 'Dynamax Level', 'Gigantamax', 'Tera Type', 'Signature Move', or 'Tags'");
             }
         }
 
@@ -1566,6 +1581,19 @@ static bool parse_trainer(struct Parser *p, const struct Parsed *parsed, struct 
                     pokemon->move1_line = move.location.line;
                 pokemon->moves[pokemon->moves_n] = token_string(&move);
                 pokemon->moves_n++;
+            }
+        }
+
+        // Fantasy Retold: the Signature Move counts as known, so it can't also sit in a slot.
+        if (pokemon->signature_move_line)
+        {
+            for (int j = 0; j < pokemon->moves_n; j++)
+            {
+                if (strings_equal(pokemon->moves[j], pokemon->signature_move))
+                {
+                    struct SourceLocation location = { .line = pokemon->signature_move_line, .column = 1 };
+                    any_error = !set_show_parse_error(p, location, "'Signature Move' is also one of the moves");
+                }
             }
         }
 
@@ -2144,6 +2172,14 @@ static void fprint_trainers(const char *output_path, FILE *f, struct Parsed *par
                         fprintf(f, " | ");
                     fprint_constant(f, "MON_POOL_TAG", pokemon->tags[i]);
                 }
+                fprintf(f, ",\n");
+            }
+
+            if (pokemon->signature_move_line)
+            {
+                fprintf(f, "#line %d\n", pokemon->signature_move_line);
+                fprintf(f, "            .signatureMove = ");
+                fprint_constant(f, "MOVE", pokemon->signature_move);
                 fprintf(f, ",\n");
             }
 

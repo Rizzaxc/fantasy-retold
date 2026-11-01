@@ -4,6 +4,7 @@
 #include "battle.h"
 #include "battle_anim.h"
 #include "battle_ai_util.h"
+#include "battle_ai_fr_tactics.h"
 #include "battle_ai_items.h"
 #include "battle_ai_switch.h"
 #include "battle_ai_main.h"
@@ -126,7 +127,7 @@ static s32 (*const sBattleAiFuncTable[])(enum BattlerId, enum BattlerId, enum Mo
         [35] = NULL,                  // AI_FLAG_ITEM_OMNISCIENCE
         [36] = NULL,                  // AI_FLAG_MOVE_OMNISCIENCE
         [37] = AI_StaminaManagement,  // AI_FLAG_STAMINA_MANAGEMENT
-        [38] = NULL,                  // Unused
+        [38] = AI_FrTactics,          // AI_FLAG_FR_TACTICS
         [39] = NULL,                  // Unused
         [40] = NULL,                  // Unused
         [41] = NULL,                  // Unused
@@ -196,6 +197,17 @@ void BattleAI_SetupAIData(u8 defaultScoreMoves, enum BattlerId battler)
             SET_SCORE(battler, moveIndex, 0);
 
         defaultScoreMoves >>= 1;
+    }
+
+    // Fantasy Retold: the Signature / Itemized Move (slots 4 and 5) start scored only for AI_FLAG_FR_TACTICS, and
+    // never in the Battle Palace (it picks among the four slots).
+    for (u32 slot = MAX_MON_MOVES; slot < AI_MOVE_SLOTS; slot++)
+    {
+        if (slot < AI_GetMoveSlotCount(battler) && !(gBattleTypeFlags & BATTLE_TYPE_PALACE)
+         && !IsMoveUnusable(slot, AI_GetBattlerMoveAtSlot(battler, slot), moveLimitations))
+            SET_SCORE(battler, slot, AI_SCORE_DEFAULT);
+        else
+            SET_SCORE(battler, slot, 0);
     }
 
     gAiBattleData->chosenTarget[battler] = SetRandomTarget(battler);
@@ -401,7 +413,7 @@ void SetupAIPredictionData(enum BattlerId battler, enum SwitchType switchType)
     if (IsAiFlagPresent(AI_FLAG_PREDICT_MOVE))
     {
         gAiBattleData->chosenMoveIndex[battler] = BattleAI_ChooseMoveIndex(battler);
-        gAiLogicData->predictedMove[battler] = gBattleMons[battler].moves[gAiBattleData->chosenMoveIndex[battler]];
+        gAiLogicData->predictedMove[battler] = AI_GetBattlerMoveAtSlot(battler, gAiBattleData->chosenMoveIndex[battler]);
         ModifySwitchAfterMoveScoring(battler);
     }
 
@@ -479,13 +491,12 @@ static void SetAllyMove(u32 battler)
         gAiLogicData->partnerMoveSimulation = TRUE;
         struct ChosenAction chosen = ChooseMoveOrAction_Doubles(partnerBattler);
         gAiLogicData->partnerMoveSimulation = FALSE;
-        gAiLogicData->partnerMove = gBattleMons[partnerBattler].moves[chosen.moveIndex];
+        gAiLogicData->partnerMove = AI_GetBattlerMoveAtSlot(partnerBattler, chosen.moveIndex);
     }
     else
     {
         // Move for battler has already been calculated so set as partner move
-        u32 moveIndex = gAiBattleData->chosenMoveIndex[partnerBattler];
-        gAiLogicData->partnerMove = gBattleMons[partnerBattler].moves[moveIndex];
+        gAiLogicData->partnerMove = GetAIChosenMove(partnerBattler);
     }
 }
 
@@ -515,28 +526,30 @@ static u32 GetAIMoveStaminaCost(enum BattlerId battler, enum Move move)
 }
 
 // The move the AI braces for: the predicted move when AI_FLAG_PREDICT_MOVE rolled a prediction this turn,
-// otherwise the strongest damaging move the AI knows the target has (GetMovesArray respects move knowledge).
+// otherwise the strongest damaging move the AI knows the target has (AI_GetKnownMoveAtSlot respects move
+// knowledge; with AI_FLAG_FR_TACTICS that includes a known Signature / Itemized Move). AI_MOVE_SLOTS if none.
 static u32 GetAIStaminaThreatMoveIndex(enum BattlerId battlerAtk, enum BattlerId battlerDef)
 {
     enum Move predictedMove = GetPredictedMove(battlerDef, battlerAtk, gAiLogicData);
-    enum Move *moves = GetMovesArray(battlerDef);
     u32 moveLimitations = gAiLogicData->moveLimitations[battlerDef];
-    u32 bestMoveIndex = MAX_MON_MOVES;
+    u32 slotCount = (gAiThinkingStruct->aiFlags[battlerAtk] & AI_FLAG_FR_TACTICS) ? AI_MOVE_SLOTS : MAX_MON_MOVES;
+    u32 bestMoveIndex = AI_MOVE_SLOTS;
     u32 bestDmg = 0;
 
     if (predictedMove != MOVE_NONE)
     {
-        u32 predictedIndex = GetMoveIndex(battlerDef, predictedMove);
-        if (predictedIndex < MAX_MON_MOVES && GetMovePower(predictedMove) != 0)
+        u32 predictedIndex = AI_GetMoveSlot(battlerDef, predictedMove);
+        if (predictedIndex < slotCount && GetMovePower(predictedMove) != 0)
             return predictedIndex;
-        return MAX_MON_MOVES;
+        return AI_MOVE_SLOTS;
     }
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < slotCount; moveIndex++)
     {
         u32 damage;
+        enum Move move = AI_GetKnownMoveAtSlot(battlerDef, moveIndex);
 
-        if (IsMoveUnusable(moveIndex, moves[moveIndex], moveLimitations) || GetMovePower(moves[moveIndex]) == 0)
+        if (IsMoveUnusable(moveIndex, move, moveLimitations) || GetMovePower(move) == 0)
             continue;
 
         damage = AI_GetDamage(battlerDef, battlerAtk, moveIndex, AI_DEFENDING, gAiLogicData);
@@ -556,7 +569,7 @@ static u32 GetAIMoveStaminaAttrition(enum BattlerId attacker, enum BattlerId tar
     u32 attrition;
     uq4_12_t effectiveness;
 
-    if (moveIndex >= MAX_MON_MOVES)
+    if (moveIndex >= AI_MOVE_SLOTS)
         return 0;
 
     if (!IsBattleMovePhysical(move) && GetMoveEffect(move) != EFFECT_PSYSHOCK)
@@ -574,22 +587,23 @@ static u32 GetAIMoveStaminaAttrition(enum BattlerId attacker, enum BattlerId tar
 
 static u32 GetPredictedStaminaAttrition(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 threatIndex)
 {
-    if (threatIndex >= MAX_MON_MOVES)
+    if (threatIndex >= AI_MOVE_SLOTS)
         return 0;
-    return GetAIMoveStaminaAttrition(battlerDef, battlerAtk, threatIndex, GetMovesArray(battlerDef)[threatIndex]);
+    return GetAIMoveStaminaAttrition(battlerDef, battlerAtk, threatIndex, AI_GetKnownMoveAtSlot(battlerDef, threatIndex));
 }
 
+// The best-scored damaging move slot, or AI_MOVE_SLOTS. Pass AI_MOVE_SLOTS as excludedMoveIndex to exclude none.
 static u32 FindBestAIDamagingMove(enum BattlerId battler, enum BattlerId target, bool32 safeOnly, u32 currentStamina, u32 attrition, u32 excludedMoveIndex)
 {
-    u32 bestMoveIndex = MAX_MON_MOVES;
+    u32 bestMoveIndex = AI_MOVE_SLOTS;
     s32 bestScore = -2147483647 - 1;
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battler); moveIndex++)
     {
-        enum Move move = gBattleMons[battler].moves[moveIndex];
+        enum Move move = AI_GetBattlerMoveAtSlot(battler, moveIndex);
         u32 totalCost;
 
-        if (move == MOVE_NONE || moveIndex == excludedMoveIndex || gBattleMons[battler].pp[moveIndex] == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || !CanTargetBattler(battler, target, move) || GetMovePower(move) == 0)
+        if (move == MOVE_NONE || moveIndex == excludedMoveIndex || AI_GetMoveSlotPP(battler, moveIndex) == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || !CanTargetBattler(battler, target, move) || GetMovePower(move) == 0)
             continue;
 
         if (safeOnly)
@@ -614,7 +628,8 @@ static bool32 AICanUseRecuperate(enum BattlerId battler)
     u32 baseSta = GetBaseStamina(battler);
     u32 currentSta = gBattleStruct->battlerState[battler].currentStamina;
 
-    return baseSta != 0 && currentSta * 100 <= baseSta * RECUPERATE_STAMINA_PERCENT;
+    return baseSta != 0 && currentSta * 100 <= baseSta * RECUPERATE_STAMINA_PERCENT
+        && !IsInnateCommandBlockedByChoice(battler); // design.md §9
 }
 
 static bool32 AIIsTankierThanTarget(enum BattlerId battler, enum BattlerId target)
@@ -634,14 +649,30 @@ static bool32 AIShouldDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef
     u32 threatDmg;
     bool32 fullEvade;
 
-    if (threatIndex >= MAX_MON_MOVES || gBattleStruct->battlerState[battlerAtk].dodgeConsecutiveUses != 0)
+    if (threatIndex >= AI_MOVE_SLOTS || gBattleStruct->battlerState[battlerAtk].dodgeConsecutiveUses != 0)
+        return FALSE;
+    if (IsInnateCommandBlockedByChoice(battlerAtk)) // design.md §9
         return FALSE;
     if (currentStamina < GetDodgeCost(battlerAtk))
         return FALSE;
 
-    threatMove = GetMovesArray(battlerDef)[threatIndex];
+    threatMove = AI_GetKnownMoveAtSlot(battlerDef, threatIndex);
     threatDmg = AI_GetDamage(battlerDef, battlerAtk, threatIndex, AI_DEFENDING, gAiLogicData);
     fullEvade = AI_WhoStrikesFirst(battlerAtk, battlerDef, MOVE_NONE, threatMove, CONSIDER_PRIORITY) == AI_IS_FASTER;
+
+    // Fantasy Retold: a Signature Move or a Choice item's hit gets further through a Dodge (GetDodgeBypass).
+    if (gAiThinkingStruct->aiFlags[battlerAtk] & AI_FLAG_FR_TACTICS)
+    {
+        enum DodgeBypass bypass = GetDodgeBypass(battlerDef, threatIndex);
+
+        if (bypass == DODGE_BYPASS_IGNORED)
+            return FALSE;
+        if (bypass == DODGE_BYPASS_NEVER_FULL)
+            fullEvade = FALSE;
+        // Repeated Move Trapping: the move it used last turn misses outright, whatever the speeds.
+        else if (bypass == DODGE_BYPASS_NONE && threatMove == gBattleStruct->moveUsedLastTurn[battlerDef])
+            fullEvade = TRUE;
+    }
 
     // The threat would KO: Dodge if that saves the battler (a miss, or half damage it survives).
     if (threatDmg >= gBattleMons[battlerAtk].hp)
@@ -702,26 +733,29 @@ static bool32 AIMovePressuresStatus(enum BattlerId battlerAtk, enum BattlerId ba
     return FALSE;
 }
 
-// At the Recuperate threshold, a move that still moves the game forward this turn, or MAX_MON_MOVES. Every pick
+// At the Recuperate threshold, a move that still moves the game forward this turn, or AI_MOVE_SLOTS. Every pick
 // is Stamina-safe (it leaves the AI above 0 after the predicted attrition):
 // - a physical hit that exhausts the target (its later hits taken auto-crit);
 // - a status the target can't shake off quickly, when the target is slow to KO the AI;
 // - unless the AI is the tankier one, the best attack when the target is at least as drained (trade hits).
+// Fantasy Retold (AI_FLAG_FR_TACTICS): a crit-immune AI (Battle Armor / Shell Armor) loses nothing to exhaustion's
+// auto-crits, so any status, hazard or setup move the scoring rates at least neutral also counts as progress.
 #define AI_STATUS_PRESSURE_MIN_HITS_TO_KO 3
 static u32 AI_FindProgressMoveOverRecuperate(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 currentStamina, u32 attrition)
 {
     u32 targetStamina = gBattleStruct->battlerState[battlerDef].currentStamina;
     u32 targetBaseStamina = GetBaseStamina(battlerDef);
     u32 baseStamina = GetBaseStamina(battlerAtk);
-    bool32 slowThreat = NoOfHitsForTargetToFaintBattler(battlerDef, battlerAtk, AI_DEFENDING, DONT_CONSIDER_ENDURE) >= AI_STATUS_PRESSURE_MIN_HITS_TO_KO;
-    u32 statusMoveIndex = MAX_MON_MOVES;
+    bool32 critImmune = (gAiThinkingStruct->aiFlags[battlerAtk] & AI_FLAG_FR_TACTICS) && AI_IsCritImmune(battlerAtk, battlerAtk);
+    bool32 slowThreat = critImmune || NoOfHitsForTargetToFaintBattler(battlerDef, battlerAtk, AI_DEFENDING, DONT_CONSIDER_ENDURE) >= AI_STATUS_PRESSURE_MIN_HITS_TO_KO;
+    u32 statusMoveIndex = AI_MOVE_SLOTS;
     s32 statusScore = -2147483647 - 1;
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerAtk); moveIndex++)
     {
-        enum Move move = gBattleMons[battlerAtk].moves[moveIndex];
+        enum Move move = AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex);
 
-        if (move == MOVE_NONE || gBattleMons[battlerAtk].pp[moveIndex] == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || !CanTargetBattler(battlerAtk, battlerDef, move))
+        if (move == MOVE_NONE || AI_GetMoveSlotPP(battlerAtk, moveIndex) == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || !CanTargetBattler(battlerAtk, battlerDef, move))
             continue;
         if (currentStamina <= GetAIMoveStaminaCost(battlerAtk, move) + attrition)
             continue;
@@ -729,14 +763,16 @@ static u32 AI_FindProgressMoveOverRecuperate(enum BattlerId battlerAtk, enum Bat
         if (GetMovePower(move) != 0 && targetStamina != 0 && GetAIMoveStaminaAttrition(battlerAtk, battlerDef, moveIndex, move) >= targetStamina)
             return moveIndex;
 
-        if (slowThreat && gAiThinkingStruct->score[moveIndex] > statusScore && AIMovePressuresStatus(battlerAtk, battlerDef, move))
+        if (slowThreat && gAiThinkingStruct->score[moveIndex] > statusScore
+         && (AIMovePressuresStatus(battlerAtk, battlerDef, move)
+          || (critImmune && GetMovePower(move) == 0 && gAiThinkingStruct->score[moveIndex] >= AI_SCORE_DEFAULT)))
         {
             statusMoveIndex = moveIndex;
             statusScore = gAiThinkingStruct->score[moveIndex];
         }
     }
 
-    if (statusMoveIndex != MAX_MON_MOVES)
+    if (statusMoveIndex != AI_MOVE_SLOTS)
         return statusMoveIndex;
 
     // Both drained: the target is at or below its own Recuperate threshold, with no more Stamina (as a share of
@@ -744,9 +780,9 @@ static u32 AI_FindProgressMoveOverRecuperate(enum BattlerId battlerAtk, enum Bat
     if (!AIIsTankierThanTarget(battlerAtk, battlerDef) && targetBaseStamina != 0
      && targetStamina * 100 <= targetBaseStamina * RECUPERATE_STAMINA_PERCENT
      && targetStamina * baseStamina <= currentStamina * targetBaseStamina)
-        return FindBestAIDamagingMove(battlerAtk, battlerDef, TRUE, currentStamina, attrition, MAX_MON_MOVES);
+        return FindBestAIDamagingMove(battlerAtk, battlerDef, TRUE, currentStamina, attrition, AI_MOVE_SLOTS);
 
-    return MAX_MON_MOVES;
+    return AI_MOVE_SLOTS;
 }
 
 // Recuperate is a wasted turn when, after the refill and the predicted attrition, the AI still can't attack
@@ -758,10 +794,10 @@ static bool32 AIRecuperateIsFutile(enum BattlerId battlerAtk, u32 currentStamina
     u32 afterRecuperate = min(currentStamina + (baseStamina * RECUPERATE_STAMINA_PERCENT) / 100, baseStamina);
     u32 cheapestCost = UINT32_MAX;
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerAtk); moveIndex++)
     {
-        enum Move move = gBattleMons[battlerAtk].moves[moveIndex];
-        if (move == MOVE_NONE || gBattleMons[battlerAtk].pp[moveIndex] == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || GetMovePower(move) == 0)
+        enum Move move = AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex);
+        if (move == MOVE_NONE || AI_GetMoveSlotPP(battlerAtk, moveIndex) == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || GetMovePower(move) == 0)
             continue;
         cheapestCost = min(cheapestCost, GetAIMoveStaminaCost(battlerAtk, move));
     }
@@ -772,11 +808,13 @@ static bool32 AIRecuperateIsFutile(enum BattlerId battlerAtk, u32 currentStamina
     return afterRecuperate <= cheapestCost + attrition;
 }
 
+#define AI_STAMINA_STATUS_WORTH GOOD_EFFECT
 static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId battlerAtk, enum BattlerId battlerDef)
 {
     u32 currentStamina = gBattleStruct->battlerState[battlerAtk].currentStamina;
     u32 baseStamina = GetBaseStamina(battlerAtk);
     u32 targetStamina = gBattleStruct->battlerState[battlerDef].currentStamina;
+    bool32 frTactics = (gAiThinkingStruct->aiFlags[battlerAtk] & AI_FLAG_FR_TACTICS) != 0;
     u32 threatIndex;
     u32 attrition;
     u32 chosenCost;
@@ -800,11 +838,12 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
 
     // At 0 Stamina every hit taken auto-crits, and Recuperate loses its priority (it resolves in speed
     // order), so leaving the Exhaustion Zone comes first: refill unless a KO lands before the target acts.
-    if (currentStamina == 0 && canRecuperate && !recuperateFutile)
+    // Fantasy Retold: a crit-immune AI takes no auto-crits, so it isn't rushed (the normal rules below decide).
+    if (currentStamina == 0 && canRecuperate && !recuperateFutile && !(frTactics && AI_IsCritImmune(battlerAtk, battlerAtk)))
     {
-        for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+        for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerAtk); moveIndex++)
         {
-            enum Move move = gBattleMons[battlerAtk].moves[moveIndex];
+            enum Move move = AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex);
             if (gAiThinkingStruct->score[moveIndex] > 0 && GetMovePower(move) != 0
              && CanIndexMoveFaintTarget(battlerAtk, battlerDef, moveIndex, AI_ATTACKING)
              && AI_WhoStrikesFirst(battlerAtk, battlerDef, move, GetPredictedMove(battlerDef, battlerAtk, gAiLogicData), CONSIDER_PRIORITY) == AI_IS_FASTER)
@@ -818,17 +857,17 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
         return;
     }
 
-    bestMoveIndex = FindBestAIDamagingMove(battlerAtk, battlerDef, FALSE, currentStamina, attrition, MAX_MON_MOVES);
-    if (bestMoveIndex == MAX_MON_MOVES)
+    bestMoveIndex = FindBestAIDamagingMove(battlerAtk, battlerDef, FALSE, currentStamina, attrition, AI_MOVE_SLOTS);
+    if (bestMoveIndex == AI_MOVE_SLOTS)
         return;
 
-    chosenMove = gBattleMons[battlerAtk].moves[chosen->moveIndex];
+    chosenMove = AI_GetBattlerMoveAtSlot(battlerAtk, chosen->moveIndex);
     chosenMoveKOs = GetMovePower(chosenMove) != 0 && CanIndexMoveFaintTarget(battlerAtk, battlerDef, chosen->moveIndex, AI_ATTACKING);
     if (!chosenMoveKOs)
     {
-        for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+        for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerAtk); moveIndex++)
         {
-            if (gAiThinkingStruct->score[moveIndex] > 0 && GetMovePower(gBattleMons[battlerAtk].moves[moveIndex]) != 0 && CanIndexMoveFaintTarget(battlerAtk, battlerDef, moveIndex, AI_ATTACKING))
+            if (gAiThinkingStruct->score[moveIndex] > 0 && GetMovePower(AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex)) != 0 && CanIndexMoveFaintTarget(battlerAtk, battlerDef, moveIndex, AI_ATTACKING))
             {
                 chosen->moveIndex = moveIndex;
                 chosen->action = B_ACTION_USE_MOVE;
@@ -840,10 +879,11 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
         return;
 
     // Exhausted targets are vulnerable to critical hits; attack them without exhausting yourself.
-    if (targetStamina == 0)
+    // Fantasy Retold: not a crit-immune target the AI knows of (its auto-crits don't happen).
+    if (targetStamina == 0 && !(frTactics && AI_IsCritImmune(battlerDef, battlerAtk)))
     {
-        u32 safeMoveIndex = FindBestAIDamagingMove(battlerAtk, battlerDef, TRUE, currentStamina, attrition, MAX_MON_MOVES);
-        if (safeMoveIndex != MAX_MON_MOVES)
+        u32 safeMoveIndex = FindBestAIDamagingMove(battlerAtk, battlerDef, TRUE, currentStamina, attrition, AI_MOVE_SLOTS);
+        if (safeMoveIndex != AI_MOVE_SLOTS)
         {
             chosen->moveIndex = safeMoveIndex;
             chosen->action = B_ACTION_USE_MOVE;
@@ -861,7 +901,7 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     if (canRecuperate)
     {
         u32 progressMoveIndex = AI_FindProgressMoveOverRecuperate(battlerAtk, battlerDef, currentStamina, attrition);
-        if (progressMoveIndex != MAX_MON_MOVES)
+        if (progressMoveIndex != AI_MOVE_SLOTS)
         {
             chosen->moveIndex = progressMoveIndex;
             chosen->action = B_ACTION_USE_MOVE;
@@ -889,8 +929,8 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     // A frail battler should spend its remaining resources to keep pressure on the target.
     if (canRecuperate && AIIsFrailComparedToTarget(battlerAtk, battlerDef))
     {
-        u32 safeMoveIndex = FindBestAIDamagingMove(battlerAtk, battlerDef, TRUE, currentStamina, attrition, MAX_MON_MOVES);
-        if (safeMoveIndex != MAX_MON_MOVES)
+        u32 safeMoveIndex = FindBestAIDamagingMove(battlerAtk, battlerDef, TRUE, currentStamina, attrition, AI_MOVE_SLOTS);
+        if (safeMoveIndex != AI_MOVE_SLOTS)
         {
             chosen->moveIndex = safeMoveIndex;
             chosen->action = B_ACTION_USE_MOVE;
@@ -898,14 +938,14 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
         }
     }
 
-    chosenMove = gBattleMons[battlerAtk].moves[chosen->moveIndex];
+    chosenMove = AI_GetBattlerMoveAtSlot(battlerAtk, chosen->moveIndex);
     chosenCost = GetAIMoveStaminaCost(battlerAtk, chosenMove);
     if (currentStamina > chosenCost + attrition)
     {
         if (GetMovePower(chosenMove) == 0)
             return;
 
-        if (currentStamina == baseStamina && targetStamina == GetBaseStamina(battlerDef) && gAiLogicData->speedStats[battlerAtk] < gAiLogicData->speedStats[battlerDef] && currentStamina > GetAIMoveStaminaCost(battlerAtk, gBattleMons[battlerAtk].moves[bestMoveIndex]) + attrition)
+        if (currentStamina == baseStamina && targetStamina == GetBaseStamina(battlerDef) && gAiLogicData->speedStats[battlerAtk] < gAiLogicData->speedStats[battlerDef] && currentStamina > GetAIMoveStaminaCost(battlerAtk, AI_GetBattlerMoveAtSlot(battlerAtk, bestMoveIndex)) + attrition)
         {
             chosen->moveIndex = bestMoveIndex;
             chosen->action = B_ACTION_USE_MOVE;
@@ -916,8 +956,16 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
         return;
     }
 
+    // A status move the scoring rates highly (hazards on the first turn, a strong setup) is worth running the pool
+    // down when the AI can pay for it and the target can't KO it next: refilling later beats never setting it up.
+    // Status moves cost a flat 10, which a small early pool (~15) can't otherwise spare against any physical hit.
+    if (GetMovePower(chosenMove) == 0 && currentStamina >= chosenCost
+     && gAiBattleData->finalScore[battlerAtk][battlerDef][chosen->moveIndex] >= AI_SCORE_DEFAULT + AI_STAMINA_STATUS_WORTH
+     && !CanTargetFaintAi(battlerDef, battlerAtk))
+        return;
+
     bestMoveIndex = FindBestAIDamagingMove(battlerAtk, battlerDef, TRUE, currentStamina, attrition, chosen->moveIndex);
-    if (bestMoveIndex != MAX_MON_MOVES)
+    if (bestMoveIndex != AI_MOVE_SLOTS)
     {
         if (canRecuperate && gAiLogicData->lastUsedMove[battlerAtk] == chosenMove && RandomPercentage(RNG_AI_STAMINA_RECUPERATE, 50))
             chosen->action = B_ACTION_RECUPERATE;
@@ -1042,8 +1090,11 @@ u32 BattleAI_ChooseMoveIndex(enum BattlerId battler)
         if (!isInnate || !CanUseGimmickWithInnateCommand(battler))
             SetAIUsingGimmick(battler, NO_GIMMICK);
     }
+    else if (chosen.moveIndex >= MAX_MON_MOVES
+          && (chosen.moveIndex == SIGNATURE_MOVE_POSITION || !CanUseGimmickWithInnateCommand(battler)))
+        SetAIUsingGimmick(battler, NO_GIMMICK); // Fantasy Retold: never with the Signature Move; Itemized takes transformations only
     else if (gBattleStruct->gimmick.usableGimmick[battler] != GIMMICK_NONE)
-        ReconsiderGimmick(battler, chosen.target, gBattleMons[battler].moves[chosen.moveIndex]);
+        ReconsiderGimmick(battler, chosen.target, AI_GetBattlerMoveAtSlot(battler, chosen.moveIndex));
 
     // Clear protect structures, some flags may be set during AI calcs
     // e.g. pranksterElevated from GetBattleMovePriority
@@ -1198,7 +1249,8 @@ void SetBattlerAiData(enum BattlerId battler, struct AiLogicData *aiData)
     holdEffect = aiData->holdEffects[battler] = AI_DecideHoldEffectForTurn(battler);
     aiData->lastUsedMove[battler] = (gLastMoves[battler] == MOVE_UNAVAILABLE) ? MOVE_NONE : gLastMoves[battler];
     aiData->hpPercents[battler] = GetHealthPercentage(battler);
-    aiData->moveLimitations[battler] = CheckMoveLimitations(battler, 0, ~(MOVE_LIMITATION_UNUSABLE));
+    aiData->moveLimitations[battler] = CheckMoveLimitations(battler, 0, ~(MOVE_LIMITATION_UNUSABLE))
+                                     | CheckExtraMoveLimitations(battler, ~(MOVE_LIMITATION_UNUSABLE)); // Fantasy Retold: slots 4 and 5
     aiData->speedStats[battler] = GetBattlerTotalSpeedStat(battler, ability, holdEffect);
     aiData->dragonDartsHitsBothTarget = 0;
 
@@ -1260,11 +1312,13 @@ void CalcBattlerAiMovesData(struct AiLogicData *aiData, enum BattlerId battlerAt
         .terrain = terrain,
     };
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    // Fantasy Retold: slots 4 and 5 (Signature / Itemized Move) are simulated too when the battler has them.
+    for (u32 moveIndex = 0; moveIndex < AI_MOVE_SLOTS; moveIndex++)
     {
         struct SimulatedDamage dmg = {0};
         aiCalc.typeEffectiveness = Q_4_12(0.0);
-        aiCalc.move = moves[moveIndex];
+        aiCalc.move = (moveIndex < MAX_MON_MOVES) ? moves[moveIndex]
+                    : (moveIndex < AI_GetMoveSlotCount(battlerAtk)) ? AI_GetKnownMoveAtSlot(battlerAtk, moveIndex) : MOVE_NONE;
 
         // Move data is reused for consecutive switch-in candidates, so reset every slot before skipping unusable moves.
         aiData->simulatedDmg[battlerAtk][battlerDef][moveIndex] = dmg;
@@ -1423,19 +1477,22 @@ static void DoAIScoreProcessing(enum BattlerId battlerAtk, enum BattlerId battle
 
     if (gAiThinkingStruct->aiFlags[battlerAtk] & AI_FLAG_CHECK_VIABILITY)
         AI_CompareDamagingMoves(battlerAtk, battlerDef);
+    if (gAiThinkingStruct->aiFlags[battlerAtk] & AI_FLAG_FR_TACTICS)
+        AI_FrTacticsPostScore(battlerAtk, battlerDef);
 }
 
 static struct ChosenAction ChooseMoveOrAction_Singles(enum BattlerId battler)
 {
-    u8 currentMoveArray[MAX_MON_MOVES];
-    u8 consideredMoveArray[MAX_MON_MOVES];
+    u8 currentMoveArray[AI_MOVE_SLOTS];
+    u8 consideredMoveArray[AI_MOVE_SLOTS];
     u32 numOfBestMoves;
     enum BattlerId opposingBattler = GetOppositeBattler(battler);
+    u32 slotCount = AI_GetMoveSlotCount(battler);
     gAiLogicData->partnerMove = MOVE_NONE; // no ally
 
     DoAIScoreProcessing(battler, opposingBattler);
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_MOVE_SLOTS; moveIndex++)
     {
         gAiBattleData->finalScore[battler][opposingBattler][moveIndex] = gAiThinkingStruct->score[moveIndex];
     }
@@ -1444,9 +1501,9 @@ static struct ChosenAction ChooseMoveOrAction_Singles(enum BattlerId battler)
     currentMoveArray[0] = gAiThinkingStruct->score[0];
     consideredMoveArray[0] = 0;
 
-    for (u32 moveIndex = 1; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 1; moveIndex < slotCount; moveIndex++)
     {
-        if (gBattleMons[battler].moves[moveIndex] != MOVE_NONE)
+        if (AI_GetBattlerMoveAtSlot(battler, moveIndex) != MOVE_NONE)
         {
             // In ruby, the order of these if statements is reversed.
             if (currentMoveArray[0] == gAiThinkingStruct->score[moveIndex])
@@ -1480,11 +1537,12 @@ static struct ChosenAction ChooseMoveOrAction_Doubles(enum BattlerId battlerAtk)
     s32 bestMovePointsForTarget[MAX_BATTLERS_COUNT];
     u8 mostViableTargetsArray[MAX_BATTLERS_COUNT];
     u8 actionOrMoveIndex[MAX_BATTLERS_COUNT];
-    s32 mostViableMovesScores[MAX_MON_MOVES];
-    u8 mostViableMovesIndices[MAX_MON_MOVES];
+    s32 mostViableMovesScores[AI_MOVE_SLOTS];
+    u8 mostViableMovesIndices[AI_MOVE_SLOTS];
     u32 mostViableTargetsNo;
     u32 mostViableMovesNo;
     s32 mostMovePoints;
+    u32 slotCount = AI_GetMoveSlotCount(battlerAtk);
 
     for (enum BattlerId battlerDef = 0; battlerDef < MAX_BATTLERS_COUNT; battlerDef++)
     {
@@ -1500,11 +1558,11 @@ static struct ChosenAction ChooseMoveOrAction_Doubles(enum BattlerId battlerAtk)
             mostViableMovesScores[0] = gAiThinkingStruct->score[0];
             mostViableMovesIndices[0] = 0;
             mostViableMovesNo = 1;
-            for (u32 moveIndex = 1; moveIndex < MAX_MON_MOVES; moveIndex++)
+            for (u32 moveIndex = 1; moveIndex < slotCount; moveIndex++)
             {
-                if (gBattleMons[battlerAtk].moves[moveIndex] != 0)
+                if (AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex) != MOVE_NONE)
                 {
-                    if (!CanTargetBattler(battlerAtk, battlerDef, gBattleMons[battlerAtk].moves[moveIndex]))
+                    if (!CanTargetBattler(battlerAtk, battlerDef, AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex)))
                         continue;
 
                     if (mostViableMovesScores[0] == gAiThinkingStruct->score[moveIndex])
@@ -1535,7 +1593,7 @@ static struct ChosenAction ChooseMoveOrAction_Doubles(enum BattlerId battlerAtk)
                 bestMovePointsForTarget[battlerDef] = -1;
             }
 
-            for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+            for (u32 moveIndex = 0; moveIndex < AI_MOVE_SLOTS; moveIndex++)
             {
                 gAiBattleData->finalScore[battlerAtk][battlerDef][moveIndex] = gAiThinkingStruct->score[moveIndex];
             }
@@ -1589,10 +1647,10 @@ static inline void BattleAI_DoAIProcessing(struct AiThinkingStruct *aiThink, enu
 {
     do
     {
-        if (gBattleMons[battlerAtk].pp[aiThink->movesetIndex] == 0)
+        if (AI_GetMoveSlotPP(battlerAtk, aiThink->movesetIndex) == 0)
             aiThink->moveConsidered = MOVE_NONE;
         else
-            aiThink->moveConsidered = gBattleMons[battlerAtk].moves[aiThink->movesetIndex];
+            aiThink->moveConsidered = AI_GetBattlerMoveAtSlot(battlerAtk, aiThink->movesetIndex);
 
         // There is no point in calculating scores for all 3 battlers(2 opponents + 1 ally) with certain moves.
         if (aiThink->moveConsidered != MOVE_NONE && aiThink->score[aiThink->movesetIndex] > 0 && ShouldConsiderMoveForBattler(battlerAtk, battlerDef, aiThink->moveConsidered))
@@ -1612,7 +1670,7 @@ static inline void BattleAI_DoAIProcessing(struct AiThinkingStruct *aiThink, enu
             aiThink->score[aiThink->movesetIndex] = 0;
         }
         aiThink->movesetIndex++;
-    } while (aiThink->movesetIndex < MAX_MON_MOVES && !(aiThink->aiAction & AI_ACTION_DO_NOT_ATTACK));
+    } while (aiThink->movesetIndex < AI_GetMoveSlotCount(battlerAtk) && !(aiThink->aiAction & AI_ACTION_DO_NOT_ATTACK));
 
     aiThink->movesetIndex = 0;
 }
@@ -1620,20 +1678,20 @@ static inline void BattleAI_DoAIProcessing(struct AiThinkingStruct *aiThink, enu
 void BattleAI_DoAIProcessing_PredictedSwitchin(struct AiThinkingStruct *aiThink, struct AiLogicData *aiData, enum BattlerId battlerAtk, enum BattlerId battlerDef)
 {
     struct BattlePokemon switchoutCandidate = gBattleMons[battlerDef];
-    struct SimulatedDamage simulatedDamageSwitchout[MAX_MON_MOVES];
-    uq4_12_t effectivenessSwitchout[MAX_MON_MOVES];
-    u8 moveAccuracySwitchout[MAX_MON_MOVES];
+    struct SimulatedDamage simulatedDamageSwitchout[AI_MOVE_SLOTS];
+    uq4_12_t effectivenessSwitchout[AI_MOVE_SLOTS];
+    u8 moveAccuracySwitchout[AI_MOVE_SLOTS];
 
     struct BattlePokemon switchinCandidate;
-    struct SimulatedDamage simulatedDamageSwitchin[MAX_MON_MOVES];
-    uq4_12_t effectivenessSwitchin[MAX_MON_MOVES];
-    u8 moveAccuracySwitchin[MAX_MON_MOVES];
+    struct SimulatedDamage simulatedDamageSwitchin[AI_MOVE_SLOTS];
+    uq4_12_t effectivenessSwitchin[AI_MOVE_SLOTS];
+    u8 moveAccuracySwitchin[AI_MOVE_SLOTS];
 
     struct Pokemon *party = GetBattlerParty(battlerDef);
     struct BattlePokemon *savedBattleMons = AllocSaveBattleMons();
 
     // Store battler moves data to save time over recalculating it
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_MOVE_SLOTS; moveIndex++)
     {
         simulatedDamageSwitchout[moveIndex] = aiData->simulatedDmg[battlerAtk][battlerDef][moveIndex];
         effectivenessSwitchout[moveIndex] = aiData->effectiveness[battlerAtk][battlerDef][moveIndex];
@@ -1651,10 +1709,10 @@ void BattleAI_DoAIProcessing_PredictedSwitchin(struct AiThinkingStruct *aiThink,
     // Regular processing with new battler
     do
     {
-        if (gBattleMons[battlerAtk].pp[aiThink->movesetIndex] == 0)
+        if (AI_GetMoveSlotPP(battlerAtk, aiThink->movesetIndex) == 0)
             aiThink->moveConsidered = MOVE_NONE;
         else
-            aiThink->moveConsidered = gBattleMons[battlerAtk].moves[aiThink->movesetIndex];
+            aiThink->moveConsidered = AI_GetBattlerMoveAtSlot(battlerAtk, aiThink->movesetIndex);
 
         // There is no point in calculating scores for all 3 battlers(2 opponents + 1 ally) with certain moves.
         if (aiThink->moveConsidered != MOVE_NONE && aiThink->score[aiThink->movesetIndex] > 0 && ShouldConsiderMoveForBattler(battlerAtk, battlerDef, aiThink->moveConsidered))
@@ -1709,14 +1767,14 @@ void BattleAI_DoAIProcessing_PredictedSwitchin(struct AiThinkingStruct *aiThink,
             aiThink->score[aiThink->movesetIndex] = 0;
         }
         aiThink->movesetIndex++;
-    } while (aiThink->movesetIndex < MAX_MON_MOVES && !(aiThink->aiAction & AI_ACTION_DO_NOT_ATTACK));
+    } while (aiThink->movesetIndex < AI_GetMoveSlotCount(battlerAtk) && !(aiThink->aiAction & AI_ACTION_DO_NOT_ATTACK));
 
     aiThink->movesetIndex = 0;
 
     // Restore original battler data and moves
     FreeRestoreBattleMons(savedBattleMons);
     SetBattlerAiData(battlerDef, aiData);
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_MOVE_SLOTS; moveIndex++)
     {
         aiData->simulatedDmg[battlerAtk][battlerDef][moveIndex] = simulatedDamageSwitchout[moveIndex];
         aiData->effectiveness[battlerAtk][battlerDef][moveIndex] = effectivenessSwitchout[moveIndex];
@@ -4308,22 +4366,28 @@ static bool32 ShouldCompareMove(enum BattlerId battlerAtk, enum BattlerId battle
 
 static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId battlerDef)
 {
-    u32 tempMoveScores[MAX_MON_MOVES];
-    u32 moveComparisonScores[MAX_MON_MOVES];
+    u32 tempMoveScores[AI_MOVE_SLOTS];
+    u32 moveComparisonScores[AI_MOVE_SLOTS];
     u32 bestScore = AI_SCORE_DEFAULT;
     bool32 multipleBestMoves = FALSE;
-    s32 noOfHits[MAX_MON_MOVES];
+    s32 noOfHits[AI_MOVE_SLOTS];
     s32 leastHits = 1000;
-    enum Move *moves = GetMovesArray(battlerAtk);
+    enum Move moves[AI_MOVE_SLOTS];
     enum Move predictedMove = GetPredictedMove(battlerAtk, battlerDef, gAiLogicData);
-    bool32 moveIsFaster[MAX_MON_MOVES];
+    bool32 moveIsFaster[AI_MOVE_SLOTS];
+    // Fantasy Retold: the Signature / Itemized Move are compared too (AI_FLAG_FR_TACTICS). The priority weights
+    // use the move count as their base so each level still outranks every win at the levels below it.
+    u32 slotCount = AI_GetMoveSlotCount(battlerAtk);
 
-    for (u32 currId = 0; currId < MAX_MON_MOVES; currId++)
+    for (u32 slot = 0; slot < AI_MOVE_SLOTS; slot++)
+        moves[slot] = (slot < slotCount) ? AI_GetKnownMoveAtSlot(battlerAtk, slot) : MOVE_NONE;
+
+    for (u32 currId = 0; currId < slotCount; currId++)
     {
         moveComparisonScores[currId] = 0;
         if (!ShouldCompareMove(battlerAtk, battlerDef, currId, moves[currId]))
             continue;
-        for (u32 compareId = 0; compareId < MAX_MON_MOVES; compareId++)
+        for (u32 compareId = 0; compareId < slotCount; compareId++)
         {
             if (moves[compareId] != MOVE_NONE && GetMovePower(moves[compareId]) != 0)
             {
@@ -4365,7 +4429,7 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
         // Current move requires the least hits to KO. Compare with other moves.
         if (leastHits == noOfHits[currId])
         {
-            for (u32 compareId = 0; compareId < MAX_MON_MOVES; compareId++)
+            for (u32 compareId = 0; compareId < slotCount; compareId++)
             {
                 if (compareId == currId)
                     continue;
@@ -4379,10 +4443,10 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
                         switch (CompareResistBerryEffects(battlerAtk, battlerDef, currId, compareId))
                         {
                         case MOVE_WON_COMPARISON:
-                            tempMoveScores[currId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_RESIST_BERRY);
+                            tempMoveScores[currId] += MathUtil_Exponent(slotCount, PRIORITY_RESIST_BERRY);
                             break;
                         case MOVE_LOST_COMPARISON:
-                            tempMoveScores[compareId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_RESIST_BERRY);
+                            tempMoveScores[compareId] += MathUtil_Exponent(slotCount, PRIORITY_RESIST_BERRY);
                             break;
                         case MOVE_NEUTRAL_COMPARISON:
                             break;
@@ -4391,10 +4455,10 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
                         switch (CompareMoveSpeeds(battlerAtk, battlerDef, moveIsFaster[currId], moveIsFaster[compareId]))
                         {
                         case MOVE_WON_COMPARISON:
-                            tempMoveScores[currId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_SPEED);
+                            tempMoveScores[currId] += MathUtil_Exponent(slotCount, PRIORITY_SPEED);
                             break;
                         case MOVE_LOST_COMPARISON:
-                            tempMoveScores[compareId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_SPEED);
+                            tempMoveScores[compareId] += MathUtil_Exponent(slotCount, PRIORITY_SPEED);
                             break;
                         case MOVE_NEUTRAL_COMPARISON:
                             break;
@@ -4403,10 +4467,10 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
                         switch (CompareGuaranteeFaintTarget(battlerAtk, battlerDef, currId, compareId, moves))
                         {
                         case MOVE_WON_COMPARISON:
-                            tempMoveScores[currId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_GUARANTEE);
+                            tempMoveScores[currId] += MathUtil_Exponent(slotCount, PRIORITY_GUARANTEE);
                             break;
                         case MOVE_LOST_COMPARISON:
-                            tempMoveScores[compareId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_GUARANTEE);
+                            tempMoveScores[compareId] += MathUtil_Exponent(slotCount, PRIORITY_GUARANTEE);
                             break;
                         case MOVE_NEUTRAL_COMPARISON:
                             break;
@@ -4415,10 +4479,10 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
                     switch (CompareMoveTwoTurnEffect(battlerAtk, moves[currId], moves[compareId]))
                     {
                     case MOVE_WON_COMPARISON:
-                        tempMoveScores[currId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_NOT_CHARGING);
+                        tempMoveScores[currId] += MathUtil_Exponent(slotCount, PRIORITY_NOT_CHARGING);
                         break;
                     case MOVE_LOST_COMPARISON:
-                        tempMoveScores[compareId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_NOT_CHARGING);
+                        tempMoveScores[compareId] += MathUtil_Exponent(slotCount, PRIORITY_NOT_CHARGING);
                         break;
                     case MOVE_NEUTRAL_COMPARISON:
                         break;
@@ -4426,10 +4490,10 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
                     switch (CompareMoveAccuracies(battlerAtk, battlerDef, currId, compareId))
                     {
                     case MOVE_WON_COMPARISON:
-                        tempMoveScores[currId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_ACCURACY);
+                        tempMoveScores[currId] += MathUtil_Exponent(slotCount, PRIORITY_ACCURACY);
                         break;
                     case MOVE_LOST_COMPARISON:
-                        tempMoveScores[compareId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_ACCURACY);
+                        tempMoveScores[compareId] += MathUtil_Exponent(slotCount, PRIORITY_ACCURACY);
                         break;
                     case MOVE_NEUTRAL_COMPARISON:
                         break;
@@ -4437,10 +4501,10 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
                     switch (CompareMoveSelfSacrifice(battlerAtk, battlerDef, moves[currId], moves[compareId]))
                     {
                     case MOVE_WON_COMPARISON:
-                        tempMoveScores[currId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_AVOID_SELF_SACRIFICE);
+                        tempMoveScores[currId] += MathUtil_Exponent(slotCount, PRIORITY_AVOID_SELF_SACRIFICE);
                         break;
                     case MOVE_LOST_COMPARISON:
-                        tempMoveScores[compareId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_AVOID_SELF_SACRIFICE);
+                        tempMoveScores[compareId] += MathUtil_Exponent(slotCount, PRIORITY_AVOID_SELF_SACRIFICE);
                         break;
                     case MOVE_NEUTRAL_COMPARISON:
                         break;
@@ -4448,10 +4512,10 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
                     switch (CompareMoveEffects(moves[currId], moves[compareId], battlerAtk, battlerDef, noOfHits[currId]))
                     {
                     case MOVE_WON_COMPARISON:
-                        tempMoveScores[currId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_EFFECT);
+                        tempMoveScores[currId] += MathUtil_Exponent(slotCount, PRIORITY_EFFECT);
                         break;
                     case MOVE_LOST_COMPARISON:
-                        tempMoveScores[compareId] += MathUtil_Exponent(MAX_MON_MOVES, PRIORITY_EFFECT);
+                        tempMoveScores[compareId] += MathUtil_Exponent(slotCount, PRIORITY_EFFECT);
                         break;
                     case MOVE_NEUTRAL_COMPARISON:
                         break;
@@ -4467,13 +4531,13 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
     }
 
     // Find highest comparison score
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < slotCount; moveIndex++)
     {
         if (moveComparisonScores[moveIndex] > bestScore)
             bestScore = moveComparisonScores[moveIndex];
     }
     // Increase score for corresponding move(s), accomodating ties
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < slotCount; moveIndex++)
     {
         if (moveComparisonScores[moveIndex] == bestScore)
             gAiThinkingStruct->score[moveIndex] += BEST_DAMAGE_MOVE;
@@ -5079,7 +5143,7 @@ static s32 AI_CalcMoveEffectScore(enum BattlerId battlerAtk, enum BattlerId batt
                 bool32 atkPartnerKoDef = CanAIFaintTarget(battlerAtkPartner, battlerDef, 1);
                 bool32 atkPartnerKoDefPartner = CanAIFaintTarget(battlerAtkPartner, battlerDefPartner, 1);
                 bool32 defPartnerKoAtkPartner = CanAIFaintTarget(battlerDefPartner, battlerAtkPartner, 1);
-                bool32 atkPartnerDoubleFastKOd = (defKoAtkPartner && AI_WhoStrikesFirst(battlerAtkPartner, battlerDef, gBattleMons[battlerAtkPartner].moves[gAiBattleData->chosenMoveIndex[battlerAtkPartner]], predictedMove, CONSIDER_PRIORITY) == AI_IS_SLOWER) && (defPartnerKoAtkPartner && AI_WhoStrikesFirst(battlerAtkPartner, battlerDefPartner, gBattleMons[battlerAtkPartner].moves[gAiBattleData->chosenMoveIndex[battlerAtkPartner]], MOVE_SCRATCH, CONSIDER_PRIORITY) == AI_IS_SLOWER);
+                bool32 atkPartnerDoubleFastKOd = (defKoAtkPartner && AI_WhoStrikesFirst(battlerAtkPartner, battlerDef, GetAIChosenMove(battlerAtkPartner), predictedMove, CONSIDER_PRIORITY) == AI_IS_SLOWER) && (defPartnerKoAtkPartner && AI_WhoStrikesFirst(battlerAtkPartner, battlerDefPartner, GetAIChosenMove(battlerAtkPartner), MOVE_SCRATCH, CONSIDER_PRIORITY) == AI_IS_SLOWER);
 
                 // If either opponent has Fake Out, it's their first turn but user is faster - incentivise Fake Out on both
                 if ((HasMove(battlerDef, MOVE_FAKE_OUT) && IsBattlersFirstTurn(battlerDef) && AI_WhoStrikesFirst(battlerAtk, battlerDef, MOVE_FAKE_OUT, MOVE_FAKE_OUT, CONSIDER_PRIORITY) == AI_IS_FASTER) || (HasMove(battlerDefPartner, MOVE_FAKE_OUT) && IsBattlersFirstTurn(battlerDefPartner) && AI_WhoStrikesFirst(battlerAtk, battlerDefPartner, MOVE_FAKE_OUT, MOVE_FAKE_OUT, CONSIDER_PRIORITY) == AI_IS_FASTER))
@@ -5087,9 +5151,9 @@ static s32 AI_CalcMoveEffectScore(enum BattlerId battlerAtk, enum BattlerId batt
                     ADJUST_SCORE(FAST_KILL + 2);
                 }
                 // If ally has KO on target's partner, but target can fast KO ally (checking move and priority combinations for everything likely gets a bit complicated)
-                else if (hasPartner && atkPartnerKoDefPartner && (defKoAtkPartner && AI_WhoStrikesFirst(battlerAtkPartner, battlerDef, gBattleMons[battlerAtkPartner].moves[gAiBattleData->chosenMoveIndex[battlerAtkPartner]], predictedMove, CONSIDER_PRIORITY) == AI_IS_SLOWER) && !(atkKoDef && AI_WhoStrikesFirst(battlerAtk, battlerDef, move, predictedMove, DONT_CONSIDER_PRIORITY) == AI_IS_FASTER))
+                else if (hasPartner && atkPartnerKoDefPartner && (defKoAtkPartner && AI_WhoStrikesFirst(battlerAtkPartner, battlerDef, GetAIChosenMove(battlerAtkPartner), predictedMove, CONSIDER_PRIORITY) == AI_IS_SLOWER) && !(atkKoDef && AI_WhoStrikesFirst(battlerAtk, battlerDef, move, predictedMove, DONT_CONSIDER_PRIORITY) == AI_IS_FASTER))
                 {
-                    if (AI_WhoStrikesFirst(battlerAtkPartner, battlerDefPartner, gBattleMons[battlerAtkPartner].moves[gAiBattleData->chosenMoveIndex[battlerAtkPartner]], predictedMove, CONSIDER_PRIORITY) == AI_IS_FASTER)
+                    if (AI_WhoStrikesFirst(battlerAtkPartner, battlerDefPartner, GetAIChosenMove(battlerAtkPartner), predictedMove, CONSIDER_PRIORITY) == AI_IS_FASTER)
                         ADJUST_SCORE(FAST_KILL + 2); // No point fast KOing target's partner when user can save ally who will do it anyway
                     else if (atkPartnerDoubleFastKOd)
                     {
@@ -5104,7 +5168,7 @@ static s32 AI_CalcMoveEffectScore(enum BattlerId battlerAtk, enum BattlerId batt
                     }
                 }
                 // If ally has slow KO with their chosen move, user sees no KOs while outspeeding (checking move and priority combinations for everything likely gets a bit complicated)
-                else if (hasPartner && (atkPartnerKoDef && AI_WhoStrikesFirst(battlerAtkPartner, battlerDef, gBattleMons[battlerAtkPartner].moves[gAiBattleData->chosenMoveIndex[battlerAtkPartner]], predictedMove, CONSIDER_PRIORITY) == AI_IS_SLOWER) && !(atkKoDef && AI_WhoStrikesFirst(battlerAtk, battlerDef, move, predictedMove, DONT_CONSIDER_PRIORITY) == AI_IS_FASTER) && !(atkKoDefPartner && AI_WhoStrikesFirst(battlerAtk, battlerDefPartner, move, MOVE_SCRATCH, DONT_CONSIDER_PRIORITY) == AI_IS_FASTER))
+                else if (hasPartner && (atkPartnerKoDef && AI_WhoStrikesFirst(battlerAtkPartner, battlerDef, GetAIChosenMove(battlerAtkPartner), predictedMove, CONSIDER_PRIORITY) == AI_IS_SLOWER) && !(atkKoDef && AI_WhoStrikesFirst(battlerAtk, battlerDef, move, predictedMove, DONT_CONSIDER_PRIORITY) == AI_IS_FASTER) && !(atkKoDefPartner && AI_WhoStrikesFirst(battlerAtk, battlerDefPartner, move, MOVE_SCRATCH, DONT_CONSIDER_PRIORITY) == AI_IS_FASTER))
                 {
                     ADJUST_SCORE(GOOD_EFFECT);
                 }
@@ -6106,7 +6170,9 @@ static s32 AI_StaminaManagement(enum BattlerId battlerAtk, enum BattlerId battle
     if (IsTargetingPartner(battlerAtk, battlerDef))
         return score;
 
-    if (gBattleStruct->battlerState[battlerDef].currentStamina == 0)
+    // Fantasy Retold: not into a crit-immune target the AI knows of (AI_FLAG_FR_TACTICS): no auto-crit there.
+    if (gBattleStruct->battlerState[battlerDef].currentStamina == 0
+     && !((gAiThinkingStruct->aiFlags[battlerAtk] & AI_FLAG_FR_TACTICS) && AI_IsCritImmune(battlerDef, battlerAtk)))
     {
         if (GetMovePower(move) != 0)
             ADJUST_SCORE(20);

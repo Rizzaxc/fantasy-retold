@@ -18,6 +18,7 @@
 #include "random.h"
 #include "recorded_battle.h"
 #include "util.h"
+#include "status_rail.h"
 #include "constants/abilities.h"
 #include "constants/battle_ai.h"
 #include "constants/battle_move_effects.h"
@@ -176,7 +177,48 @@ bool32 AI_IsSlower(enum BattlerId battlerAi, enum BattlerId battlerDef, enum Mov
 
 enum Move GetAIChosenMove(enum BattlerId battlerId)
 {
-    return (gBattleMons[battlerId].moves[gAiBattleData->chosenMoveIndex[battlerId]]);
+    return AI_GetBattlerMoveAtSlot(battlerId, gAiBattleData->chosenMoveIndex[battlerId]);
+}
+
+// Fantasy Retold: AI move slots (AI_MOVE_SLOTS, design.md §10). With AI_FLAG_FR_TACTICS a battler is scored on
+// its Signature Move (slot 4) and Itemized Move (slot 5) too.
+u32 AI_GetMoveSlotCount(enum BattlerId battler)
+{
+    return (gAiThinkingStruct->aiFlags[battler] & AI_FLAG_FR_TACTICS) ? AI_MOVE_SLOTS : MAX_MON_MOVES;
+}
+
+// The battler's real move in a slot (for the AI's own battlers).
+enum Move AI_GetBattlerMoveAtSlot(enum BattlerId battler, u32 slot)
+{
+    if (slot >= AI_MOVE_SLOTS)
+        return MOVE_NONE;
+    return GetBattlerMoveAtPosition(battler, slot);
+}
+
+// The move in a slot as far as the AI knows it: the four slots through GetMovesArray; the Signature / Itemized
+// Move when the AI sees the whole moveset, or once it has been used in front of it.
+enum Move AI_GetKnownMoveAtSlot(enum BattlerId battler, u32 slot)
+{
+    enum Move move;
+
+    if (slot < MAX_MON_MOVES)
+        return GetMovesArray(battler)[slot];
+    move = AI_GetBattlerMoveAtSlot(battler, slot);
+    if (move == MOVE_NONE)
+        return MOVE_NONE;
+    if (GetMovesArray(battler) == gBattleMons[battler].moves
+     || (gAiPartyData->mons[GetBattlerSide(battler)][gBattlerPartyIndexes[battler]].extraMovesSeen & (1u << (slot - MAX_MON_MOVES))))
+        return move;
+    return MOVE_NONE;
+}
+
+u32 AI_GetMoveSlotPP(enum BattlerId battler, u32 slot)
+{
+    if (slot < MAX_MON_MOVES)
+        return gBattleMons[battler].pp[slot];
+    if (slot >= AI_MOVE_SLOTS)
+        return 0;
+    return GetBattlerExtraMovePP(battler, slot);
 }
 
 bool32 AI_RandLessThan(u32 val)
@@ -1315,9 +1357,8 @@ u32 GetNoOfHitsToKOBattlerDmg(u32 dmg, enum BattlerId battlerDef)
 u32 GetNoOfHitsToKOBattler(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 moveIndex, enum DamageCalcContext calcContext, enum AiConsiderEndure considerEndure)
 {
     u32 hitsToKO = GetNoOfHitsToKOBattlerDmg(AI_GetDamage(battlerAtk, battlerDef, moveIndex, calcContext, gAiLogicData), battlerDef);
-    enum Move *moves = GetMovesArray(battlerAtk);
 
-    if (CanEndureHit(battlerAtk, battlerDef, moves[moveIndex]) && hitsToKO == 1 && considerEndure == CONSIDER_ENDURE)
+    if (CanEndureHit(battlerAtk, battlerDef, AI_GetKnownMoveAtSlot(battlerAtk, moveIndex)) && hitsToKO == 1 && considerEndure == CONSIDER_ENDURE)
         hitsToKO += 1;
 
     return hitsToKO;
@@ -1329,12 +1370,11 @@ u32 GetBestNoOfHitsToKO(enum BattlerId battlerAtk, enum BattlerId battlerDef, en
     u32 tempResult = 0;
 
     struct AiLogicData *aiData = gAiLogicData;
-    enum Move *moves = GetMovesArray(battlerAtk);
     u32 moveLimitations = aiData->moveLimitations[battlerAtk];
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerAtk); moveIndex++)
     {
-        if (IsMoveUnusable(moveIndex, moves[moveIndex], moveLimitations))
+        if (IsMoveUnusable(moveIndex, AI_GetKnownMoveAtSlot(battlerAtk, moveIndex), moveLimitations))
             continue;
 
         tempResult = GetNoOfHitsToKOBattler(battlerAtk, battlerDef, moveIndex, calcContext, CONSIDER_ENDURE);
@@ -1479,16 +1519,15 @@ bool32 CanEndureHit(enum BattlerId battler, enum BattlerId battlerTarget, enum M
 bool32 CanTargetFaintAi(enum BattlerId battlerDef, enum BattlerId battlerAtk)
 {
     struct AiLogicData *aiData = gAiLogicData;
-    enum Move *moves = GetMovesArray(battlerDef);
     u32 moveLimitations = aiData->moveLimitations[battlerDef];
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerDef); moveIndex++)
     {
-        if (IsMoveUnusable(moveIndex, moves[moveIndex], moveLimitations))
+        if (IsMoveUnusable(moveIndex, AI_GetKnownMoveAtSlot(battlerDef, moveIndex), moveLimitations))
             continue;
 
         if (AI_GetDamage(battlerDef, battlerAtk, moveIndex, AI_DEFENDING, aiData) >= gBattleMons[battlerAtk].hp
-            && !CanEndureHit(battlerDef, battlerAtk, moves[moveIndex]))
+            && !CanEndureHit(battlerDef, battlerAtk, AI_GetKnownMoveAtSlot(battlerDef, moveIndex)))
             return TRUE;
     }
 
@@ -1500,7 +1539,7 @@ u32 NoOfHitsForTargetToFaintBattler(enum BattlerId battlerDef, enum BattlerId ba
     u32 currNumberOfHits;
     u32 leastNumberOfHits = UNKNOWN_NO_OF_HITS;
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerDef); moveIndex++)
     {
         currNumberOfHits = GetNoOfHitsToKOBattler(battlerDef, battlerAtk, moveIndex, calcContext, considerEndure);
         if (currNumberOfHits != 0)
@@ -1522,7 +1561,7 @@ u32 NoOfHitsForTargetToFaintBattlerWithMod(enum BattlerId battlerDef, enum Battl
     if (hpCheck > gBattleMons[battlerAtk].maxHP)
         hpCheck = gBattleMons[battlerAtk].maxHP;
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerDef); moveIndex++)
     {
         damageDealt = AI_GetDamage(battlerDef, battlerAtk, moveIndex, AI_DEFENDING, gAiLogicData);
         if (damageDealt == 0)
@@ -1587,7 +1626,26 @@ u32 GetMoveIndex(enum BattlerId battler, enum Move move)
             return moveIndex;
     }
 
+    // Fantasy Retold: the Signature / Itemized Move's slot. Not found is still MAX_MON_MOVES, which is the
+    // Signature slot, so callers that test `< MAX_MON_MOVES` keep treating both as "not in the four slots".
+    if (move != MOVE_NONE && AI_GetMoveSlotCount(battler) > MAX_MON_MOVES
+     && AI_GetKnownMoveAtSlot(battler, ITEMIZED_MOVE_POSITION) == move)
+        return ITEMIZED_MOVE_POSITION;
+
     return MAX_MON_MOVES;
+}
+
+// Fantasy Retold: like GetMoveIndex over every AI move slot; AI_MOVE_SLOTS if the battler has no such move.
+u32 AI_GetMoveSlot(enum BattlerId battler, enum Move move)
+{
+    if (move == MOVE_NONE)
+        return AI_MOVE_SLOTS;
+    for (u32 slot = 0; slot < AI_GetMoveSlotCount(battler); slot++)
+    {
+        if (AI_GetKnownMoveAtSlot(battler, slot) == move)
+            return slot;
+    }
+    return AI_MOVE_SLOTS;
 }
 
 bool32 IsBestDmgMove(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum DamageCalcContext calcContext, enum Move move)
@@ -1631,12 +1689,11 @@ u32 GetBestDmgFromBattler(enum BattlerId battler, enum BattlerId battlerTarget, 
 {
     struct AiLogicData *aiData = gAiLogicData;
     u32 bestDmg = 0;
-    enum Move *moves = GetMovesArray(battler);
     u32 moveLimitations = aiData->moveLimitations[battler];
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battler); moveIndex++)
     {
-        if (IsMoveUnusable(moveIndex, moves[moveIndex], moveLimitations))
+        if (IsMoveUnusable(moveIndex, AI_GetKnownMoveAtSlot(battler, moveIndex), moveLimitations))
             continue;
 
         u32 damage = AI_GetDamage(battler, battlerTarget, moveIndex, calcContext, aiData);
@@ -1653,12 +1710,11 @@ bool32 CanAIFaintTarget(enum BattlerId battlerAtk, enum BattlerId battlerDef, u3
 {
     struct AiLogicData *aiData = gAiLogicData;
     s32 dmg;
-    u16 *moves = gBattleMons[battlerAtk].moves;
     u32 moveLimitations = aiData->moveLimitations[battlerAtk];
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerAtk); moveIndex++)
     {
-        if (IsMoveUnusable(moveIndex, moves[moveIndex], moveLimitations))
+        if (IsMoveUnusable(moveIndex, AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex), moveLimitations))
             continue;
 
         dmg = AI_GetDamage(battlerAtk, battlerDef, moveIndex, AI_ATTACKING, aiData);
@@ -1671,7 +1727,7 @@ bool32 CanAIFaintTarget(enum BattlerId battlerAtk, enum BattlerId battlerDef, u3
             if (numHits > 1)
                 return TRUE;
 
-            if (!CanEndureHit(battlerAtk, battlerDef, moves[moveIndex]))
+            if (!CanEndureHit(battlerAtk, battlerDef, AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex)))
                 return TRUE;
         }
     }
@@ -1684,16 +1740,15 @@ bool32 CanBattlerKOTargetIgnoringSturdy(enum BattlerId battlerAtk, enum BattlerI
 {
     struct AiLogicData *aiData = gAiLogicData;
     s32 dmg;
-    enum Move *moves = GetMovesArray(battlerAtk);
     u32 moveLimitations = aiData->moveLimitations[battlerAtk];
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerAtk); moveIndex++)
     {
-        if (IsMoveUnusable(moveIndex, moves[moveIndex], moveLimitations))
+        if (IsMoveUnusable(moveIndex, AI_GetKnownMoveAtSlot(battlerAtk, moveIndex), moveLimitations))
             continue;
         dmg = AI_GetDamage(battlerAtk, battlerDef, moveIndex, AI_ATTACKING, aiData);
 
-        if (gBattleMons[battlerDef].hp <= dmg && CanEndureHit(battlerAtk, battlerDef, moves[moveIndex]))
+        if (gBattleMons[battlerDef].hp <= dmg && CanEndureHit(battlerAtk, battlerDef, AI_GetKnownMoveAtSlot(battlerAtk, moveIndex)))
             return TRUE;
     }
     return FALSE;
@@ -1716,16 +1771,15 @@ bool32 CanTargetFaintAiWithMod(enum BattlerId battlerDef, enum BattlerId battler
 {
     struct AiLogicData *aiData = gAiLogicData;
     s32 dmg;
-    enum Move *moves = GetMovesArray(battlerDef);
     u32 hpCheck = gBattleMons[battlerAtk].hp + hpMod;
     u32 moveLimitations = aiData->moveLimitations[battlerAtk];
 
     if (hpCheck > gBattleMons[battlerAtk].maxHP)
         hpCheck = gBattleMons[battlerAtk].maxHP;
 
-    for (u32 moveIndex = 0; moveIndex < MAX_MON_MOVES; moveIndex++)
+    for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerDef); moveIndex++)
     {
-        if (IsMoveUnusable(moveIndex, moves[moveIndex], moveLimitations))
+        if (IsMoveUnusable(moveIndex, AI_GetKnownMoveAtSlot(battlerDef, moveIndex), moveLimitations))
             continue;
 
         dmg = AI_GetDamage(battlerDef, battlerAtk, moveIndex, AI_DEFENDING, aiData);
@@ -1736,7 +1790,7 @@ bool32 CanTargetFaintAiWithMod(enum BattlerId battlerDef, enum BattlerId battler
         // Applies modified HP percent to AI data for consideration when running CanEndureHit
         gAiLogicData->hpPercents[battlerAtk] = (hpCheck/gBattleMons[battlerAtk].maxHP)*100;
 
-        if (dmg >= hpCheck && !(CanEndureHit(battlerDef, battlerAtk, moves[moveIndex]) && (dmgMod <= 1)))
+        if (dmg >= hpCheck && !(CanEndureHit(battlerDef, battlerAtk, AI_GetKnownMoveAtSlot(battlerDef, moveIndex)) && (dmgMod <= 1)))
         {
             gAiLogicData->hpPercents[battlerAtk] = (gBattleMons[battlerAtk].hp / gBattleMons[battlerAtk].maxHP) * 100;
             return TRUE;
@@ -2248,7 +2302,7 @@ static bool32 ShouldAvoidProtectingAgainstPartnerMove(enum BattlerId battler, en
         return FALSE;
     }
 
-    partnerMove = gBattleMons[partner].moves[gAiBattleData->chosenMoveIndex[partner]];
+    partnerMove = GetAIChosenMove(partner);
     if (partnerMove == MOVE_NONE
      || partnerMove == MOVE_UNAVAILABLE
      || MoveIgnoresProtect(partnerMove)
@@ -2544,14 +2598,13 @@ u32 CountNegativeStatStages(enum BattlerId battlerId)
 bool32 CanIndexMoveFaintTarget(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 moveIndex, enum DamageCalcContext calcContext)
 {
     s32 dmg;
-    enum Move *moves = gBattleMons[battlerAtk].moves;
 
     if (IsDoubleBattle() && battlerDef == GetPartnerBattler(battlerAtk))
         dmg = AI_GetDamage(battlerAtk, battlerDef, moveIndex, AI_ATTACKING_PARTNER, gAiLogicData); // Attacking partner, be careful
     else
         dmg = AI_GetDamage(battlerAtk, battlerDef, moveIndex, calcContext, gAiLogicData);
 
-    if (gBattleMons[battlerDef].hp <= dmg && !CanEndureHit(battlerAtk, battlerDef, moves[moveIndex]))
+    if (gBattleMons[battlerDef].hp <= dmg && !CanEndureHit(battlerAtk, battlerDef, AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex)))
         return TRUE;
     return FALSE;
 }
@@ -3697,7 +3750,8 @@ bool32 AI_CanParalyze(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum
 
 bool32 AI_CanBeConfused(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move, enum Ability abilityDef)
 {
-    if (gBattleMons[battlerDef].volatiles.confusionTimer > 0
+    // Fantasy Retold: confusion is a rail (design.md §6); only a Frightened target is "already confused".
+    if ((gBattleMons[battlerDef].volatiles.confusionTimer > 0 && GetStatusRailLevel(battlerDef, RAIL_CONFUSION) >= GetStatusRailMaxLevel(RAIL_CONFUSION))
      || (abilityDef == ABILITY_OWN_TEMPO && !DoesBattlerIgnoreAbilityChecks(battlerAtk, gAiLogicData->abilities[battlerAtk], move))
      || IsMistyTerrainAffected(battlerDef, abilityDef, gAiLogicData->holdEffects[battlerDef], gFieldTimers.terrain)
      || IsSafeguardProtected(battlerAtk, battlerDef, gAiLogicData->abilities[battlerAtk])

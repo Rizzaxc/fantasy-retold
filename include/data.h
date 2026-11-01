@@ -68,6 +68,7 @@ struct TrainerMon
     const u8 *ev;
     u32 iv;
     enum Move moves[MAX_MON_MOVES];
+    enum Move signatureMove; // Fantasy Retold: outside the four slots (design.md §10)
     enum Species species;
     enum Item heldItem;
     enum Ability ability;

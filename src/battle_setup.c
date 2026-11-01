@@ -677,17 +677,10 @@ void StartRegiBattle(void)
     TryUpdateGymLeaderRematchFromWild();
 }
 
+// Fantasy Retold: Toxic is a persistent Lv2 status (design.md §6) and stays Toxic after battle, so vanilla's
+// Gen 5+ reversal to plain Poison is off.
 static void DowngradeBadPoison(void)
 {
-    u8 i;
-    u32 status = STATUS1_POISON;
-    if (B_TOXIC_REVERSAL < GEN_5)
-        return;
-    for (i = 0; i < PARTY_SIZE; i++)
-    {
-        if (GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_SANITY_HAS_SPECIES) && GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_STATUS) == STATUS1_TOXIC_POISON)
-            SetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_STATUS, &status);
-    }
 }
 
 static void CB2_EndWildBattle(void)

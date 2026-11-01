@@ -3023,7 +3023,10 @@ static void TrackTraumaFromHit(enum BattlerId battler, enum Move move)
 
     // Special hits make a stamina-scaled fraction of their damage unhealable:
     // f = 0.25 + 0.40*(BaseSta - CurrentSta)/BaseSta  (25%..65%).
-    if (d > 0 && IsBattleMoveSpecial(move))
+    // Resilient (Calm / Careful) is immune to this part: the whole hit stays ordinary, healable HP damage.
+    if (d > 0 && IsBattleMoveSpecial(move) && BattlerHasInnate(battler, INNATE_RESILIENT))
+        RecordNatureInnate(battler); // Fantasy Retold: the hit left no Trauma, which the innate gives away
+    if (d > 0 && IsBattleMoveSpecial(move) && !BattlerHasInnate(battler, INNATE_RESILIENT))
     {
         u32 baseSta = GetBaseStamina(battler);
         u32 curSta = gBattleStruct->battlerState[battler].currentStamina;

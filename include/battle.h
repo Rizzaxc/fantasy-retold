@@ -230,7 +230,9 @@ struct AiPartyMon
     u8 gender : 2;
     u8 isFainted : 1;
     u8 wasSentInBattle : 1;
-    u8 padding : 4;
+    u8 extraMovesSeen : 2; // Fantasy Retold: bit 0 Signature Move, bit 1 Itemized Move seen in use (AI_GetKnownMoveAtSlot)
+    u8 innateRevealed : 1; // Fantasy Retold: its nature innate has visibly fired (AI_IsInnateKnown)
+    u8 padding : 1;
 };
 
 struct AiPartyData // Opposing battlers - party mons.
@@ -247,6 +249,12 @@ struct SimulatedDamage
     u16 random;
 };
 
+// Fantasy Retold: AI move slots. 0-3 are the move slots; SIGNATURE_MOVE_POSITION (4) and ITEMIZED_MOVE_POSITION (5)
+// are the Signature and Itemized Move (design.md §10), scored only with AI_FLAG_FR_TACTICS (AI_GetMoveSlotCount).
+// Slot 4 equals MAX_MON_MOVES, the AI's usual "no move" index, so code that walks all slots uses AI_MOVE_SLOTS
+// as its "none" value instead.
+#define AI_MOVE_SLOTS (MAX_MON_MOVES + 2)
+
 // Ai Data used when deciding which move to use, computed only once before each turn's start.
 struct AiLogicData
 {
@@ -257,14 +265,16 @@ struct AiLogicData
     u8 hpPercents[MAX_BATTLERS_COUNT];
     enum Move partnerMove;
     u16 speedStats[MAX_BATTLERS_COUNT];                                                         // Speed stats for all battles, calculated only once, same way as damages
-    struct SimulatedDamage simulatedDmg[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][MAX_MON_MOVES]; // attacker, target, moveIndex
-    uq4_12_t effectiveness[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][MAX_MON_MOVES];              // attacker, target, moveIndex
-    u8 moveAccuracy[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][MAX_MON_MOVES];                     // attacker, target, moveIndex
+    struct SimulatedDamage simulatedDmg[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][AI_MOVE_SLOTS]; // attacker, target, moveIndex
+    uq4_12_t effectiveness[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][AI_MOVE_SLOTS];              // attacker, target, moveIndex
+    u8 moveAccuracy[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][AI_MOVE_SLOTS];                     // attacker, target, moveIndex
     u8 moveLimitations[MAX_BATTLERS_COUNT];
     u8 monToSwitchInId[MAX_BATTLERS_COUNT];   // ID of the mon to switch in.
     u8 mostSuitableMonId[MAX_BATTLERS_COUNT]; // Stores result of GetMostSuitableMonToSwitchInto, which decides which generic mon the AI would switch into if they decide to switch. This can be overruled by specific mons found in ShouldSwitch; the final resulting mon is stored in AI_monToSwitchIntoId.
     enum Move predictedMove[MAX_BATTLERS_COUNT];
-    u8 resistBerryAffected[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][MAX_MON_MOVES]; // Tracks whether currently calc'd move is affected by a resist berry into given target
+    u8 resistBerryAffected[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][AI_MOVE_SLOTS]; // Tracks whether currently calc'd move is affected by a resist berry into given target
+    u16 dodgeReadDone;  // Fantasy Retold: bit (attacker * MAX_BATTLERS_COUNT + target) once this turn's Dodge read is rolled
+    u16 dodgeExpected;  // Fantasy Retold: same bits, set when the AI expects that target to Dodge this turn
 
     // Flags
     u32 ejectButtonSwitch : 1;      // Tracks whether current switch out was from Eject Button
@@ -289,7 +299,7 @@ struct AiThinkingStruct
     u8 aiState;
     u8 movesetIndex;
     enum Move moveConsidered;
-    s32 score[MAX_MON_MOVES];
+    s32 score[AI_MOVE_SLOTS];
     u64 aiFlags[MAX_BATTLERS_COUNT];
     u8 aiAction;
     u8 aiLogicId;
@@ -816,8 +826,12 @@ struct BattleStruct
 
 struct AiBattleData
 {
-    s32 finalScore[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][MAX_MON_MOVES]; // AI, target, moves to make debugging easier
+    s32 finalScore[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][AI_MOVE_SLOTS]; // AI, target, moves to make debugging easier
     u8 playerStallMons[PARTY_SIZE];
+    // Fantasy Retold: how this player answers a likely Dodge spot (AI_FLAG_FR_TACTICS, design.md §10), per battler.
+    u8 dodgeSpots[MAX_BATTLERS_COUNT];     // turns the AI judged a Dodge likely
+    u8 dodgesInSpots[MAX_BATTLERS_COUNT];  // of those, turns the battler did Dodge
+    u8 dodgeSpotPending;                   // bit per battler: this turn was judged a Dodge spot, not yet counted
     u8 chosenMoveIndex[MAX_BATTLERS_COUNT];
     u8 chosenTarget[MAX_BATTLERS_COUNT];
     u8 chosenAction[MAX_BATTLERS_COUNT];

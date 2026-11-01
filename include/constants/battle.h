@@ -190,6 +190,15 @@ enum BattleSide
 #define STATUS1_ICY_ANY          (STATUS1_FREEZE | STATUS1_FROSTBITE)
 #define STATUS1_DAMAGING         (STATUS1_PSN_ANY | STATUS1_BURN | STATUS1_FROSTBITE)
 
+// Fantasy Retold: party-only bits keeping the Lv2+ rail state that no vanilla bit above can hold across a battle
+// (design.md §6): a 2-bit level per line. They are written after battle, read when a mon is first sent out, and
+// stripped from the battle copy of status1; no vanilla code reads them.
+#define STATUS1_SAVED_ELECTRIC   (3 << 16) // Shocked (Paralyzed also has STATUS1_PARALYSIS)
+#define STATUS1_SAVED_SLEEP      (3 << 18) // Nightmare (Asleep also has the sleep turns)
+#define STATUS1_SAVED_CONFUSION  (3 << 20) // Stupefied / Frightened
+#define STATUS1_SAVED_BURN       (3 << 22) // Burn stacks (the stack count past Lv1)
+#define STATUS1_SAVED_ANY        (STATUS1_SAVED_ELECTRIC | STATUS1_SAVED_SLEEP | STATUS1_SAVED_CONFUSION | STATUS1_SAVED_BURN)
+
 // Fantasy Retold: multi-stage status "rails" (design.md §6). A condition advances Lv1 -> Lv2 (-> Lv3)
 // when reapplied. Level 1 is volatile (clears on switch-out); Level 2+ persists across switches for the
 // whole engagement. Rail state (level + a per-rail counter) lives in struct PartyState and is the source

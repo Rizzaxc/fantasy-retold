@@ -912,14 +912,47 @@ static bool32 IsRepeatedMove(enum BattlerId battlerAtk)
     return move != MOVE_NONE && move == gBattleStruct->moveUsedLastTurn[battlerAtk];
 }
 
+// How far `battlerAtk`'s move at `movePosition` gets through a Dodge (design.md §3 / §9 / §10). A Choice item
+// is read through GetBattlerHoldEffect, so Klutz / Embargo / Magic Room switch it off.
+enum DodgeBypass GetDodgeBypass(enum BattlerId battlerAtk, u32 movePosition)
+{
+    enum HoldEffect holdEffect = GetBattlerHoldEffect(battlerAtk);
+    bool32 isSignature = (movePosition == SIGNATURE_MOVE_POSITION);
+
+    if (holdEffect == HOLD_EFFECT_CHOICE_SCARF)
+        return isSignature ? DODGE_BYPASS_IGNORED : DODGE_BYPASS_NEVER_FULL;
+    if (isSignature)
+        return DODGE_BYPASS_NEVER_FULL;
+    if (holdEffect == HOLD_EFFECT_CHOICE_BAND || holdEffect == HOLD_EFFECT_CHOICE_SPECS)
+        return DODGE_BYPASS_NO_REPEAT_TRAP;
+    return DODGE_BYPASS_NONE;
+}
+
+// The move position of the attack being resolved: the live one while it is the acting battler, else its choice.
+static u32 GetDodgeAttackerMovePosition(enum BattlerId battlerAtk)
+{
+    return (battlerAtk == gBattlerAttacker) ? gCurrMovePos : gBattleStruct->chosenMovePositions[battlerAtk];
+}
+
+// Choice items take Dodge and Recuperate away (the Signature / Itemized Move stay usable, design.md §9).
+bool32 IsInnateCommandBlockedByChoice(enum BattlerId battler)
+{
+    return IsHoldEffectChoice(GetBattlerHoldEffect(battler));
+}
+
 // Dodge outcomes vs a move aimed at the dodger's side: a repeated move misses outright whatever the speeds
 // (status moves included); otherwise an offensive move misses if the dodger acts first (status moves bypass
-// Dodge), and still lands at half damage if the attacker acts first.
+// Dodge), and still lands at half damage if the attacker acts first. GetDodgeBypass softens both.
 bool32 IsMoveFullyDodged(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move)
 {
+    enum DodgeBypass bypass;
+
     if (!BattlerIsDodging(battlerDef) || IsBattlerAlly(battlerAtk, battlerDef))
         return FALSE;
-    if (IsRepeatedMove(battlerAtk))
+    bypass = GetDodgeBypass(battlerAtk, GetDodgeAttackerMovePosition(battlerAtk));
+    if (bypass >= DODGE_BYPASS_NEVER_FULL)
+        return FALSE;
+    if (bypass != DODGE_BYPASS_NO_REPEAT_TRAP && IsRepeatedMove(battlerAtk))
         return TRUE;
     return !IsBattleMoveStatus(move)
         && GetBattlerTurnOrderNum(battlerDef) < GetBattlerTurnOrderNum(battlerAtk);
@@ -927,9 +960,21 @@ bool32 IsMoveFullyDodged(enum BattlerId battlerAtk, enum BattlerId battlerDef, e
 
 bool32 IsMoveHalvedByDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef)
 {
-    return BattlerIsDodging(battlerDef)
-        && !IsRepeatedMove(battlerAtk)
-        && GetBattlerTurnOrderNum(battlerAtk) < GetBattlerTurnOrderNum(battlerDef);
+    if (!BattlerIsDodging(battlerDef))
+        return FALSE;
+
+    switch (GetDodgeBypass(battlerAtk, GetDodgeAttackerMovePosition(battlerAtk)))
+    {
+    case DODGE_BYPASS_IGNORED:
+        return FALSE;
+    case DODGE_BYPASS_NEVER_FULL: // whatever would have been a full miss lands halved instead
+        return TRUE;
+    case DODGE_BYPASS_NO_REPEAT_TRAP:
+        return GetBattlerTurnOrderNum(battlerAtk) < GetBattlerTurnOrderNum(battlerDef);
+    default:
+        return !IsRepeatedMove(battlerAtk)
+            && GetBattlerTurnOrderNum(battlerAtk) < GetBattlerTurnOrderNum(battlerDef);
+    }
 }
 
 void HandleAction_Dodge(void)
@@ -1831,102 +1876,121 @@ u32 TrySetCantSelectMoveBattleScript(enum BattlerId battler)
     return limitations;
 }
 
-u32 CheckMoveLimitations(enum BattlerId battler, u8 unusableMoves, u32 check)
+// One move's selection limits (Disable, Taunt, Choice lock, ...), with `pp` left on it.
+static bool32 IsMoveLimited(enum BattlerId battler, enum Move move, u32 pp, u32 check)
 {
-    enum Move move;
-    enum BattleMoveEffects moveEffect;
+    enum BattleMoveEffects moveEffect = GetMoveEffect(move);
     enum HoldEffect holdEffect = GetBattlerHoldEffect(battler);
     u16 *choicedMove = &gBattleStruct->choicedMove[battler];
-    s32 i;
 
+    // No move
+    if (check & MOVE_LIMITATION_ZEROMOVE && move == MOVE_NONE)
+        return TRUE;
+    // No PP
+    else if (check & MOVE_LIMITATION_PP && pp == 0)
+        return TRUE;
+    // Placeholder
+    else if (check & MOVE_LIMITATION_PLACEHOLDER && moveEffect == EFFECT_PLACEHOLDER)
+        return TRUE;
+    // Disable
+    else if (check & MOVE_LIMITATION_DISABLED && move == gBattleMons[battler].volatiles.disabledMove)
+        return TRUE;
+    // Torment
+    else if (check & MOVE_LIMITATION_TORMENTED && move == gLastMoves[battler] && gBattleMons[battler].volatiles.torment == TRUE)
+        return TRUE;
+    // Taunt
+    else if (check & MOVE_LIMITATION_TAUNT
+          && gBattleMons[battler].volatiles.tauntTimer
+          && IsBattleMoveStatus(move)
+          && (GetConfig(B_TAUNT_ME_FIRST) < GEN_5 || moveEffect != EFFECT_ME_FIRST))
+        return TRUE;
+    // Imprison
+    else if (check & MOVE_LIMITATION_IMPRISON && GetImprisonedMovesCount(battler, move))
+        return TRUE;
+    // Encore
+    else if (check & MOVE_LIMITATION_ENCORE && gBattleMons[battler].volatiles.encoreTimer && gBattleMons[battler].volatiles.encoredMove != move)
+        return TRUE;
+    // Choice Items
+    else if (check & MOVE_LIMITATION_CHOICE_ITEM && IsHoldEffectChoice(holdEffect) && *choicedMove != MOVE_NONE && *choicedMove != MOVE_UNAVAILABLE && *choicedMove != move)
+        return TRUE;
+    // Assault Vest
+    else if (check & MOVE_LIMITATION_ASSAULT_VEST && holdEffect == HOLD_EFFECT_ASSAULT_VEST && IsBattleMoveStatus(move) && moveEffect != EFFECT_ME_FIRST)
+        return TRUE;
+    // Gravity
+    else if (check & MOVE_LIMITATION_GRAVITY && IsGravityPreventingMove(move))
+        return TRUE;
+    // Heal Block
+    else if (check & MOVE_LIMITATION_HEAL_BLOCK && IsHealBlockPreventingMove(battler, move))
+        return TRUE;
+    // Belch
+    else if (check & MOVE_LIMITATION_BELCH && IsBelchPreventingMove(battler, move))
+        return TRUE;
+    // Throat Chop
+    else if (check & MOVE_LIMITATION_THROAT_CHOP && gBattleMons[battler].volatiles.throatChopTimer > 0 && IsSoundMove(move))
+        return TRUE;
+    // Stuff Cheeks
+    else if (check & MOVE_LIMITATION_STUFF_CHEEKS && moveEffect == EFFECT_STUFF_CHEEKS && GetItemPocket(gBattleMons[battler].item) != POCKET_BERRIES && GetConfig(B_STUFF_CHEEKS_SELECTABLE) < GEN_CHAMPIONS)
+        return TRUE;
+    // Gorilla Tactics
+    else if (check & MOVE_LIMITATION_CHOICE_ITEM && GetBattlerAbility(battler) == ABILITY_GORILLA_TACTICS && *choicedMove != MOVE_NONE && *choicedMove != MOVE_UNAVAILABLE && *choicedMove != move)
+        return TRUE;
+    // Can't Use Twice flag
+    else if (check & MOVE_LIMITATION_CANT_USE_TWICE && MoveCantBeUsedTwice(move) && move == gLastResultingMoves[battler])
+        return TRUE;
+    else if (check & MOVE_LIMITATION_UNUSABLE)
+    {
+        switch (moveEffect)
+        {
+            // Fake Out, First Impression
+            case EFFECT_FIRST_TURN_ONLY:
+                if (!IsBattlersFirstTurn(battler) && GetConfig(B_FIRST_TURN_MOVE) >= GEN_CHAMPIONS)
+                    return TRUE;
+                break;
+            // Spit Up
+            case EFFECT_SPIT_UP:
+                if (gBattleMons[battler].volatiles.stockpileCounter == 0 && GetConfig(B_SPIT_UP_SELECTABLE) >= GEN_CHAMPIONS)
+                    return TRUE;
+                break;
+            // Burn Up, Double Shock
+            case EFFECT_FAIL_IF_NOT_ARG_TYPE:
+                if (!IS_BATTLER_OF_TYPE(battler, GetMoveArgType(move)) && GetConfig(B_MOVES_THAT_REMOVE_TYPE) >= GEN_CHAMPIONS)
+                    return TRUE;
+                break;
+            // Last Resort
+            case EFFECT_LAST_RESORT:
+                if (!CanUseLastResort(battler) && GetConfig(B_LAST_RESORT_SELECTABLE) >= GEN_CHAMPIONS)
+                    return TRUE;
+                break;
+            default:
+                break;
+        }
+    }
+    return FALSE;
+}
+
+u32 CheckMoveLimitations(enum BattlerId battler, u8 unusableMoves, u32 check)
+{
     gPotentialItemEffectBattler = battler;
 
-    for (i = 0; i < MAX_MON_MOVES; i++)
+    for (u32 i = 0; i < MAX_MON_MOVES; i++)
     {
-        move = gBattleMons[battler].moves[i];
-        moveEffect = GetMoveEffect(move);
-        // No move
-        if (check & MOVE_LIMITATION_ZEROMOVE && move == MOVE_NONE)
+        if (IsMoveLimited(battler, gBattleMons[battler].moves[i], gBattleMons[battler].pp[i], check))
             unusableMoves |= 1u << i;
-        // No PP
-        else if (check & MOVE_LIMITATION_PP && gBattleMons[battler].pp[i] == 0)
-            unusableMoves |= 1u << i;
-        // Placeholder
-        else if (check & MOVE_LIMITATION_PLACEHOLDER && moveEffect == EFFECT_PLACEHOLDER)
-            unusableMoves |= 1u << i;
-        // Disable
-        else if (check & MOVE_LIMITATION_DISABLED && move == gBattleMons[battler].volatiles.disabledMove)
-            unusableMoves |= 1u << i;
-        // Torment
-        else if (check & MOVE_LIMITATION_TORMENTED && move == gLastMoves[battler] && gBattleMons[battler].volatiles.torment == TRUE)
-            unusableMoves |= 1u << i;
-        // Taunt
-        else if (check & MOVE_LIMITATION_TAUNT
-              && gBattleMons[battler].volatiles.tauntTimer
-              && IsBattleMoveStatus(move)
-              && (GetConfig(B_TAUNT_ME_FIRST) < GEN_5 || moveEffect != EFFECT_ME_FIRST))
-            unusableMoves |= 1u << i;
-        // Imprison
-        else if (check & MOVE_LIMITATION_IMPRISON && GetImprisonedMovesCount(battler, move))
-            unusableMoves |= 1u << i;
-        // Encore
-        else if (check & MOVE_LIMITATION_ENCORE && gBattleMons[battler].volatiles.encoreTimer && gBattleMons[battler].volatiles.encoredMove != move)
-            unusableMoves |= 1u << i;
-        // Choice Items
-        else if (check & MOVE_LIMITATION_CHOICE_ITEM && IsHoldEffectChoice(holdEffect) && *choicedMove != MOVE_NONE && *choicedMove != MOVE_UNAVAILABLE && *choicedMove != move)
-            unusableMoves |= 1u << i;
-        // Assault Vest
-        else if (check & MOVE_LIMITATION_ASSAULT_VEST && holdEffect == HOLD_EFFECT_ASSAULT_VEST && IsBattleMoveStatus(move) && moveEffect != EFFECT_ME_FIRST)
-            unusableMoves |= 1u << i;
-        // Gravity
-        else if (check & MOVE_LIMITATION_GRAVITY && IsGravityPreventingMove(move))
-            unusableMoves |= 1u << i;
-        // Heal Block
-        else if (check & MOVE_LIMITATION_HEAL_BLOCK && IsHealBlockPreventingMove(battler, move))
-            unusableMoves |= 1u << i;
-        // Belch
-        else if (check & MOVE_LIMITATION_BELCH && IsBelchPreventingMove(battler, move))
-            unusableMoves |= 1u << i;
-        // Throat Chop
-        else if (check & MOVE_LIMITATION_THROAT_CHOP && gBattleMons[battler].volatiles.throatChopTimer > 0 && IsSoundMove(move))
-            unusableMoves |= 1u << i;
-        // Stuff Cheeks
-        else if (check & MOVE_LIMITATION_STUFF_CHEEKS && moveEffect == EFFECT_STUFF_CHEEKS && GetItemPocket(gBattleMons[battler].item) != POCKET_BERRIES && GetConfig(B_STUFF_CHEEKS_SELECTABLE) < GEN_CHAMPIONS)
-            unusableMoves |= 1u << i;
-        // Gorilla Tactics
-        else if (check & MOVE_LIMITATION_CHOICE_ITEM && GetBattlerAbility(battler) == ABILITY_GORILLA_TACTICS && *choicedMove != MOVE_NONE && *choicedMove != MOVE_UNAVAILABLE && *choicedMove != move)
-            unusableMoves |= 1u << i;
-        // Can't Use Twice flag
-        else if (check & MOVE_LIMITATION_CANT_USE_TWICE && MoveCantBeUsedTwice(move) && move == gLastResultingMoves[battler])
-            unusableMoves |= 1u << i;
-        else if (check & MOVE_LIMITATION_UNUSABLE)
-        {
-            switch (moveEffect)
-            {
-                // Fake Out, First Impression
-                case EFFECT_FIRST_TURN_ONLY:
-                    if (!IsBattlersFirstTurn(battler) && GetConfig(B_FIRST_TURN_MOVE) >= GEN_CHAMPIONS)
-                        unusableMoves |= 1u << i;
-                    break;
-                // Spit Up
-                case EFFECT_SPIT_UP:
-                    if (gBattleMons[battler].volatiles.stockpileCounter == 0 && GetConfig(B_SPIT_UP_SELECTABLE) >= GEN_CHAMPIONS)
-                        unusableMoves |= 1u << i;
-                    break;
-                // Burn Up, Double Shock
-                case EFFECT_FAIL_IF_NOT_ARG_TYPE:
-                    if (!IS_BATTLER_OF_TYPE(battler, GetMoveArgType(move)) && GetConfig(B_MOVES_THAT_REMOVE_TYPE) >= GEN_CHAMPIONS)
-                        unusableMoves |= 1u << i;
-                    break;
-                // Last Resort
-                case EFFECT_LAST_RESORT:
-                    if (!CanUseLastResort(battler) && GetConfig(B_LAST_RESORT_SELECTABLE) >= GEN_CHAMPIONS)
-                        unusableMoves |= 1u << i;
-                    break;
-                default:
-                    break;
-            }
-        }
+    }
+    return unusableMoves;
+}
+
+// Fantasy Retold: the same limits for the Signature / Itemized Move, as bits SIGNATURE_ / ITEMIZED_MOVE_POSITION
+// (the AI's move slots 4 and 5, design.md §10).
+u32 CheckExtraMoveLimitations(enum BattlerId battler, u32 check)
+{
+    u32 unusableMoves = 0;
+
+    gPotentialItemEffectBattler = battler;
+    for (u32 position = SIGNATURE_MOVE_POSITION; position <= ITEMIZED_MOVE_POSITION; position++)
+    {
+        if (IsMoveLimited(battler, GetBattlerMoveAtPosition(battler, position), GetBattlerExtraMovePP(battler, position), check))
+            unusableMoves |= 1u << position;
     }
     return unusableMoves;
 }
@@ -7979,8 +8043,7 @@ s32 ApplyModifiersAfterDmgRoll(struct DamageContext *ctx, s32 dmg)
 // Fantasy Retold: Trauma helpers ---------------------------------------------------------------
 
 // Trauma resistance from the repurposed Sp. Def stat stage (Calm Mind / Quiver Dance): each +1
-// stage multiplies incoming Trauma by 0.85; each -1 stage divides by it. (The Resilient nature's
-// halving is layered on top in Phase 6.)
+// stage multiplies incoming Trauma by 0.85; each -1 stage divides by it.
 u32 ApplyTraumaResistance(enum BattlerId battler, u32 trauma)
 {
     s32 i, stageDiff = (s32)gBattleMons[battler].statStages[STAT_SPDEF] - DEFAULT_STAT_STAGE;
@@ -8059,17 +8122,16 @@ bool32 BattlerHasInnate(enum BattlerId battler, enum NatureInnate innate)
 }
 
 // Fantasy Retold: on-switch-in Nature innates. Applied every time the mon enters (after stat stages
-// are reset), so they don't compound across switches. Quick Start = Jolly/Timid (+1 Speed); Resilient
-// = Calm/Careful (+1 Sp.Def stage, i.e. the repurposed Trauma-resistance stage).
+// are reset), so they don't compound across switches. Quick Start = Jolly/Timid (+1 Speed). (Resilient
+// is not a switch-in effect: it makes Calm/Careful immune to Special Trauma in TrackTraumaFromHit.)
 void ApplyNatureSwitchInInnates(enum BattlerId battler)
 {
     if (BattlerHasInnate(battler, INNATE_QUICK_START)
      && gBattleMons[battler].statStages[STAT_SPEED] < MAX_STAT_STAGE)
+    {
         gBattleMons[battler].statStages[STAT_SPEED]++;
-
-    if (BattlerHasInnate(battler, INNATE_RESILIENT)
-     && gBattleMons[battler].statStages[STAT_SPDEF] < MAX_STAT_STAGE)
-        gBattleMons[battler].statStages[STAT_SPDEF]++;
+        RecordNatureInnate(battler);
+    }
 }
 
 s32 DoFixedDamageMoveCalc(struct DamageContext *ctx)
@@ -8305,6 +8367,10 @@ s32 CalcCritChanceStage(struct DamageContext *ctx)
                 RecordAbilityBattle(ctx->battlerDef, ctx->abilities[ctx->battlerDef]);
             else if (GetCriticalHitOdds(critChance) == 1)
                 RecordAbilityBattle(ctx->battlerDef, ctx->abilities[ctx->battlerDef]);
+            // Fantasy Retold: likewise the Bold/Impish innate, when it alone stopped a sure crit.
+            if ((critChance == CRITICAL_HIT_ALWAYS || GetCriticalHitOdds(critChance) == 1)
+             && ctx->abilities[ctx->battlerDef] != ABILITY_BATTLE_ARMOR && ctx->abilities[ctx->battlerDef] != ABILITY_SHELL_ARMOR)
+                RecordNatureInnate(ctx->battlerDef);
         }
         critChance = CRITICAL_HIT_BLOCKED;
     }
@@ -8393,6 +8459,8 @@ static bool32 IsCriticalHit(struct DamageContext *ctx)
                 BattlerHasInnate(ctx->battlerDef, INNATE_BATTLE_ARMOR)
              && ctx->abilities[ctx->battlerDef] != ABILITY_BATTLE_ARMOR
              && ctx->abilities[ctx->battlerDef] != ABILITY_SHELL_ARMOR;
+            if (ctx->updateFlags && gSpecialStatuses[ctx->battlerDef].criticalHitBlockedByInnate)
+                RecordNatureInnate(ctx->battlerDef);
             if (ctx->updateFlags
              && (ctx->abilities[ctx->battlerDef] == ABILITY_BATTLE_ARMOR || ctx->abilities[ctx->battlerDef] == ABILITY_SHELL_ARMOR))
                 RecordAbilityBattle(ctx->battlerDef, ctx->abilities[ctx->battlerDef]);
@@ -11342,6 +11410,11 @@ bool32 IsBattlerInvalidForSpreadMove(enum BattlerId battlerAtk, enum BattlerId b
 
 bool32 IsAllowedToUseBag(void)
 {
+    // Fantasy Retold: no bag items in any trainer battle (design.md §9); wild battles follow B_VAR_NO_BAG_USE.
+    // Battle tests are trainer battles, so the upstream item tests keep the bag.
+    if ((gBattleTypeFlags & BATTLE_TYPE_TRAINER) && !gTestRunnerEnabled)
+        return FALSE;
+
     switch (VarGet(B_VAR_NO_BAG_USE))
     {
     case NO_BAG_RESTRICTION:

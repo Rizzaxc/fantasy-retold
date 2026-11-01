@@ -52,8 +52,13 @@ bool32 HasStatusRailCondition(enum BattlerId battler);
 // The same for the lines behind some vanilla status1 bits (Lv2+ of those lines; STATUS1_ANY = any line or Soaked).
 bool32 HasStatusRailConditionForStatus1(enum BattlerId battler, u32 status1Mask);
 enum StatusRail GetStatusRailFromStatus1(u32 status1);
-// The party status1 to keep after battle: the mirror of the Lv2+ lines (Lv1 drops).
+// The party status1 to keep after battle: the mirror and saved-level bits of the Lv2+ lines (Lv1 drops).
 u32 GetStatusRailPartyStatusAfterBattle(const struct StatusRailEntry *rails);
+// The STATUS1_SAVED_* bits a cure with healMask (the vanilla bits it clears) also takes off a party mon's status.
+u32 GetStatusRailSavedBitsToCure(u32 healMask);
+// On a mon's first send-out: raise the rails from the STATUS1_SAVED_* bits in its incoming status1 (after
+// ReconcileStatusRailsFromBridge, before SyncStatusRailBridge strips them).
+void SeedStatusRailsFromSavedStatus(enum BattlerId battler);
 // A cleansing berry's line: only acts on Lv2+ (Lv3 drops to a volatile Lv1). Returns TRUE if it did.
 bool32 CureStatusRailWithBerry(enum BattlerId battler, enum StatusRail rail);
 

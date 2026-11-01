@@ -7656,6 +7656,8 @@ static void Cmd_switchoutabilities(void)
     // ability). Natural Cure = Sassy/Gentle; Regenerator = Relaxed/Lax.
     if (GetBattlerAbility(battler) == ABILITY_NATURAL_CURE || BattlerHasInnate(battler, INNATE_NATURAL_CURE))
     {
+        if (GetBattlerAbility(battler) != ABILITY_NATURAL_CURE && HasAnyStatusRail(battler, STATUS_RAILS_ALL))
+            RecordNatureInnate(battler); // Fantasy Retold: the innate visibly cured something
         if (gBattleMons[battler].status1 & STATUS1_SLEEP)
             TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
 
@@ -7675,6 +7677,8 @@ static void Cmd_switchoutabilities(void)
             // Heal 1/3 per source, capped at the effective max (maxHP - Trauma): Trauma can't be regen'd back.
             u32 effMax = GetBattlerEffectiveMaxHP(battler);
             u32 regenerate = gBattleMons[battler].hp + (GetNonDynamaxMaxHP(battler) / 3) * regenStacks;
+            if (BattlerHasInnate(battler, INNATE_REGENERATOR) && gBattleMons[battler].hp < effMax)
+                RecordNatureInnate(battler); // Fantasy Retold: the innate visibly healed
             if (regenerate > effMax)
                 regenerate = effMax;
             BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_HP_BATTLE,

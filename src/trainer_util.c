@@ -41,6 +41,13 @@ static void CustomTrainerPartyAssignMoves(struct Pokemon *mon, const struct Trai
     }
 }
 
+// Fantasy Retold: CreateMon leaves the Signature Move PP full (0 used), so only the move is set.
+static void CustomTrainerPartyAssignSignatureMove(struct Pokemon *mon, const struct TrainerMon *partyEntry)
+{
+    if (partyEntry->signatureMove != MOVE_NONE)
+        SetMonData(mon, MON_DATA_SIGNATURE_MOVE, &partyEntry->signatureMove);
+}
+
 u32 GeneratePersonalityForGender(u32 gender, u32 species, u32 genderRng)
 {
     const struct SpeciesInfo *speciesInfo = &gSpeciesInfo[species];
@@ -150,6 +157,7 @@ void GenerateMonFromTrainerMon(struct Pokemon *mon, const struct TrainerMon *tra
 
     SetMonData(mon, MON_DATA_IVS, &trainerMon->iv);
     CustomTrainerPartyAssignMoves(mon, trainerMon);
+    CustomTrainerPartyAssignSignatureMove(mon, trainerMon);
     SetMonData(mon, MON_DATA_HELD_ITEM, &trainerMon->heldItem);
 
     bool32 abilitySet = FALSE;

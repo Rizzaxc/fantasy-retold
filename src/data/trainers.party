@@ -531,7 +531,6 @@ Class: Aqua Admin
 Pic: Aqua Admin M
 Gender: Male
 Music: Aqua
-Items: Super Potion
 Double Battle: No
 AI: Basic Trainer
 
@@ -596,7 +595,6 @@ Class: Aqua Leader
 Pic: Aqua Leader Archie
 Gender: Male
 Music: Aqua
-Items: Super Potion / Super Potion
 Double Battle: No
 AI: Basic Trainer
 
@@ -4592,7 +4590,6 @@ Class: Elite Four
 Pic: Elite Four Sidney
 Gender: Male
 Music: Elite Four
-Items: Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer / Force Setup First Turn
 Mugshot: Purple
@@ -4643,7 +4640,6 @@ Class: Elite Four
 Pic: Elite Four Phoebe
 Gender: Female
 Music: Elite Four
-Items: Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 Mugshot: Green
@@ -4694,7 +4690,6 @@ Class: Elite Four
 Pic: Elite Four Glacia
 Gender: Female
 Music: Elite Four
-Items: Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 Mugshot: Pink
@@ -4745,7 +4740,6 @@ Class: Elite Four
 Pic: Elite Four Drake
 Gender: Male
 Music: Elite Four
-Items: Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 Mugshot: Blue
@@ -4844,33 +4838,54 @@ Class: Leader
 Pic: Leader Brawly
 Gender: Male
 Music: Male
-Items: Super Potion / Super Potion
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Machop
-Level: 16
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
-- Karate Chop
-- Low Kick
-- Seismic Toss
-- Bulk Up
+Croagunk @ Leftovers  
+Ability: Poison Touch  
+Level: 17
+Tera Type: Flying  
+EVs: 20 HP / 40 Def / 40 SpD  
+Careful Nature  
+IVs: 16 HP / 16 Atk / 16 Def / 16 SpA / 16 SpD / 16 Spe  
+- Knock Off  
+- Poison Jab  
+- Thunder Punch  
+- Sucker Punch
 
-Meditite
-Level: 16
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
-- Focus Punch
-- Light Screen
-- Reflect
-- Bulk Up
+Meditite @ Iapapa Berry  
+Ability: Pure Power  
+Level: 15  
+Tera Type: Psychic  
+EVs: 80 Atk / 40 Spe  
+Adamant Nature  
+IVs: 0 HP / 0 Def / 0 SpA / 0 SpD / 0 Spe  
+- High Jump Kick  
+- Bulk Up  
+- Fire Punch  
+- Psycho Cut
+
+Timburr (M) @ Flame Orb  
+Ability: Guts  
+Level: 15  
+Tera Type: Fighting  
+EVs: 80 Atk / 40 Def  
+IVs: 17 HP / 21 Atk / 17 Def / 17 SpA / 17 SpD / 17 Spe  
+- Facade  
+- Drain Punch  
+- Poison Jab  
+- Stone Edge
 
 Makuhita @ Sitrus Berry
+Ability: Thick Fat  
 Level: 19
+Tera Type: Electric  
 IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Arm Thrust
-- Vital Throw
-- Reversal
-- Bulk Up
+EVs: 120 HP 
+- Bullet Punch
+- Thunder Punch
+- Close Combat
+- Force Palm
 
 === TRAINER_WATTSON_1 ===
 Name: WATTSON
@@ -4878,7 +4893,6 @@ Class: Leader
 Pic: Leader Wattson
 Gender: Male
 Music: Male
-Items: Super Potion / Super Potion
 Double Battle: No
 AI: Basic Trainer
 
@@ -4920,7 +4934,6 @@ Class: Leader
 Pic: Leader Flannery
 Gender: Female
 Music: Female
-Items: Hyper Potion / Hyper Potion
 Double Battle: No
 AI: Basic Trainer
 
@@ -4962,7 +4975,6 @@ Class: Leader
 Pic: Leader Norman
 Gender: Male
 Music: Male
-Items: Hyper Potion / Hyper Potion
 Double Battle: No
 AI: Basic Trainer
 
@@ -5004,7 +5016,6 @@ Class: Leader
 Pic: Leader Winona
 Gender: Female
 Music: Female
-Items: Hyper Potion / Hyper Potion
 Double Battle: No
 AI: Basic Trainer / Risky
 
@@ -5054,7 +5065,6 @@ Class: Leader
 Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
-Items: Hyper Potion / Hyper Potion / Hyper Potion / Hyper Potion
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -5096,7 +5106,6 @@ Class: Leader
 Pic: Leader Juan
 Gender: Male
 Music: Male
-Items: Hyper Potion / Hyper Potion
 Double Battle: No
 AI: Basic Trainer
 
@@ -6262,7 +6271,6 @@ Class: Champion
 Pic: Champion Wallace
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 Mugshot: Yellow
@@ -9474,7 +9482,6 @@ Class: Rival
 Pic: Wally
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 
@@ -11023,7 +11030,6 @@ Class: Magma Leader
 Pic: Magma Leader Maxie
 Gender: Male
 Music: Magma
-Items: Super Potion / Super Potion
 Double Battle: No
 AI: Basic Trainer
 
@@ -11045,7 +11051,6 @@ Class: Magma Leader
 Pic: Magma Leader Maxie
 Gender: Male
 Music: Magma
-Items: Super Potion / Super Potion
 Double Battle: No
 AI: Basic Trainer
 
@@ -12068,7 +12073,6 @@ Class: Rival
 Pic: Wally
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 
@@ -12118,7 +12122,6 @@ Class: Rival
 Pic: Wally
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 
@@ -12168,7 +12171,6 @@ Class: Rival
 Pic: Wally
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 
@@ -12218,7 +12220,6 @@ Class: Rival
 Pic: Wally
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 
@@ -14177,41 +14178,55 @@ Class: Leader
 Pic: Leader Roxanne
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Golem
+Lairon (M) @ Rocky Helmet
+Ability: Sturdy
+Level: 34
+Tera Type: Steel
+EVs: 84 HP / 84 Def / 84 SpD
+Careful Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- Rock Slide
+- Iron Head
+- Stealth Rock
+- Protect
+
+Graveler
+Ability: Sturdy
 Level: 32
+EVs: 84 HP / 84 Atk / 84 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- Rock Slide
+- Bulldoze
 - Protect
-- Rollout
-- Magnitude
 - Explosion
 
-Kabuto @ Sitrus Berry
+Corsola (F) @ Life Orb
+Ability: Hustle
 Level: 35
+Tera Type: Water
+EVs: 84 HP / 84 Atk / 84 Spe
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Swords Dance
-- Ice Beam
-- Surf
-- Rock Slide
+- Icicle Spear
+- Rock Blast
+- Wave Crash
+- Protect
 
-Onix
-Level: 35
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Iron Tail
-- Explosion
-- Roar
-- Rock Slide
-
-Nosepass @ Sitrus Berry
+Probopass @ Sitrus Berry
+Ability: Sturdy
 Level: 37
+EVs: 84 HP / 84 Def / 84 SpA
+Bold Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Double Team
-- Explosion
+Signature Move: Power Gem
+- Earth Power
+- Flash Cannon
+- Thunder Wave
 - Protect
-- Rock Slide
 
 === TRAINER_ROXANNE_3 ===
 Name: ROXANNE
@@ -14219,49 +14234,67 @@ Class: Leader
 Pic: Leader Roxanne
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Omanyte
-Level: 37
+Lairon (M) @ Rocky Helmet
+Ability: Sturdy
+Level: 38
+Tera Type: Steel
+EVs: 128 HP / 128 Def / 84 SpD
+Careful Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Protect
-- Ice Beam
 - Rock Slide
-- Surf
+- Iron Head
+- Stealth Rock
+- Protect
 
 Golem
+Ability: Sturdy
 Level: 37
+EVs: 128 HP / 128 Atk / 84 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Stone Edge
+- Rock Slide
+- High Horsepower
 - Protect
-- Rollout
-- Magnitude
 - Explosion
 
-Kabutops @ Sitrus Berry
+Armaldo (M) @ Quick Claw
+Ability: Battle Armor
 Level: 40
+EVs: 128 HP / 128 Atk / 84 Spe
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- X-Scissor
+- Rock Blast
+- Aqua Jet
 - Swords Dance
-- Ice Beam
-- Surf
-- Rock Slide
 
-Onix
+Corsola (F) @ Life Orb
+Ability: Hustle
 Level: 40
+Tera Type: Water
+EVs: 128 HP / 128 Atk / 84 Spe
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Iron Tail
-- Explosion
-- Roar
-- Rock Slide
-
-Nosepass @ Sitrus Berry
-Level: 42
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Double Team
-- Explosion
+- Icicle Spear
+- Rock Blast
+- Wave Crash
 - Protect
-- Rock Slide
+
+Probopass @ Sitrus Berry
+Ability: Sturdy
+Level: 42
+EVs: 128 HP / 128 Def / 84 SpA
+Bold Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Power Gem
+- Earth Power
+- Flash Cannon
+- Thunder Wave
+- Protect
 
 === TRAINER_ROXANNE_4 ===
 Name: ROXANNE
@@ -14269,49 +14302,68 @@ Class: Leader
 Pic: Leader Roxanne
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Omastar
-Level: 42
+Aggron (M) @ Rocky Helmet
+Ability: Rock Head
+Level: 44
+Tera Type: Steel
+EVs: 168 HP / 168 Atk / 84 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Protect
-- Ice Beam
 - Rock Slide
-- Surf
+- Iron Head
+- Stealth Rock
+- Protect
 
 Golem
+Ability: Sturdy
 Level: 42
+EVs: 168 HP / 168 Atk / 84 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Stone Edge
+- Rock Slide
+- High Horsepower
 - Protect
-- Rollout
-- Earthquake
 - Explosion
 
-Kabutops @ Sitrus Berry
+Armaldo (M) @ Quick Claw
+Ability: Battle Armor
 Level: 45
+EVs: 168 HP / 168 Atk / 84 Spe
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- X-Scissor
+- Rock Blast
+- Aqua Jet
 - Swords Dance
-- Ice Beam
-- Surf
-- Rock Slide
 
-Onix
+Corsola (F) @ Life Orb
+Ability: Hustle
 Level: 45
+Tera Type: Water
+EVs: 168 HP / 168 Atk / 84 Spe
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Iron Tail
-- Explosion
-- Roar
-- Rock Slide
-
-Nosepass @ Sitrus Berry
-Level: 47
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Double Team
-- Explosion
+Signature Move: Wave Crash
+- Icicle Spear
+- Rock Blast
+- Liquidation
 - Protect
-- Rock Slide
+
+Probopass @ Sitrus Berry
+Ability: Sturdy
+Level: 47
+EVs: 168 HP / 168 Def / 84 SpA
+Bold Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Power Gem
+- Earth Power
+- Flash Cannon
+- Thunder Wave
+- Protect
 
 === TRAINER_ROXANNE_5 ===
 Name: ROXANNE
@@ -14319,57 +14371,80 @@ Class: Leader
 Pic: Leader Roxanne
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Aerodactyl
-Level: 47
+Aggron (M) @ Rocky Helmet
+Ability: Rock Head
+Level: 50
+Tera Type: Steel
+EVs: 252 HP / 252 Atk / 4 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Head Smash
 - Rock Slide
-- Hyper Beam
-- Supersonic
+- Iron Head
+- Stealth Rock
 - Protect
 
 Golem
+Ability: Sturdy
 Level: 47
+EVs: 252 HP / 252 Atk / 4 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Focus Punch
-- Rollout
-- Earthquake
+Signature Move: Stone Edge
+- Rock Slide
+- High Horsepower
+- Protect
 - Explosion
 
-Omastar
+Cradily (F) @ Leftovers
+Ability: Storm Drain
 Level: 47
+EVs: 252 HP / 4 SpA / 252 SpD
+Calm Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Protect
-- Ice Beam
-- Rock Slide
-- Surf
+- Giga Drain
+- Ancient Power
+- Recover
+- Stealth Rock
 
-Kabutops @ Sitrus Berry
+Armaldo (M) @ Quick Claw
+Ability: Battle Armor
 Level: 50
+EVs: 252 HP / 252 Atk / 4 Spe
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- X-Scissor
+- Rock Blast
+- Aqua Jet
 - Swords Dance
-- Ice Beam
-- Surf
-- Rock Slide
 
-Steelix
+Corsola (F) @ Life Orb
+Ability: Hustle
 Level: 50
+Tera Type: Water
+EVs: 252 HP / 252 Atk / 4 Spe
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Iron Tail
-- Explosion
-- Roar
-- Rock Slide
-
-Nosepass @ Sitrus Berry
-Level: 52
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Double Team
-- Explosion
+Signature Move: Wave Crash
+- Icicle Spear
+- Rock Blast
+- Liquidation
 - Protect
-- Rock Slide
+
+Probopass @ Sitrus Berry
+Ability: Sturdy
+Level: 52
+EVs: 252 HP / 252 Def / 4 SpA
+Bold Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Power Gem
+- Earth Power
+- Flash Cannon
+- Thunder Wave
+- Protect
 
 === TRAINER_BRAWLY_2 ===
 Name: BRAWLY
@@ -14377,41 +14452,57 @@ Class: Leader
 Pic: Leader Brawly
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Machamp @ Sitrus Berry
-Level: 33
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Karate Chop
-- Rock Slide
-- Focus Punch
-- Bulk Up
-
-Meditite
-Level: 33
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Psychic
-- Light Screen
-- Reflect
-- Focus Punch
-
-Hitmontop
+Toxicroak @ Leftovers
+Ability: Poison Touch
 Level: 35
+Tera Type: Flying
+EVs: 84 HP / 84 Def / 84 SpD
+Careful Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Pursuit
-- Counter
-- Protect
-- Triple Kick
+- Knock Off
+- Poison Jab
+- Thunder Punch
+- Sucker Punch
+
+Medicham @ Iapapa Berry
+Ability: Pure Power
+Level: 33
+Tera Type: Psychic
+EVs: 84 HP / 84 Atk / 84 Spe
+Adamant Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- High Jump Kick
+- Bulk Up
+- Fire Punch
+- Zen Headbutt
+
+Gurdurr (M) @ Flame Orb
+Ability: Guts
+Level: 34
+Tera Type: Fighting
+EVs: 84 HP / 84 Atk / 84 Def
+Adamant Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- Facade
+- Drain Punch
+- Mach Punch
+- Stone Edge
 
 Hariyama @ Sitrus Berry
+Ability: Thick Fat
 Level: 37
+Tera Type: Electric
+EVs: 84 HP / 84 Atk / 84 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Close Combat
 - Fake Out
-- Focus Punch
-- Belly Drum
-- Earthquake
+- Bullet Punch
+- Thunder Punch
+- Knock Off
 
 === TRAINER_BRAWLY_3 ===
 Name: BRAWLY
@@ -14419,41 +14510,58 @@ Class: Leader
 Pic: Leader Brawly
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Machamp @ Sitrus Berry
-Level: 38
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Karate Chop
-- Rock Slide
-- Focus Punch
-- Bulk Up
-
-Medicham
-Level: 38
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Psychic
-- Light Screen
-- Reflect
-- Focus Punch
-
-Hitmontop
+Toxicroak @ Leftovers
+Ability: Poison Touch
 Level: 40
+Tera Type: Flying
+EVs: 128 HP / 128 Def / 84 SpD
+Careful Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Pursuit
-- Counter
-- Protect
-- Triple Kick
+- Knock Off
+- Poison Jab
+- Thunder Punch
+- Sucker Punch
+
+Medicham @ Iapapa Berry
+Ability: Pure Power
+Level: 38
+Tera Type: Psychic
+EVs: 128 HP / 128 Atk / 84 Spe
+Adamant Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: High Jump Kick
+- Zen Headbutt
+- Bulk Up
+- Fire Punch
+- Detect
+
+Gurdurr (M) @ Flame Orb
+Ability: Guts
+Level: 39
+Tera Type: Fighting
+EVs: 128 HP / 128 Atk / 84 Def
+Adamant Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- Facade
+- Drain Punch
+- Mach Punch
+- Stone Edge
 
 Hariyama @ Sitrus Berry
+Ability: Thick Fat
 Level: 42
+Tera Type: Electric
+EVs: 128 HP / 128 Atk / 84 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Close Combat
 - Fake Out
-- Focus Punch
-- Belly Drum
-- Earthquake
+- Bullet Punch
+- Thunder Punch
+- Knock Off
 
 === TRAINER_BRAWLY_4 ===
 Name: BRAWLY
@@ -14461,49 +14569,70 @@ Class: Leader
 Pic: Leader Brawly
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Hitmonchan
+Poliwrath (M) @ Mystic Water
+Ability: Swift Swim
 Level: 40
+EVs: 168 HP / 168 Atk / 84 Spe
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sky Uppercut
-- Protect
-- Fire Punch
+- Waterfall
+- Circle Throw
 - Ice Punch
+- Hypnosis
 
-Machamp @ Sitrus Berry
+Toxicroak @ Leftovers
+Ability: Poison Touch
 Level: 43
+Tera Type: Flying
+EVs: 168 HP / 168 Atk / 84 SpD
+Careful Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Karate Chop
-- Rock Slide
-- Focus Punch
+Signature Move: Poison Jab
+- Knock Off
+- Drain Punch
+- Thunder Punch
+- Sucker Punch
+
+Medicham @ Iapapa Berry
+Ability: Pure Power
+Level: 43
+Tera Type: Psychic
+EVs: 168 HP / 168 Atk / 84 Spe
+Adamant Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: High Jump Kick
+- Zen Headbutt
 - Bulk Up
+- Fire Punch
+- Detect
 
-Medicham
-Level: 43
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Focus Punch
-- Light Screen
-- Reflect
-- Psychic
-
-Hitmontop
+Conkeldurr (M) @ Flame Orb
+Ability: Guts
 Level: 45
+Tera Type: Fighting
+EVs: 168 HP / 168 Atk / 84 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Pursuit
-- Counter
-- Protect
-- Triple Kick
+- Facade
+- Drain Punch
+- Mach Punch
+- Stone Edge
 
 Hariyama @ Sitrus Berry
+Ability: Thick Fat
 Level: 47
+Tera Type: Electric
+EVs: 168 HP / 168 Atk / 84 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Close Combat
 - Fake Out
-- Focus Punch
-- Belly Drum
-- Earthquake
+- Bullet Punch
+- Thunder Punch
+- Knock Off
 
 === TRAINER_BRAWLY_5 ===
 Name: BRAWLY
@@ -14511,57 +14640,82 @@ Class: Leader
 Pic: Leader Brawly
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Hitmonlee
+Breloom (M) @ Focus Sash
+Ability: Technician
 Level: 46
+EVs: 252 Atk / 4 Def / 252 Spe
+Jolly Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Mega Kick
-- Focus Punch
-- Earthquake
+- Spore
+- Bullet Seed
+- Mach Punch
+- Rock Tomb
+
+Poliwrath (M) @ Mystic Water
+Ability: Swift Swim
+Level: 46
+EVs: 252 HP / 252 Atk / 4 Spe
+Adamant Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+- Waterfall
+- Circle Throw
+- Ice Punch
+- Hypnosis
+
+Toxicroak @ Leftovers
+Ability: Poison Touch
+Level: 48
+Tera Type: Flying
+EVs: 252 HP / 252 Atk / 4 SpD
+Careful Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Poison Jab
+- Knock Off
+- Drain Punch
+- Thunder Punch
+- Sucker Punch
+
+Medicham @ Iapapa Berry
+Ability: Pure Power
+Level: 48
+Tera Type: Psychic
+EVs: 252 HP / 252 Atk / 4 Spe
+Adamant Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: High Jump Kick
+- Zen Headbutt
 - Bulk Up
-
-Hitmonchan
-Level: 46
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sky Uppercut
-- Protect
 - Fire Punch
+- Detect
+
+Conkeldurr (M) @ Flame Orb
+Ability: Guts
+Level: 50
+Tera Type: Fighting
+EVs: 252 HP / 252 Atk / 4 Def
+Adamant Nature
+IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Drain Punch
+- Facade
+- Mach Punch
+- Knock Off
 - Ice Punch
 
-Machamp @ Sitrus Berry
-Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Cross Chop
-- Rock Slide
-- Focus Punch
-- Bulk Up
-
-Medicham
-Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Focus Punch
-- Light Screen
-- Reflect
-- Psychic
-
-Hitmontop
-Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Pursuit
-- Counter
-- Protect
-- Triple Kick
-
 Hariyama @ Sitrus Berry
+Ability: Thick Fat
 Level: 52
+Tera Type: Electric
+EVs: 252 HP / 252 Atk / 4 Def
+Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Signature Move: Close Combat
 - Fake Out
-- Focus Punch
-- Belly Drum
-- Earthquake
+- Bullet Punch
+- Thunder Punch
+- Knock Off
 
 === TRAINER_WATTSON_2 ===
 Name: WATTSON
@@ -14569,7 +14723,6 @@ Class: Leader
 Pic: Leader Wattson
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -14611,7 +14764,6 @@ Class: Leader
 Pic: Leader Wattson
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -14661,7 +14813,6 @@ Class: Leader
 Pic: Leader Wattson
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -14711,7 +14862,6 @@ Class: Leader
 Pic: Leader Wattson
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -14769,7 +14919,6 @@ Class: Leader
 Pic: Leader Flannery
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -14811,7 +14960,6 @@ Class: Leader
 Pic: Leader Flannery
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -14861,7 +15009,6 @@ Class: Leader
 Pic: Leader Flannery
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -14919,7 +15066,6 @@ Class: Leader
 Pic: Leader Flannery
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -14977,7 +15123,6 @@ Class: Leader
 Pic: Leader Norman
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15019,7 +15164,6 @@ Class: Leader
 Pic: Leader Norman
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15069,7 +15213,6 @@ Class: Leader
 Pic: Leader Norman
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15119,7 +15262,6 @@ Class: Leader
 Pic: Leader Norman
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15177,7 +15319,6 @@ Class: Leader
 Pic: Leader Winona
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer / Risky
 
@@ -15227,7 +15368,6 @@ Class: Leader
 Pic: Leader Winona
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer / Risky
 
@@ -15285,7 +15425,6 @@ Class: Leader
 Pic: Leader Winona
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer / Risky
 
@@ -15343,7 +15482,6 @@ Class: Leader
 Pic: Leader Winona
 Gender: Female
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer / Risky
 
@@ -15401,7 +15539,6 @@ Class: Leader
 Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15451,7 +15588,6 @@ Class: Leader
 Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15509,7 +15645,6 @@ Class: Leader
 Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15567,7 +15702,6 @@ Class: Leader
 Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15625,7 +15759,6 @@ Class: Leader
 Pic: Leader Juan
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15675,7 +15808,6 @@ Class: Leader
 Pic: Leader Juan
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15725,7 +15857,6 @@ Class: Leader
 Pic: Leader Juan
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15783,7 +15914,6 @@ Class: Leader
 Pic: Leader Juan
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore
 Double Battle: Yes
 AI: Basic Trainer
 
@@ -15877,7 +16007,6 @@ Class: Rival
 Pic: Steven
 Gender: Male
 Music: Male
-Items: Full Restore / Full Restore / Full Restore / Full Restore
 Double Battle: No
 AI: Basic Trainer
 
