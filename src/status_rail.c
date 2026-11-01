@@ -695,8 +695,7 @@ u32 ApplyStatusRailTypeInteraction(enum BattlerId battler, enum Type moveType)
             return STRINGID_FRWARMEDUP;
         }
         break;
-    case TYPE_WATER:
-    case TYPE_ICE:
+    case TYPE_ICE: // Water only eases a Burn through a Soak (TrySoakFromHit)
         if (GetStatusRailLevel(battler, RAIL_BURN) != 0)
         {
             LowerStatusRail(battler, RAIL_BURN);
@@ -724,11 +723,8 @@ u32 TrySoakFromHit(enum BattlerId battler, enum Type moveType)
         return 0;
 
     ReconcileStatusRailsFromBridge(battler);
-    if (GetStatusRailLevel(battler, RAIL_BURN) != 0) // the Soak puts the Burn out instead
-    {
-        ClearStatusRail(battler, RAIL_BURN);
-        return STRINGID_FRBURNDOUSED;
-    }
+    if (GetStatusRailLevel(battler, RAIL_BURN) != 0) // the Soak takes a Burn stack off instead
+        return LowerStatusRail(battler, RAIL_BURN) == 0 ? STRINGID_FRBURNDOUSED : STRINGID_FRBURNEASED;
     if (GetStatusRailLevel(battler, RAIL_SOAK) != 0) // already Soaked: start the count again
     {
         GetRail(battler, RAIL_SOAK)->counter = SOAK_DURATION;

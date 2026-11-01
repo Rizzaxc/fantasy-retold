@@ -4843,31 +4843,19 @@ AI: Smart Trainer
 
 Croagunk @ Leftovers  
 Ability: Poison Touch  
-Level: 17
+Level: 16
 Tera Type: Flying  
 EVs: 20 HP / 40 Def / 40 SpD  
 Careful Nature  
 IVs: 16 HP / 16 Atk / 16 Def / 16 SpA / 16 SpD / 16 Spe  
 - Knock Off  
 - Poison Jab  
-- Thunder Punch  
+- Fake Out  
 - Sucker Punch
-
-Meditite @ Iapapa Berry  
-Ability: Pure Power  
-Level: 15  
-Tera Type: Psychic  
-EVs: 80 Atk / 40 Spe  
-Adamant Nature  
-IVs: 0 HP / 0 Def / 0 SpA / 0 SpD / 0 Spe  
-- High Jump Kick  
-- Bulk Up  
-- Fire Punch  
-- Psycho Cut
 
 Timburr (M) @ Flame Orb  
 Ability: Guts  
-Level: 15  
+Level: 17  
 Tera Type: Fighting  
 EVs: 80 Atk / 40 Def  
 IVs: 17 HP / 21 Atk / 17 Def / 17 SpA / 17 SpD / 17 Spe  
@@ -4875,6 +4863,29 @@ IVs: 17 HP / 21 Atk / 17 Def / 17 SpA / 17 SpD / 17 Spe
 - Drain Punch  
 - Poison Jab  
 - Stone Edge
+
+Meditite @ Iapapa Berry  
+Ability: Pure Power  
+Level: 17  
+Tera Type: Psychic  
+EVs: 80 Atk / 40 Spe  
+Adamant Nature  
+IVs: 17 HP / 31 Atk / 12 Def / 17 SpA / 12 SpD / 17 Spe  
+- High Jump Kick  
+- Thunder Punch  
+- Fire Punch  
+- Psycho Cut
+
+Farfetch’d-Galar @ Leek  
+Ability: Steadfast  
+Level: 18  
+EVs: 40 Atk / 80 Spe  
+Naughty Nature  
+IVs: 21 HP / 21 Atk / 21 Def / 21 SpA / 21 SpD / 21 Spe  
+- Leaf Blade  
+- Quick Attack  
+- Night Slash  
+- Brave Bird
 
 Makuhita @ Sitrus Berry
 Ability: Thick Fat  

@@ -95,9 +95,9 @@ u32 TickStatusRailTimers(enum BattlerId battler, bool32 earlyBird);
 u32 GetStatusRailEndedStringId(enum StatusRail rail);
 
 // After a damaging move: the type interaction for a battler that used it or was hit by it (Fire thaws the
-// Chill line, Water/Ice ease a Burn, Ground drains the Electric line). Returns the message, or 0.
+// Chill line, Ice eases a Burn, Ground drains the Electric line). Returns the message, or 0.
 u32 ApplyStatusRailTypeInteraction(enum BattlerId battler, enum Type moveType);
-// A damaging Water hit may Soak the target (or put out its Burn). Returns the message, or 0.
+// A damaging Water hit may Soak the target (or, on a burned target, take a Burn stack off). Returns the message, or 0.
 u32 TrySoakFromHit(enum BattlerId battler, enum Type moveType);
 // Ice damage renews the Chill line's timer (not Frozen's).
 void TryRenewChillFromHit(enum BattlerId battler, enum Type moveType);

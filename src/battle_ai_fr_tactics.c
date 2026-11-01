@@ -266,9 +266,9 @@ static s32 GetRailInteractionBonus(enum BattlerId battlerAtk, enum BattlerId bat
         return 0;
     moveType = GetAIMoveType(battlerAtk, move);
 
-    // Water / Ice take a Burn stack off (a Soak douses it all); Fire thaws the whole Chill line; Ground drains the
-    // Electric line. Unwelcome on a target the AI is pressuring, unless that status helps the target.
-    if ((moveType == TYPE_WATER || moveType == TYPE_ICE) && GetStatusRailLevel(battlerDef, RAIL_BURN) != 0)
+    // Ice takes a Burn stack off (Water only through a Soak, too rare to score); Fire thaws the whole Chill line;
+    // Ground drains the Electric line. Unwelcome on a target the AI is pressuring, unless that status helps the target.
+    if (moveType == TYPE_ICE && GetStatusRailLevel(battlerDef, RAIL_BURN) != 0)
         bonus += TargetWantsStatus(battlerDef, RAIL_BURN) ? WEAK_EFFECT : -DECENT_EFFECT;
     if (moveType == TYPE_FIRE && GetStatusRailLevel(battlerDef, RAIL_CHILL) != 0
      && !(GetStatusRailLevel(battlerDef, RAIL_CHILL) >= 2 && GetStatusRailBranch(battlerDef, RAIL_CHILL) == CHILL_BRANCH_FROZEN)) // upstream handles Frozen
@@ -281,7 +281,7 @@ static s32 GetRailInteractionBonus(enum BattlerId battlerAtk, enum BattlerId bat
         bonus += (moveType == TYPE_GHOST) ? WEAK_EFFECT : -WEAK_EFFECT;
 
     // The same interactions on the AI itself are cures.
-    if ((moveType == TYPE_WATER || moveType == TYPE_ICE) && GetStatusRailLevel(battlerAtk, RAIL_BURN) != 0)
+    if (moveType == TYPE_ICE && GetStatusRailLevel(battlerAtk, RAIL_BURN) != 0)
         bonus += WEAK_EFFECT;
     if (moveType == TYPE_FIRE && GetStatusRailLevel(battlerAtk, RAIL_CHILL) != 0)
         bonus += WEAK_EFFECT;

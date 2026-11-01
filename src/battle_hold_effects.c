@@ -571,9 +571,11 @@ static enum ItemEffect TryToxicOrb(enum BattlerId battler)
     enum ItemEffect effect = ITEM_NO_EFFECT;
     enum Ability ability = GetBattlerAbility(battler);
 
-    if (CanBePoisoned(battler, battler, ability, ability)) // Corrosion bypasses Poison/Steel-type poison immunity
+    // Fantasy Retold: lands Toxic (Lv2) through the rail, keeping the holder's other lines
+    if (CanBePoisoned(battler, battler, ability, ability) // Corrosion bypasses Poison/Steel-type poison immunity
+     && GetStatusRailLevel(battler, RAIL_POISON) < 2)
     {
-        gBattleMons[battler].status1 = STATUS1_TOXIC_POISON;
+        RaiseStatusRailTo(battler, RAIL_POISON, 2, 0);
         gEffectBattler = battler;
         gBattleCommunication[MULTISTRING_CHOOSER] = 0;
         BattleScriptCall(BattleScript_ToxicOrbActivates);
@@ -588,9 +590,11 @@ static enum ItemEffect TryFlameOrb(enum BattlerId battler)
     enum ItemEffect effect = ITEM_NO_EFFECT;
     enum Ability ability = GetBattlerAbility(battler);
 
-    if (CanBeBurned(battler, battler, ability))
+    // Fantasy Retold: lands Burn x2 (Lv2, so Guts / Facade count it) once, keeping the holder's other lines
+    if (CanBeBurned(battler, battler, ability)
+     && GetStatusRailLevel(battler, RAIL_BURN) < 2)
     {
-        gBattleMons[battler].status1 = STATUS1_BURN;
+        RaiseStatusRailTo(battler, RAIL_BURN, 2, 0);
         gEffectBattler = battler;
         gBattleCommunication[MULTISTRING_CHOOSER] = 0;
         BattleScriptCall(BattleScript_FlameOrbActivates);
