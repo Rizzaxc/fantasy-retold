@@ -22,24 +22,211 @@ enum Move GetSignatureMove(struct Pokemon *mon)
     return (enum Move)GetMonData(mon, MON_DATA_SIGNATURE_MOVE);
 }
 
-void IncrementMoveUseCount(u8 partySlot, u8 moveSlot)
+#define MOVE_USE_COUNT_MASK     0x7F
+#define MOVE_USE_ANNOUNCED_FLAG 0x80
+
+static bool32 IsPersonalityInPlayerParty(u32 personality)
 {
-    if (partySlot >= PARTY_SIZE || moveSlot >= MAX_MON_MOVES)
-        return;
-    if (gSaveBlock1Ptr->moveUseTracking[partySlot][moveSlot] < 255)
-        gSaveBlock1Ptr->moveUseTracking[partySlot][moveSlot]++;
+    for (u32 i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gPlayerParty[i];
+        if (GetMonData(mon, MON_DATA_SPECIES) != SPECIES_NONE && GetMonData(mon, MON_DATA_PERSONALITY) == personality)
+            return TRUE;
+    }
+    return FALSE;
 }
 
-void ClearMoveUseTracking(u8 partySlot)
+static bool32 IsMoveUseRecordEmpty(const struct MoveUseRecord *record)
 {
-    if (partySlot >= PARTY_SIZE)
-        return;
-    memset(gSaveBlock1Ptr->moveUseTracking[partySlot], 0, MAX_MON_MOVES);
+    for (u32 i = 0; i < MAX_MON_MOVES; i++)
+    {
+        if (record->moves[i] != MOVE_NONE)
+            return FALSE;
+    }
+    return TRUE;
 }
 
-// Removes the move in `slot` and shifts the later moves (with their PP, PP Ups and use counts) up one,
-// leaving the last slot empty.
-static void RemoveMoveSlot(struct Pokemon *mon, u8 partySlot, u8 slot)
+static u32 GetMoveUseRecordTotal(const struct MoveUseRecord *record)
+{
+    u32 total = 0;
+    for (u32 i = 0; i < MAX_MON_MOVES; i++)
+        total += record->counts[i] & MOVE_USE_COUNT_MASK;
+    return total;
+}
+
+static struct MoveUseRecord *FindMoveUseRecordByPersonality(u32 personality)
+{
+    for (u32 i = 0; i < PARTY_SIZE; i++)
+    {
+        struct MoveUseRecord *record = &gSaveBlock1Ptr->moveUseRecords[i];
+        if (record->personality == personality && !IsMoveUseRecordEmpty(record))
+            return record;
+    }
+    return NULL;
+}
+
+static struct MoveUseRecord *FindMoveUseRecord(struct Pokemon *mon)
+{
+    return FindMoveUseRecordByPersonality(GetMonData(mon, MON_DATA_PERSONALITY));
+}
+
+// A free record, else one of a Pokémon no longer in the party, else the one with the fewest uses.
+static struct MoveUseRecord *ClaimMoveUseRecord(struct Pokemon *mon)
+{
+    struct MoveUseRecord *record = FindMoveUseRecord(mon);
+    struct MoveUseRecord *best = NULL;
+    u32 i, bestScore = UINT32_MAX;
+
+    if (record != NULL)
+        return record;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        u32 score;
+
+        record = &gSaveBlock1Ptr->moveUseRecords[i];
+        if (IsMoveUseRecordEmpty(record))
+            score = 0;
+        else if (!IsPersonalityInPlayerParty(record->personality))
+            score = 1;
+        else
+            score = 2 + GetMoveUseRecordTotal(record);
+        if (score < bestScore)
+        {
+            bestScore = score;
+            best = record;
+        }
+    }
+    memset(best, 0, sizeof(*best));
+    best->personality = GetMonData(mon, MON_DATA_PERSONALITY);
+    return best;
+}
+
+static bool32 MonHasMoveInSlots(struct Pokemon *mon, enum Move move)
+{
+    for (u32 i = 0; i < MAX_MON_MOVES; i++)
+    {
+        if (GetMonData(mon, MON_DATA_MOVE1 + i) == move)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+static bool32 IsMoveUseEntryMastered(const struct MoveUseRecord *record, u32 entry)
+{
+    return record->moves[entry] != MOVE_NONE
+        && (record->counts[entry] & MOVE_USE_COUNT_MASK) >= SIGNATURE_MOVE_USE_THRESHOLD;
+}
+
+void IncrementMoveUseCount(struct Pokemon *mon, enum Move move)
+{
+    struct MoveUseRecord *record;
+    u32 i, entry = MAX_MON_MOVES, lowest = UINT32_MAX;
+
+    if (move == MOVE_NONE || IsSignatureMove(mon, move))
+        return;
+
+    record = ClaimMoveUseRecord(mon);
+    for (i = 0; i < MAX_MON_MOVES; i++)
+    {
+        if (record->moves[i] == move)
+        {
+            entry = i;
+            break;
+        }
+    }
+    // A new move takes the entry of a forgotten, unmastered move first, else the least used unmastered one.
+    for (i = 0; entry == MAX_MON_MOVES && i < MAX_MON_MOVES; i++)
+    {
+        if (record->moves[i] == MOVE_NONE || (!MonHasMoveInSlots(mon, record->moves[i]) && !IsMoveUseEntryMastered(record, i)))
+            entry = i;
+    }
+    for (i = 0; entry == MAX_MON_MOVES && i < MAX_MON_MOVES; i++)
+    {
+        u32 count = record->counts[i] & MOVE_USE_COUNT_MASK;
+        if (!IsMoveUseEntryMastered(record, i) && count < lowest)
+        {
+            lowest = count;
+            entry = i;
+        }
+    }
+    if (entry == MAX_MON_MOVES)
+        return; // four mastered moves already
+
+    if (record->moves[entry] != move)
+    {
+        record->moves[entry] = move;
+        record->counts[entry] = 0;
+    }
+    if ((record->counts[entry] & MOVE_USE_COUNT_MASK) < MOVE_USE_COUNT_MASK)
+        record->counts[entry]++;
+}
+
+void ClearMoveUseRecord(struct Pokemon *mon)
+{
+    struct MoveUseRecord *record = FindMoveUseRecord(mon);
+
+    if (record != NULL)
+        memset(record, 0, sizeof(*record));
+}
+
+bool32 IsMoveMastered(struct Pokemon *mon, enum Move move)
+{
+    struct MoveUseRecord *record = FindMoveUseRecord(mon);
+
+    if (record == NULL || move == MOVE_NONE)
+        return FALSE;
+    for (u32 i = 0; i < MAX_MON_MOVES; i++)
+    {
+        if (record->moves[i] == move)
+            return IsMoveUseEntryMastered(record, i);
+    }
+    return FALSE;
+}
+
+u32 GetMasteredKnownMoves(struct Pokemon *mon, enum Move *out)
+{
+    u32 i, count = 0;
+
+    for (i = 0; i < MAX_MON_MOVES; i++)
+    {
+        enum Move move = GetMonData(mon, MON_DATA_MOVE1 + i);
+        if (IsMoveMastered(mon, move))
+        {
+            if (out != NULL)
+                out[count] = move;
+            count++;
+        }
+    }
+    return count;
+}
+
+enum Move PopUnannouncedMasteredMove(struct Pokemon *mon)
+{
+    struct MoveUseRecord *record = FindMoveUseRecord(mon);
+
+    if (record == NULL)
+        return MOVE_NONE;
+    for (u32 i = 0; i < MAX_MON_MOVES; i++)
+    {
+        if (IsMoveUseEntryMastered(record, i) && !(record->counts[i] & MOVE_USE_ANNOUNCED_FLAG))
+        {
+            record->counts[i] |= MOVE_USE_ANNOUNCED_FLAG;
+            return record->moves[i];
+        }
+    }
+    return MOVE_NONE;
+}
+
+bool32 CanCommitSignatureMove(struct Pokemon *mon)
+{
+    return GetMonData(mon, MON_DATA_SIGNATURE_MOVE) == MOVE_NONE
+        && IsFullyEvolved(GetMonData(mon, MON_DATA_SPECIES))
+        && GetMasteredKnownMoves(mon, NULL) != 0;
+}
+
+// Removes the move in `slot` and shifts the later moves (with their PP and PP Ups) up one, leaving the last slot empty.
+static void RemoveMoveSlot(struct Pokemon *mon, u8 slot)
 {
     u32 ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
     u32 shiftedBonuses = 0;
@@ -52,15 +239,11 @@ static void RemoveMoveSlot(struct Pokemon *mon, u8 partySlot, u8 slot)
         pp = GetMonData(mon, MON_DATA_PP1 + i + 1);
         SetMonData(mon, MON_DATA_MOVE1 + i, &move);
         SetMonData(mon, MON_DATA_PP1 + i, &pp);
-        if (partySlot < PARTY_SIZE)
-            gSaveBlock1Ptr->moveUseTracking[partySlot][i] = gSaveBlock1Ptr->moveUseTracking[partySlot][i + 1];
     }
     move = MOVE_NONE;
     pp = 0;
     SetMonData(mon, MON_DATA_MOVE1 + MAX_MON_MOVES - 1, &move);
     SetMonData(mon, MON_DATA_PP1 + MAX_MON_MOVES - 1, &pp);
-    if (partySlot < PARTY_SIZE)
-        gSaveBlock1Ptr->moveUseTracking[partySlot][MAX_MON_MOVES - 1] = 0;
 
     // PP Ups: 2 bits per slot.
     for (i = 0; i < MAX_MON_MOVES; i++)
@@ -72,77 +255,63 @@ static void RemoveMoveSlot(struct Pokemon *mon, u8 partySlot, u8 slot)
     SetMonData(mon, MON_DATA_PP_BONUSES, &shiftedBonuses);
 }
 
-// Takes the Signature Move out of the moveset if it is still in a slot (it was picked from there, and saves
-// from before the slot was freed may still hold it).
-static void RemoveSignatureFromMoveset(struct Pokemon *mon, u8 partySlot)
+// Takes the Signature Move out of the moveset if it is still in a slot (saves from before the slot was freed may
+// still hold it).
+static void RemoveSignatureFromMoveset(struct Pokemon *mon)
 {
     enum Move signature = GetMonData(mon, MON_DATA_SIGNATURE_MOVE);
-    u32 i;
 
     if (signature == MOVE_NONE)
         return;
-    for (i = 0; i < MAX_MON_MOVES; i++)
+    for (u32 i = 0; i < MAX_MON_MOVES; i++)
     {
         if (GetMonData(mon, MON_DATA_MOVE1 + i) == signature)
         {
-            RemoveMoveSlot(mon, partySlot, i);
+            RemoveMoveSlot(mon, i);
             return;
         }
     }
 }
 
-// Not called mid-battle: freeing a slot would desync the battler's moveset. Battles run
-// TryDetermineSignatureMovesForParty once they end.
-void TryDetermineSignatureMove(struct Pokemon *mon, u8 partySlot)
+// Not called mid-battle: freeing a slot would desync the battler's moveset.
+void CommitSignatureMove(struct Pokemon *mon, enum Move move)
 {
-    if (GetMonData(mon, MON_DATA_SIGNATURE_MOVE) != MOVE_NONE)
-    {
-        RemoveSignatureFromMoveset(mon, partySlot);
-        return;
-    }
+    u8 pp = SIGNATURE_MOVE_PP;
 
-    enum Species species = GetMonData(mon, MON_DATA_SPECIES);
-    if (!IsFullyEvolved(species))
-        return;
-
-    if (partySlot >= PARTY_SIZE)
-        return;
-
-    u8 bestSlot = MAX_MON_MOVES;
-    u8 bestCount = 0;
-    for (u8 i = 0; i < MAX_MON_MOVES; i++)
-    {
-        u8 count = gSaveBlock1Ptr->moveUseTracking[partySlot][i];
-        if (count >= SIGNATURE_MOVE_USE_THRESHOLD && count > bestCount)
-        {
-            bestCount = count;
-            bestSlot = i;
-        }
-    }
-
-    if (bestSlot < MAX_MON_MOVES)
-    {
-        enum Move move = GetMonData(mon, MON_DATA_MOVE1 + bestSlot);
-        if (move != MOVE_NONE)
-        {
-            u8 pp = SIGNATURE_MOVE_PP;
-
-            SetMonData(mon, MON_DATA_SIGNATURE_MOVE, &move);
-            SetMonData(mon, MON_DATA_SIGNATURE_PP, &pp);
-            RemoveMoveSlot(mon, partySlot, bestSlot); // the signature leaves the moveset, freeing the slot
-        }
-    }
+    SetMonData(mon, MON_DATA_SIGNATURE_MOVE, &move);
+    SetMonData(mon, MON_DATA_SIGNATURE_PP, &pp);
+    RemoveSignatureFromMoveset(mon); // the signature leaves the moveset, freeing the slot
+    ClearMoveUseRecord(mon);
 }
 
-void TryDetermineSignatureMovesForParty(void)
+// The Move Relearner's only Signature Move option: the move is gone (it isn't put back in a slot) and the Pokémon's
+// move uses start over.
+void ForgetSignatureMove(struct BoxPokemon *boxMon)
 {
-    u32 i;
+    struct MoveUseRecord *record = FindMoveUseRecordByPersonality(GetBoxMonData(boxMon, MON_DATA_PERSONALITY));
+    u16 move = MOVE_NONE;
+    u8 pp = SIGNATURE_MOVE_PP;
 
-    for (i = 0; i < PARTY_SIZE; i++)
+    SetBoxMonData(boxMon, MON_DATA_SIGNATURE_MOVE, &move);
+    SetBoxMonData(boxMon, MON_DATA_SIGNATURE_PP, &pp);
+    if (record != NULL)
+        memset(record, 0, sizeof(*record));
+}
+
+// Signature Moves are never assigned automatically (the player commits one on evolving, see evolution_scene.c);
+// this only fixes up saves that still hold the signature in a slot.
+void FixUpSignatureMove(struct Pokemon *mon)
+{
+    RemoveSignatureFromMoveset(mon);
+}
+
+void FixUpSignatureMovesForParty(void)
+{
+    for (u32 i = 0; i < PARTY_SIZE; i++)
     {
         struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][i];
         if (GetMonData(mon, MON_DATA_SPECIES) != SPECIES_NONE && !GetMonData(mon, MON_DATA_IS_EGG))
-            TryDetermineSignatureMove(mon, i);
+            FixUpSignatureMove(mon);
     }
 }
 

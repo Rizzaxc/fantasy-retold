@@ -6324,7 +6324,7 @@ static void PartyMenuTryEvolution(u8 taskId)
     }
     else
     {
-        TryDetermineSignatureMove(mon, gPartyMenu.slotId);
+        FixUpSignatureMove(mon);
         if (gPartyMenu.menuType == PARTY_MENU_TYPE_FIELD && CheckBagHasItem(gSpecialVar_ItemId, 1))
             gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
         else

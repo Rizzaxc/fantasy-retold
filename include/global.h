@@ -1093,6 +1093,15 @@ struct Bag
     struct ItemSlot berries[BAG_BERRIES_COUNT];
 };
 
+// Fantasy Retold (design.md §10): one Pokémon's move use counts, keyed by its personality and by move ID (never by
+// party or move slot). counts[i] bits 0-6 = uses of moves[i] (saturating), bit 7 = its mastery was announced.
+struct MoveUseRecord
+{
+    u32 personality;
+    u16 moves[MAX_MON_MOVES];
+    u8 counts[MAX_MON_MOVES];
+};
+
 struct SaveBlock1
 {
     /*0x00*/ struct Coords16 pos;
@@ -1203,7 +1212,7 @@ struct SaveBlock1
     /*0x3???*/ struct TrainerHillSave trainerHill;
 #endif //FREE_TRAINER_HILL
     /*0x3???*/ struct WaldaPhrase waldaPhrase;
-    u8 moveUseTracking[PARTY_SIZE][MAX_MON_MOVES]; // Fantasy Retold: per-slot move usage counts for signature move determination
+    struct MoveUseRecord moveUseRecords[PARTY_SIZE]; // Fantasy Retold: per-mon, per-move use counts (Signature Move mastery)
 #if FREE_TRAINER_TOWER == FALSE && IS_FRLG
     u32 towerChallengeId;
     struct TrainerTower trainerTower[NUM_TOWER_CHALLENGE_TYPES];

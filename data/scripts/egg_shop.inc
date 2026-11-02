@@ -84,8 +84,8 @@ gText_EggShopRow3::
 	.string "{STR_VAR_3}$"
 
 gText_EggShopIntro::
-	.string "Travelers bring me EGGS from\n"
-	.string "faraway lands.\p"
+	.string "We've got exotic EGGS\n"
+	.string "from operating the daycare.\p"
 	.string "Fine POKéMON don't come cheap,\n"
 	.string "mind you.$"
 
@@ -117,9 +117,9 @@ gText_EggShopEggSentToPC::
 	.string "was sent to the PC.$"
 
 gText_EggShopSoldOut::
-	.string "I've no EGGS left, I'm afraid.\p"
-	.string "Win another BADGE or a big battle,\n"
-	.string "and travelers will bring me more.$"
+	.string "We've no EGGS left, I'm afraid.\p"
+	.string "Continue your journey,\n"
+	.string "and we will have more soon.$"
 
 gText_EggShopComeAgain::
 	.string "Come again. More EGGS turn up\n"

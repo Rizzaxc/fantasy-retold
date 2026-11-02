@@ -657,6 +657,11 @@ gSpecials::
 	def_special LabResearch_Trade
 	def_special LabResearch_Skip
 	def_special LabResearch_SetCalled
+	def_special GameCorner_Restock
+	def_special GameCorner_BufferStock
+	def_special GameCorner_BufferOffer
+	def_special GameCorner_SetSold
+	def_special BirchGimmick_GetGift
 	def_special GuestLeader_GetState
 	def_special GuestLeader_BufferNames
 	def_special GuestLeader_BufferIntro

@@ -769,6 +769,13 @@ enum StringID
     STRINGID_FRPOISONBLOCKSHEAL, // Fantasy Retold: status rails
     STRINGID_FRPOISONBLOCKSLEECHSEED, // Fantasy Retold: poison prevents Leech Seed drain damage
     STRINGID_FRITEMIZEDMOVELOST, // Fantasy Retold: Itemized Move
+    STRINGID_FRMOVEMASTERED, // Fantasy Retold: Signature Move mastery
+    STRINGID_FRMASTEREDNOTFINAL, // Fantasy Retold: Signature Move mastery
+    STRINGID_FRCANCOMMITSIGNATURE, // Fantasy Retold: Signature Move commit (evolution scene)
+    STRINGID_FRMOVENOTMASTERED, // Fantasy Retold: Signature Move commit (evolution scene)
+    STRINGID_FRCOMMITSIGNATUREASK, // Fantasy Retold: Signature Move commit (evolution scene)
+    STRINGID_FRSIGNATURECOMMITTED, // Fantasy Retold: Signature Move commit (evolution scene)
+    STRINGID_FRSIGNATUREDECLINED, // Fantasy Retold: Signature Move commit (evolution scene)
     STRINGID_COUNT
 };
 

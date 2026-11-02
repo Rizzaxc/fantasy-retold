@@ -107,9 +107,17 @@ BattleScript_FRDodge::
 	waitanimation
 	finishaction
 
-@ The Dodge was already shown when a faster attacker's hit was halved (BattleScript_FRDodgeHalvedMsg).
+@ The Dodge was already shown at the start of the turn (BattleScript_FRDodgeIntro); only its cost is paid here.
 BattleScript_FRDodgeShown::
 	finishaction
+
+@ Start of turn, before the first action: every dodger announces and animates its Dodge, whatever its speed slot.
+BattleScript_FRDodgeIntro::
+	printstring STRINGID_FRDODGING
+	waitmessage B_WAIT_TIME_SHORT
+	playmoveanimation MOVE_DOUBLE_TEAM
+	waitanimation
+	end3
 
 BattleScript_FRRecuperate::
 	printstring STRINGID_FRRECUPERATING
@@ -121,6 +129,19 @@ BattleScript_FRRecuperate::
 	finishaction
 
 @ Itemized Move: the held TM was lost (Knock Off, Trick, ...) after the move was chosen; the turn is lost (design.md §10).
+@ After the battle: a party Pokémon used a move enough times to master it (design.md §10, Signature Moves).
+BattleScript_FRMoveMastered::
+	printstring STRINGID_FRMOVEMASTERED
+	waitmessage B_WAIT_TIME_LONG
+	end3
+
+BattleScript_FRMoveMasteredNotFinal::
+	printstring STRINGID_FRMOVEMASTERED
+	waitmessage B_WAIT_TIME_LONG
+	printstring STRINGID_FRMASTEREDNOTFINAL
+	waitmessage B_WAIT_TIME_LONG
+	end3
+
 BattleScript_FRItemizedMoveLost::
 	printstring STRINGID_FRITEMIZEDMOVELOST
 	waitmessage B_WAIT_TIME_LONG
@@ -3926,17 +3947,6 @@ BattleScript_SnatchedMove::
 BattleScript_EnduredMsg::
 	printstring STRINGID_PKMNENDUREDHIT
 	waitmessage B_WAIT_TIME_LONG
-	return
-
-@ Fantasy Retold: a Dodge resolving before the dodger's own (later) action plays its animation here, ahead
-@ of the hit/miss message; that action then skips its replay (BattleScript_FRDodgeShown).
-BattleScript_FRDodgeAnim::
-	jumpifhasnohp BS_TARGET, BattleScript_FRDodgeAnimEnd
-	swapattackerwithtarget
-	playmoveanimation MOVE_DOUBLE_TEAM
-	waitanimation
-	swapattackerwithtarget
-BattleScript_FRDodgeAnimEnd:
 	return
 
 @ Fantasy Retold: the attacker acted first, so the Dodge only halved the hit.

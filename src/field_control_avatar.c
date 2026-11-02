@@ -22,6 +22,7 @@
 #include "fldeff_misc.h"
 #include "follower_npc.h"
 #include "item_menu.h"
+#include "gimmick_reward.h"
 #include "lab_research.h"
 #include "link.h"
 #include "match_call.h"
@@ -819,6 +820,11 @@ static bool8 TryStartStepCountScript(u16 metatileBehavior)
         if (ShouldDoLabResearchCall() == TRUE)
         {
             ScriptContext_SetupScript(Common_EventScript_LabResearchIncomingCall);
+            return TRUE;
+        }
+        if (ShouldDoBirchGimmickCall() == TRUE)
+        {
+            ScriptContext_SetupScript(Common_EventScript_BirchGimmickCall);
             return TRUE;
         }
         if (UpdateVsSeekerStepCounter())

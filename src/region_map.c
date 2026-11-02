@@ -751,8 +751,11 @@ bool8 LoadRegionMapGfx(void)
         regionMapType = GetRegionMapType(gMapHeader.regionMapSectionId);
         if (sRegionMap->bgManaged)
         {
-            if (!FreeTempTileDataBuffersIfPossible())
-                DecompressAndCopyTileDataToVram(sRegionMap->bgNum, gRegionMapInfos[regionMapType].regionMapTilemap, 0, 0, 1);
+            // Fantasy Retold: wait for the tile copy instead of skipping the tilemap.
+            // With SPEED UP, this step can run before VBlank has done the step 0 copy.
+            if (FreeTempTileDataBuffersIfPossible())
+                return TRUE;
+            DecompressAndCopyTileDataToVram(sRegionMap->bgNum, gRegionMapInfos[regionMapType].regionMapTilemap, 0, 0, 1);
         }
         else
         {
@@ -761,8 +764,10 @@ bool8 LoadRegionMapGfx(void)
         break;
     case 2:
         regionMapType = GetRegionMapType(gMapHeader.regionMapSectionId);
-        if (!FreeTempTileDataBuffersIfPossible())
-            LoadPalette(gRegionMapInfos[regionMapType].regionMapPalette, BG_PLTT_ID(7), 3 * PLTT_SIZE_4BPP);
+        // InitRegionMap (field / Fly map) spins on this without a VBlank, so only the PokéNav waits.
+        if (FreeTempTileDataBuffersIfPossible() && sRegionMap->bgManaged)
+            return TRUE;
+        LoadPalette(gRegionMapInfos[regionMapType].regionMapPalette, BG_PLTT_ID(7), 3 * PLTT_SIZE_4BPP);
         break;
     case 3:
         DecompressDataWithHeaderWram(sRegionMapCursorSmallGfxLZ, sRegionMap->cursorSmallImage);

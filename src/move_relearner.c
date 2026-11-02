@@ -27,6 +27,7 @@
 #include "sound.h"
 #include "sprite.h"
 #include "string_util.h"
+#include "signature_move.h"
 #include "strings.h"
 #include "task.h"
 #include "constants/party_menu.h"
@@ -64,7 +65,9 @@ static EWRAM_DATA struct
 {
     u8 heartSpriteIds[16];
     u16 movesToLearn[MAX_RELEARNER_MOVES];
-    struct ListMenuItem menuItems[MAX_RELEARNER_MOVES + 1];
+    struct ListMenuItem menuItems[MAX_RELEARNER_MOVES + 2]; // Fantasy Retold: + the Signature Move entry
+    bool8 hasSignatureEntry; // Fantasy Retold: menuItems[0] is the Signature Move, to forget (design.md §10)
+    u8 signatureEntryName[MOVE_NAME_LENGTH + 8];
     u8 mainTask;
     u8 numMenuChoices;
     u8 numToShowAtOnce;
@@ -625,6 +628,49 @@ static void Task_MoveRelearner_Giveup_Prompt(u8 taskId)
 
 
 
+// Fantasy Retold (design.md §10): forgetting the Signature Move. It isn't put back in a slot, and the Pokémon's move
+// uses count again from 0.
+static const u8 sText_SignatureEntryTag[] = _(" (Sig.)");
+static const u8 sText_ForgetSignatureConfirm[] = _("Make {STR_VAR_1} forget its\nSignature Move, {STR_VAR_2}?");
+static const u8 sText_ForgotSignature[] = _("{STR_VAR_1} forgot its Signature\nMove. Its uses count from 0 again.\p");
+
+static void Task_MoveRelearner_ForgetSignature_Done(u8 taskId)
+{
+    if (IsTextPrinterActiveOnWindow(RELEARNERWIN_MSG))
+        return;
+    sMoveRelearnerScrollState.listOffset = 0;
+    sMoveRelearnerScrollState.listRow = 0;
+    RedrawMoveList();
+    AddScrollArrows();
+    gTasks[taskId].func = Task_MoveRelearner_HandleInput;
+}
+
+static void Task_MoveRelearner_ForgetSignature_Answer(u8 taskId)
+{
+    switch (Menu_ProcessInputNoWrapClearOnChoose())
+    {
+    case 0: // Yes
+        ForgetSignatureMove(GetSelectedBoxMonFromPcOrParty());
+        UIPrintMessage(sText_ForgotSignature);
+        gTasks[taskId].func = Task_MoveRelearner_ForgetSignature_Done;
+        break;
+    case 1: // No
+    case MENU_B_PRESSED:
+        gTasks[taskId].func = Task_MoveRelearner_HandleInput;
+        ShowTeachMoveText();
+        AddScrollArrows();
+        break;
+    }
+}
+
+static void Task_MoveRelearner_ForgetSignature_Prompt(u8 taskId)
+{
+    if (IsTextPrinterActiveOnWindow(RELEARNERWIN_MSG))
+        return;
+    MoveRelearnerCreateYesNoMenu();
+    gTasks[taskId].func = Task_MoveRelearner_ForgetSignature_Answer;
+}
+
 static void Task_MoveRelearner_LearnMove(u8 taskId)
 {
     if (IsTextPrinterActiveOnWindow(RELEARNERWIN_MSG))
@@ -712,6 +758,12 @@ static void Task_MoveRelearner_HandleInput(u8 taskId)
         PlaySE(SE_SELECT);
         RemoveScrollArrows();
         StringCopy(gStringVar2, GetMoveName(itemId));
+        if (sMoveRelearnerStruct->hasSignatureEntry && sMoveRelearnerScrollState.listOffset + sMoveRelearnerScrollState.listRow == 0)
+        {
+            UIPrintMessage(sText_ForgetSignatureConfirm);
+            gTasks[taskId].func = Task_MoveRelearner_ForgetSignature_Prompt;
+            break;
+        }
         gTasks[taskId].func = Task_MoveRelearner_LearnMove;
         gTasks[taskId].tMove = GetCurrentSelectedMove();
         gTasks[taskId].tState = GetLearnMoveStartAfterPromptState();
@@ -798,6 +850,8 @@ static void RemoveScrollArrows(void)
 static void CreateLearnableMovesList(void)
 {
     s32 i;
+    u32 offset = 0;
+    enum Move signature;
 
     struct BoxPokemon *boxmon = GetSelectedBoxMonFromPcOrParty();
     if (gRelearnMode == RELEARN_MODE_SCRIPT || sRelearnTypes[gMoveRelearnerState].isActive())
@@ -806,11 +860,24 @@ static void CreateLearnableMovesList(void)
     if (P_SORT_MOVES)
         SortMovesAlphabetically(sMoveRelearnerStruct->movesToLearn, sMoveRelearnerStruct->numMenuChoices);
 
+    // Fantasy Retold: a Signature Move is listed first on the level-up list, where it can be forgotten.
+    signature = GetBoxMonData(boxmon, MON_DATA_SIGNATURE_MOVE);
+    sMoveRelearnerStruct->hasSignatureEntry = (signature != MOVE_NONE && gMoveRelearnerState == MOVE_RELEARNER_LEVEL_UP_MOVES);
+    if (sMoveRelearnerStruct->hasSignatureEntry)
+    {
+        StringCopy(sMoveRelearnerStruct->signatureEntryName, GetMoveName(signature));
+        StringAppend(sMoveRelearnerStruct->signatureEntryName, sText_SignatureEntryTag);
+        sMoveRelearnerStruct->menuItems[0].name = sMoveRelearnerStruct->signatureEntryName;
+        sMoveRelearnerStruct->menuItems[0].id = signature;
+        offset = 1;
+    }
+
     for (i = 0; i < sMoveRelearnerStruct->numMenuChoices; i++)
     {
-        sMoveRelearnerStruct->menuItems[i].name = GetMoveName(sMoveRelearnerStruct->movesToLearn[i]);
-        sMoveRelearnerStruct->menuItems[i].id = sMoveRelearnerStruct->movesToLearn[i];
+        sMoveRelearnerStruct->menuItems[i + offset].name = GetMoveName(sMoveRelearnerStruct->movesToLearn[i]);
+        sMoveRelearnerStruct->menuItems[i + offset].id = sMoveRelearnerStruct->movesToLearn[i];
     }
+    sMoveRelearnerStruct->numMenuChoices += offset;
 
     GetBoxMonData(boxmon, MON_DATA_NICKNAME, gStringVar1);
 
@@ -1068,6 +1135,10 @@ static bool32 HasRelearnerLevelUpMoves(struct BoxPokemon *boxMon)
         species = (P_PRE_EVO_MOVES ? GetSpeciesPreEvolution(species) : SPECIES_NONE);
 
     } while (species != SPECIES_NONE);
+
+    // Fantasy Retold: the level-up list also offers to forget a Signature Move.
+    if (GetBoxMonData(boxMon, MON_DATA_SIGNATURE_MOVE) != MOVE_NONE)
+        return TRUE;
 
     return FALSE;
 }

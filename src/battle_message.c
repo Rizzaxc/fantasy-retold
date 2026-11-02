@@ -948,6 +948,13 @@ const u8 *const gBattleStringsTable[STRINGID_COUNT] =
     [STRINGID_FRPOISONBLOCKSHEAL]                   = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s poison kept it from healing!"), // Fantasy Retold
     [STRINGID_FRPOISONBLOCKSLEECHSEED]              = COMPOUND_STRING("{B_SCR_NAME_WITH_PREFIX}'s poison stopped its Leech Seed!"), // Fantasy Retold
     [STRINGID_FRITEMIZEDMOVELOST]                   = COMPOUND_STRING("{B_ATK_NAME_WITH_PREFIX} no longer has its TM!"), // Fantasy Retold
+    [STRINGID_FRMOVEMASTERED]                       = COMPOUND_STRING("{B_BUFF1} mastered {B_BUFF2}!"), // Fantasy Retold
+    [STRINGID_FRMASTEREDNOTFINAL]                   = COMPOUND_STRING("Once fully evolved, it can make a mastered move its Signature Move!"), // Fantasy Retold
+    [STRINGID_FRCANCOMMITSIGNATURE]                 = COMPOUND_STRING("{B_BUFF1} can commit a mastered move as its Signature Move!\p"), // Fantasy Retold
+    [STRINGID_FRMOVENOTMASTERED]                    = COMPOUND_STRING("{B_BUFF1} hasn't mastered {B_BUFF2}!\p"), // Fantasy Retold
+    [STRINGID_FRCOMMITSIGNATUREASK]                 = COMPOUND_STRING("Make {B_BUFF2} its Signature Move? It will leave the four moves."), // Fantasy Retold
+    [STRINGID_FRSIGNATURECOMMITTED]                 = COMPOUND_STRING("{B_BUFF2} became {B_BUFF1}'s Signature Move!{WAIT_SE}\p"), // Fantasy Retold
+    [STRINGID_FRSIGNATUREDECLINED]                  = COMPOUND_STRING("{B_BUFF1} didn't commit a Signature Move.\p"), // Fantasy Retold
 };
 
 const u16 gTrainerUsedItemStringIds[] =

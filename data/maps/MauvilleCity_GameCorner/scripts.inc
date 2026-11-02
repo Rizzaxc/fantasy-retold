@@ -109,6 +109,7 @@ MauvilleCity_GameCorner_EventScript_PrizeCornerDolls::
 	end
 
 MauvilleCity_GameCorner_EventScript_ChooseDollPrizeMessage::
+	special GameCorner_Restock
 	message MauvilleCity_GameCorner_Text_WhichPrize
 	waitmessage
 	setvar VAR_TEMP_1, 0
@@ -126,7 +127,9 @@ MauvilleCity_GameCorner_EventScript_ChooseDollPrize::
 	case 0, MauvilleCity_GameCorner_EventScript_TreeckoDoll
 	case 1, MauvilleCity_GameCorner_EventScript_TorchicDoll
 	case 2, MauvilleCity_GameCorner_EventScript_MudkipDoll
-	case 3, MauvilleCity_GameCorner_EventScript_CancelDollSelect
+	case 3, MauvilleCity_GameCorner_EventScript_MegaStonePrize
+	case 4, MauvilleCity_GameCorner_EventScript_ZCrystalPrize
+	case 5, MauvilleCity_GameCorner_EventScript_CancelDollSelect
 	goto MauvilleCity_GameCorner_EventScript_CancelDollSelect
 	end
 
@@ -204,6 +207,59 @@ MauvilleCity_GameCorner_EventScript_NotEnoughCoinsForDoll::
 MauvilleCity_GameCorner_EventScript_NoRoomForDoll::
 	call Common_EventScript_NoRoomForDecor
 	goto MauvilleCity_GameCorner_EventScript_ReturnToChooseDollPrize
+	end
+
+@ Fantasy Retold: three Mega Stones and three Z-Crystals the player doesn't have, restocked after every badge,
+@ rival battle and Elite Four clear (design.md §10). VAR_0x8004 = category, VAR_0x8005 = row, VAR_0x8006 = price.
+MauvilleCity_GameCorner_EventScript_MegaStonePrize::
+	setvar VAR_0x8004, GAME_CORNER_STOCK_MEGA_STONE
+	setvar VAR_0x8006, GAME_CORNER_MEGA_STONE_COINS
+	goto MauvilleCity_GameCorner_EventScript_ChooseGimmickPrize
+	end
+
+MauvilleCity_GameCorner_EventScript_ZCrystalPrize::
+	setvar VAR_0x8004, GAME_CORNER_STOCK_Z_CRYSTAL
+	setvar VAR_0x8006, GAME_CORNER_Z_CRYSTAL_COINS
+	goto MauvilleCity_GameCorner_EventScript_ChooseGimmickPrize
+	end
+
+MauvilleCity_GameCorner_EventScript_ChooseGimmickPrize::
+	special GameCorner_BufferStock
+	message MauvilleCity_GameCorner_Text_WhichPrize
+	waitmessage
+	dynmultichoice 29, 1, FALSE, 4, 0, DYN_MULTICHOICE_CB_NONE, gText_EggShopRow1, gText_EggShopRow2, gText_EggShopRow3, gText_EggShopChoiceCancel
+	goto_if_ge VAR_RESULT, GAME_CORNER_STOCK_SLOTS, MauvilleCity_GameCorner_EventScript_ReturnToChooseDollPrize
+	copyvar VAR_0x8005, VAR_RESULT
+	specialvar VAR_0x8007, GameCorner_BufferOffer
+	goto_if_eq VAR_0x8007, ITEM_NONE, MauvilleCity_GameCorner_EventScript_GimmickPrizeSoldOut
+	msgbox MauvilleCity_GameCorner_Text_SoYourChoiceIsX, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, MauvilleCity_GameCorner_EventScript_ChooseGimmickPrize
+	checkcoins VAR_TEMP_2
+	goto_if_lt VAR_TEMP_2, VAR_0x8006, MauvilleCity_GameCorner_EventScript_NotEnoughCoinsForGimmickPrize
+	checkitemspace VAR_0x8007
+	goto_if_eq VAR_RESULT, FALSE, MauvilleCity_GameCorner_EventScript_NoRoomForGimmickPrize
+	removecoins VAR_0x8006
+	additem VAR_0x8007
+	special GameCorner_SetSold
+	updatecoinsbox
+	playse SE_SHOP
+	msgbox MauvilleCity_GameCorner_Text_HereYouGo, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_ChooseGimmickPrize
+	end
+
+MauvilleCity_GameCorner_EventScript_GimmickPrizeSoldOut::
+	msgbox MauvilleCity_GameCorner_Text_GimmickPrizeSoldOut, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_ChooseGimmickPrize
+	end
+
+MauvilleCity_GameCorner_EventScript_NotEnoughCoinsForGimmickPrize::
+	msgbox MauvilleCity_GameCorner_Text_NotEnoughCoins, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_ChooseGimmickPrize
+	end
+
+MauvilleCity_GameCorner_EventScript_NoRoomForGimmickPrize::
+	call Common_EventScript_BagIsFull
+	goto MauvilleCity_GameCorner_EventScript_ChooseGimmickPrize
 	end
 
 MauvilleCity_GameCorner_EventScript_CancelDollSelect::
@@ -690,6 +746,10 @@ MauvilleCity_GameCorner_Text_SoYourChoiceIsX:
 
 MauvilleCity_GameCorner_Text_HereYouGo:
 	.string "Here you go!$"
+
+MauvilleCity_GameCorner_Text_GimmickPrizeSoldOut:
+	.string "Sorry, that one's gone.\n"
+	.string "New ones come in all the time!$"
 
 @ Unused
 MauvilleCity_GameCorner_Text_CantCarryAnyMore:

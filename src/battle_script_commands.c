@@ -1332,21 +1332,6 @@ static inline bool32 ShouldRelyOnTwoFoesMessage(u32 moveResult)
         && !(gBattleStruct->moveResultFlags[oppositeTarget] & MOVE_RESULT_AVOIDED_ATTACK);
 }
 
-// Fantasy Retold: a Dodge that resolves before the dodger's own action (the dodger is slower) has not been
-// seen yet, so show it ahead of the hit/miss message. Once per dodger per round; that action then skips it.
-static bool32 TryCallDodgeAnimation(void)
-{
-    u32 dodger = 1u << gBattlerTarget;
-
-    if ((gBattleStruct->dodgeAnimShown & dodger)
-     || GetBattlerTurnOrderNum(gBattlerTarget) < GetBattlerTurnOrderNum(gBattlerAttacker))
-        return FALSE;
-
-    gBattleStruct->dodgeAnimShown |= dodger;
-    BattleScriptCall(BattleScript_FRDodgeAnim);
-    return TRUE;
-}
-
 static void Cmd_resultmessage(void)
 {
     CMD_ARGS();
@@ -1367,10 +1352,6 @@ static void Cmd_resultmessage(void)
         {
             gBattleStruct->dodgeHalvedHit &= ~(1u << gBattlerTarget);
         }
-        else if (TryCallDodgeAnimation())
-        {
-            return; // comes back here with the flag still set, to print the message
-        }
         else
         {
             gBattleStruct->dodgeHalvedHit &= ~(1u << gBattlerTarget);
@@ -1381,9 +1362,6 @@ static void Cmd_resultmessage(void)
 
     if (*moveResultFlags & MOVE_RESULT_MISSED && !(*moveResultFlags & MOVE_RESULT_DOESNT_AFFECT_FOE))
     {
-        if (IsMoveFullyDodged(gBattlerAttacker, gBattlerTarget, gCurrentMove) && TryCallDodgeAnimation()) // Fantasy Retold
-            return;
-
         gBattleCommunication[MSG_DISPLAY] = MSG_DISPLAY_WAIT;
         if (IsMoveFullyDodged(gBattlerAttacker, gBattlerTarget, gCurrentMove)) // Fantasy Retold
             stringId = STRINGID_FRDODGEDATTACK;

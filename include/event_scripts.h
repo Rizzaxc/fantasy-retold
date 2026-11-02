@@ -646,6 +646,7 @@ extern const u8 BattleFrontier_OutsideEast_EventScript_WaterSudowoodo[];
 extern const u8 EventScript_SelectWithoutRegisteredItem[];
 extern const u8 Common_EventScript_SelectMenu[];
 extern const u8 Common_EventScript_LabResearchIncomingCall[];
+extern const u8 Common_EventScript_BirchGimmickCall[];
 
 // overworld
 extern const u8 EventScript_WhiteOut[];

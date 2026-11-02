@@ -1,5 +1,6 @@
 #include "global.h"
 #include "battle_setup.h"
+#include "egg_shop.h"
 #include "event_data.h"
 #include "gym_reward.h"
 #include "money.h"
@@ -225,7 +226,7 @@ static const u16 sEggShopSlotVars[EGG_SHOP_SLOTS] =
 
 // Badges + rival battles + Hall of Fame entries. The stock rolls again whenever this changes, so it is
 // refreshed lazily the next time the shop is opened rather than hooked into every one of those scripts.
-static u32 GetEggShopMilestones(void)
+u32 GetEggShopMilestones(void)
 {
     u32 count = 0;
     u32 i, j;

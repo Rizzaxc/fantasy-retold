@@ -523,7 +523,7 @@ void FreeHealthboxPalsForLevelUp(enum BattlerId battler)
 {
     u8 healthBoxSpriteId;
     u8 spriteId1, spriteId2;
-    u8 paletteId1, paletteId2;
+    u8 paletteId1;
 
     healthBoxSpriteId = gHealthboxSpriteIds[battler];
     spriteId1 = gSprites[healthBoxSpriteId].oam.affineParam;
@@ -532,10 +532,10 @@ void FreeHealthboxPalsForLevelUp(enum BattlerId battler)
     FreeSpritePaletteByTag(TAG_HEALTHBOX_PALS_1);
     FreeSpritePaletteByTag(TAG_HEALTHBOX_PALS_2);
     paletteId1 = IndexOfSpritePaletteTag(TAG_HEALTHBOX_PAL);
-    paletteId2 = IndexOfSpritePaletteTag(TAG_HEALTHBAR_PAL);
     gSprites[healthBoxSpriteId].oam.paletteNum = paletteId1;
     gSprites[spriteId1].oam.paletteNum = paletteId1;
-    gSprites[spriteId2].oam.paletteNum = paletteId2;
+    // Fantasy Retold: sprite 2 is the status column, which draws with the healthbox palette (not the stock healthbar one).
+    gSprites[spriteId2].oam.paletteNum = paletteId1;
 }
 
 void AnimTask_FreeHealthboxPalsForLevelUp(u8 taskId)

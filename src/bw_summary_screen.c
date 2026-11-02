@@ -141,6 +141,7 @@ enum BWSummarySprites
     SPRITE_ARR_ID_SPD_GRADE,
     SPRITE_ARR_ID_SPE_GRADE,
     SPRITE_ARR_ID_RELEARN_PROMPT,
+    SPRITE_ARR_ID_INNATE_PROMPT, // Fantasy Retold
     SPRITE_ARR_ID_TERA_TYPE,
     SPRITE_ARR_ID_TYPE, // 2 for mon types, 5 for move types(4 moves and 1 to learn), used interchangeably, because mon types and move types aren't shown on the same screen
     SPRITE_ARR_ID_MOVE_SELECTOR1 = SPRITE_ARR_ID_TYPE + TYPE_ICON_SPRITE_COUNT, // 10 sprites that make up the selector
@@ -193,6 +194,7 @@ static EWRAM_DATA struct PokemonSummaryScreenData
         u8 teraType;
         u16 signatureMove; // Fantasy Retold: lives outside the four move slots (design.md §10)
         u8 signaturePP;
+        u16 itemizedMove; // Fantasy Retold: move given by a held TM (design.md §10)
         u8 mintNature;
         u8 ivHp;
         u8 ivAtk;
@@ -227,6 +229,8 @@ static EWRAM_DATA struct PokemonSummaryScreenData
     u8 windowIds[8];
     u8 spriteIds[SPRITE_ARR_ID_COUNT];
     bool8 handleDeoxys;
+    bool8 selectingSignature; // Fantasy Retold: SUMMARY_MODE_SELECT_MOVE picks a mastered move as the Signature Move
+    bool8 showInnateMoves; // Fantasy Retold: the battle moves page shows the innate moveset (SELECT, design.md §10)
     s16 switchCounter; // Used for various switch statement cases that decompress/load graphics or Pokémon data
     u16 monAnimTimer; // tracks time between re-playing mon anims
     bool8 monAnimPlayed; // tracks if anim has been played at least once
@@ -330,8 +334,13 @@ static void Task_PrintContestMoves(u8);
 static void PrintContestMoveDescription(u8);
 static void PrintMoveDetails(u16);
 static void PrintNewMoveDetailsOrCancelText(void);
-static void PrintSignatureMoveRow(void);
-static void SetSignatureMoveTypeIcon(void);
+static void PrintBattleMoveRow(u8 row);
+static bool32 IsBattleMoveRowFilled(u8 row);
+static u16 GetBattleMoveRowMove(u8 row);
+static bool32 IsShowingInnateMoves(void);
+static void PrintBattleMoveRowDetails(u8 row);
+static void ToggleInnateMovesView(void);
+static void PrintMovePowerAndAccuracy(u16 moveIndex);
 static void SetTypeSpritePosAndPal(u8 typeId, u8 x, u8 y, u8 spriteArrayId);
 static void SwapMovesNamesPP(u8, u8);
 static void PrintHMMovesCantBeForgotten(void);
@@ -384,6 +393,7 @@ static void RunMonAnimTimer(void);
 static bool32 ShouldShowMoveRelearner(void);
 static void ShowMoveRelearner(void);
 static void HideMoveRelearner(void);
+static void UpdateInnatePrompt(bool32 show);
 static bool32 ShouldShowRename(void);
 static void ShowCancelOrRenamePrompt(void);
 static void CB2_ReturnToSummaryScreenFromNamingScreen(void);
@@ -472,6 +482,8 @@ static const u32 sRelearnPrompt_Gfx[]                       = INCBIN_U32("graphi
 #else
 static const u32 sRelearnPrompt_Gfx[]                       = INCBIN_U32("graphics/summary_screen/bw/relearn_prompt.4bpp.smol");
 #endif
+
+static const u32 sInnatePrompt_Gfx[]                        = INCBIN_U32("graphics/summary_screen/bw/innate_prompt.4bpp.smol"); // Fantasy Retold
 
 static const struct BgTemplate sBgTemplates[] =
 {
@@ -794,6 +806,7 @@ static void (*const sTextPrinterTasks[])(u8 taskId) =
 #define TAG_TERA_TYPE 30009
 #define TAG_MON_SHADOW 30010
 #define TAG_RELEARN_PROMPT 30011
+#define TAG_INNATE_PROMPT 30012 // Fantasy Retold
 
 static const struct OamData sOamData_CategoryIcons =
 {
@@ -870,6 +883,25 @@ static const struct CompressedSpriteSheet sSpriteSheet_RelearnPrompt =
 static const struct SpriteTemplate sSpriteTemplate_RelearnPrompt =
 {
     .tileTag = TAG_RELEARN_PROMPT,
+    .paletteTag = TAG_MON_MARKINGS,
+    .oam = &sOamData_RelearnPrompt,
+    .anims = gDummySpriteAnimTable,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCallbackDummy
+};
+
+// Fantasy Retold: "SELECT INNATE" on the battle moves page, right of "START RELEARN" (same font and palette).
+static const struct CompressedSpriteSheet sSpriteSheet_InnatePrompt =
+{
+    .data = sInnatePrompt_Gfx,
+    .size = 64*32/2,
+    .tag = TAG_INNATE_PROMPT,
+};
+
+static const struct SpriteTemplate sSpriteTemplate_InnatePrompt =
+{
+    .tileTag = TAG_INNATE_PROMPT,
     .paletteTag = TAG_MON_MARKINGS,
     .oam = &sOamData_RelearnPrompt,
     .anims = gDummySpriteAnimTable,
@@ -1769,6 +1801,15 @@ void ShowSelectMovePokemonSummaryScreen_BW(struct Pokemon *mons, u8 monIndex, u8
     sMonSummaryScreen->newMove = newMove;
 }
 
+// Fantasy Retold: the move selection screen used to commit a Signature Move (design.md §10): only a mastered move
+// can be picked, the row below the moves is "Cancel".
+void ShowSelectSignatureMoveSummaryScreen_BW(struct Pokemon *mons, u8 monIndex, u8 maxMonIndex, void (*callback)(void))
+{
+    ShowPokemonSummaryScreen_BW(SUMMARY_MODE_SELECT_MOVE, mons, monIndex, maxMonIndex, callback);
+    sMonSummaryScreen->newMove = MOVE_NONE;
+    sMonSummaryScreen->selectingSignature = TRUE;
+}
+
 void ShowPokemonSummaryScreenHandleDeoxys_BW(u8 mode, struct BoxPokemon *mons, u8 monIndex, u8 maxMonIndex, void (*callback)(void))
 {
     ShowPokemonSummaryScreen_BW(mode, mons, monIndex, maxMonIndex, callback);
@@ -2148,6 +2189,7 @@ static bool8 DecompressGraphics(void)
     case 24:
         if (P_SUMMARY_SCREEN_MOVE_RELEARNER)
             LoadCompressedSpriteSheet(&sSpriteSheet_RelearnPrompt);
+        LoadCompressedSpriteSheet(&sSpriteSheet_InnatePrompt);
         sMonSummaryScreen->switchCounter = 0;
         return TRUE;
     }
@@ -2200,6 +2242,7 @@ static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
         sum->ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
         sum->signatureMove = GetMonData(mon, MON_DATA_SIGNATURE_MOVE);
         sum->signaturePP = GetMonData(mon, MON_DATA_SIGNATURE_PP);
+        sum->itemizedMove = GetItemizedMove(GetMonData(mon, MON_DATA_SPECIES), GetMonData(mon, MON_DATA_HELD_ITEM));
         break;
     case 2:
         if (sMonSummaryScreen->monList.mons == gPlayerParty || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->handleDeoxys == TRUE)
@@ -2517,6 +2560,12 @@ static void Task_HandleInput(u8 taskId)
             PlaySE(SE_SELECT);
             BeginCloseSummaryScreen(taskId);
         }  
+        else if (JOY_NEW(SELECT_BUTTON) && sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES
+              && sMonSummaryScreen->mode != SUMMARY_MODE_SELECT_MOVE)
+        {
+            PlaySE(SE_SELECT);
+            ToggleInnateMovesView();
+        }
         else if (DEBUG_POKEMON_SPRITE_VISUALIZER && JOY_NEW(SELECT_BUTTON) && !gMain.inBattle)
         {
             sMonSummaryScreen->callback = CB2_Pokemon_Sprite_Visualizer;
@@ -2617,6 +2666,7 @@ static void Task_ChangeSummaryMon(u8 taskId)
                 else
                     HideMoveRelearner();
             }
+            UpdateInnatePrompt(TRUE);
         }
         break;
     case 5:
@@ -2775,6 +2825,7 @@ static void ChangePage(u8 taskId, s8 delta)
 
     PlaySE(SE_SELECT);
     ClearPageWindowTilemaps(sMonSummaryScreen->currPageIndex);
+    sMonSummaryScreen->showInnateMoves = FALSE; // Fantasy Retold: the battle moves page opens on the four moves
     sMonSummaryScreen->currPageIndex += delta;
     tScrollState = 0;
     SetTaskFuncWithFollowupFunc(taskId, PssScroll, gTasks[taskId].func);
@@ -2885,6 +2936,7 @@ static void SwitchToMoveSelection(u8 taskId)
             HideMoveRelearner();
         PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_SWITCH);
     }
+    UpdateInnatePrompt(FALSE);
 
     CreateTask(Task_ShowEffectTilemap, 1);
 
@@ -2911,6 +2963,7 @@ static void Task_HandleInput_MoveSelect(u8 taskId)
         else if (JOY_NEW(A_BUTTON))
         {
             if (sMonSummaryScreen->lockMovesFlag == TRUE
+             || IsShowingInnateMoves() // Fantasy Retold: the innate moveset can't be reordered
              || (sMonSummaryScreen->newMove == MOVE_NONE && sMonSummaryScreen->firstMoveIndex == MAX_MON_MOVES))
             {
                 PlaySE(SE_SELECT);
@@ -2948,7 +3001,6 @@ static bool8 HasMoreThanOneMove(void)
 static void ChangeSelectedMove(s16 *taskData, s8 direction, u8 *moveIndexPtr)
 {
     s8 i, newMoveIndex;
-    u16 move;
 
     PlaySE(SE_SELECT);
     newMoveIndex = *moveIndexPtr;
@@ -2960,17 +3012,11 @@ static void ChangeSelectedMove(s16 *taskData, s8 direction, u8 *moveIndexPtr)
         else if (newMoveIndex < 0)
             newMoveIndex = taskData[0];
 
-        if (newMoveIndex == MAX_MON_MOVES)
-        {
-            move = sMonSummaryScreen->newMove;
-            break;
-        }
-        move = sMonSummaryScreen->summary.moves[newMoveIndex];
-        if (move != 0)
+        if (newMoveIndex == MAX_MON_MOVES || IsBattleMoveRowFilled(newMoveIndex))
             break;
     }
 
-    PrintMoveDetails(move);
+    PrintBattleMoveRowDetails(newMoveIndex); // Fantasy Retold: the innate view's entries too
 
     *moveIndexPtr = newMoveIndex;
     // Get rid of the 'flicker' effect(while idle) when scrolling.
@@ -2990,6 +3036,7 @@ static void CloseMoveSelectMode(u8 taskId)
         ShowMoveRelearner();
 
     sMonSummaryScreen->mode = SUMMARY_MODE_NORMAL;
+    UpdateInnatePrompt(TRUE);
     
     CreateTask(Task_HideEffectTilemap, 1);
     gTasks[taskId].func = Task_HandleInput;
@@ -3171,7 +3218,12 @@ static void Task_HandleReplaceMoveInput(u8 taskId)
             }
             else if (JOY_NEW(A_BUTTON))
             {
-                if (CanReplaceMove() == TRUE)
+                if (sMonSummaryScreen->selectingSignature && sMonSummaryScreen->firstMoveIndex < MAX_MON_MOVES
+                 && !IsMoveMastered(&sMonSummaryScreen->currentMon, sMonSummaryScreen->summary.moves[sMonSummaryScreen->firstMoveIndex]))
+                {
+                    PlaySE(SE_FAILURE); // Fantasy Retold: only a mastered move can become the Signature Move
+                }
+                else if (CanReplaceMove() == TRUE)
                 {
                     StopPokemonAnimations();
                     PlaySE(SE_SELECT);
@@ -3304,7 +3356,7 @@ static void Task_ShowEffectTilemap(u8 taskId)
     {
         SetGpuReg(REG_OFFSET_MOSAIC, 0);
         ClearGpuRegBits(REG_OFFSET_BG1CNT, BGCNT_MOSAIC);
-        PrintMoveDetails(sMonSummaryScreen->summary.moves[sMonSummaryScreen->firstMoveIndex]);
+        PrintBattleMoveRowDetails(sMonSummaryScreen->firstMoveIndex);
         PrintNewMoveDetailsOrCancelText();
         SetNewMoveTypeIcon();
 
@@ -3769,6 +3821,7 @@ static void PutPageWindowTilemaps(u8 page)
             PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_INFO);
             if (ShouldShowMoveRelearner())
                 ShowMoveRelearner();
+            UpdateInnatePrompt(TRUE);
         }
         break;
     case PSS_PAGE_CONTEST_MOVES:
@@ -3819,6 +3872,7 @@ static void ClearPageWindowTilemaps(u8 page)
             ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_INFO);
             if (ShouldShowMoveRelearner())
                 HideMoveRelearner();
+            UpdateInnatePrompt(FALSE);
         }
         break;
     case PSS_PAGE_CONTEST_MOVES:
@@ -4565,11 +4619,10 @@ static void PrintExpPointsNextLevel(void)
 
 static void PrintBattleMoves(void)
 {
-    PrintMoveNameAndPP(0);
-    PrintMoveNameAndPP(1);
-    PrintMoveNameAndPP(2);
-    PrintMoveNameAndPP(3);
-    PrintSignatureMoveRow();
+    PrintBattleMoveRow(0);
+    PrintBattleMoveRow(1);
+    PrintBattleMoveRow(2);
+    PrintBattleMoveRow(3);
 
     if (sMonSummaryScreen->mode == SUMMARY_MODE_SELECT_MOVE)
     {
@@ -4593,22 +4646,20 @@ static void Task_PrintBattleMoves(u8 taskId)
     switch (data[0])
     {
     case 1:
-        PrintMoveNameAndPP(0);
+        PrintBattleMoveRow(0);
         break;
     case 2:
-        PrintMoveNameAndPP(1);
+        PrintBattleMoveRow(1);
         break;
     case 3:
-        PrintMoveNameAndPP(2);
+        PrintBattleMoveRow(2);
         break;
     case 4:
-        PrintMoveNameAndPP(3);
+        PrintBattleMoveRow(3);
         break;
     case 5:
         if (sMonSummaryScreen->mode == SUMMARY_MODE_SELECT_MOVE)
             PrintNewMoveDetailsOrCancelText();
-        else
-            PrintSignatureMoveRow();
         break;
     case 6:
         if (sMonSummaryScreen->mode == SUMMARY_MODE_SELECT_MOVE)
@@ -4664,6 +4715,178 @@ static void PrintMoveNameAndPP(u8 moveIndex)
     }
 
     PrintTextOnWindowWithFont(moveNameWindowId, text, 8, moveIndex * 28 + 16, 0, ppState, FONT_SMALL);
+}
+
+// Fantasy Retold (design.md §10): SELECT on the battle moves page swaps the four moves for the innate moveset, in the
+// battle's innate menu order: Dodge, Recuperate, then the Signature Move and the Itemized Move (whichever it has). A INFO
+// inspects them; they can't be reordered.
+enum SummaryInnateEntry
+{
+    SUMMARY_INNATE_NONE,
+    SUMMARY_INNATE_DODGE,
+    SUMMARY_INNATE_RECUPERATE,
+    SUMMARY_INNATE_SIGNATURE,
+    SUMMARY_INNATE_ITEMIZED,
+};
+
+static const u8 sText_InnateDodge[] = _("Dodge");
+static const u8 sText_InnateRecuperate[] = _("Recuperate");
+static const u8 sText_InnateCommand[] = _("Innate");
+static const u8 sText_InnateDodgeDesc[] = _("A slower attack misses, a faster one is halved. Costs more if repeated.");
+static const u8 sText_InnateRecuperateDesc[] = _("Restores Stamina, some HP, and cures 1 random Lv1 status");
+
+static enum SummaryInnateEntry GetInnateMoveRowEntry(u8 row)
+{
+    struct PokeSummary *summary = &sMonSummaryScreen->summary;
+
+    switch (row)
+    {
+    case 0:
+        return SUMMARY_INNATE_DODGE;
+    case 1:
+        return SUMMARY_INNATE_RECUPERATE;
+    case 2:
+        if (summary->signatureMove != MOVE_NONE)
+            return SUMMARY_INNATE_SIGNATURE;
+        return summary->itemizedMove != MOVE_NONE ? SUMMARY_INNATE_ITEMIZED : SUMMARY_INNATE_NONE;
+    case 3:
+        return (summary->signatureMove != MOVE_NONE && summary->itemizedMove != MOVE_NONE) ? SUMMARY_INNATE_ITEMIZED : SUMMARY_INNATE_NONE;
+    }
+    return SUMMARY_INNATE_NONE;
+}
+
+static bool32 IsShowingInnateMoves(void)
+{
+    return sMonSummaryScreen->showInnateMoves && sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES;
+}
+
+// The move in a row of the battle moves page: a slot move, the move being learned (row 4), or in the innate view the
+// Signature / Itemized Move (MOVE_NONE for Dodge / Recuperate).
+static u16 GetBattleMoveRowMove(u8 row)
+{
+    if (row >= MAX_MON_MOVES)
+        return sMonSummaryScreen->newMove;
+    if (!IsShowingInnateMoves())
+        return sMonSummaryScreen->summary.moves[row];
+
+    switch (GetInnateMoveRowEntry(row))
+    {
+    case SUMMARY_INNATE_SIGNATURE:
+        return sMonSummaryScreen->summary.signatureMove;
+    case SUMMARY_INNATE_ITEMIZED:
+        return sMonSummaryScreen->summary.itemizedMove;
+    default:
+        return MOVE_NONE;
+    }
+}
+
+static bool32 IsBattleMoveRowFilled(u8 row)
+{
+    if (row < MAX_MON_MOVES && IsShowingInnateMoves())
+        return GetInnateMoveRowEntry(row) != SUMMARY_INNATE_NONE;
+    return GetBattleMoveRowMove(row) != MOVE_NONE;
+}
+
+static void PrintInnateMoveRow(u8 row)
+{
+    struct PokeSummary *summary = &sMonSummaryScreen->summary;
+    u8 windowId = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_NAMES_PP);
+    enum SummaryInnateEntry entry = GetInnateMoveRowEntry(row);
+    const u8 *text;
+    u32 pp, maxPP;
+    int ppState;
+
+    switch (entry)
+    {
+    case SUMMARY_INNATE_DODGE:
+    case SUMMARY_INNATE_RECUPERATE:
+        text = (entry == SUMMARY_INNATE_DODGE) ? sText_InnateDodge : sText_InnateRecuperate;
+        PrintTextOnWindowToFitPx_WithFont(windowId, text, 3, row * 28 + 2, 0, 12, FONT_SMALL, WindowWidthPx(windowId) - 3);
+        text = sText_InnateCommand;
+        ppState = 12;
+        break;
+    case SUMMARY_INNATE_SIGNATURE:
+    case SUMMARY_INNATE_ITEMIZED:
+        if (entry == SUMMARY_INNATE_SIGNATURE)
+        {
+            pp = summary->signaturePP;
+            maxPP = SIGNATURE_MOVE_PP;
+        }
+        else
+        {
+            pp = maxPP = ITEMIZED_MOVE_PP; // full again at the start of every battle
+        }
+        PrintTextOnWindowToFitPx_WithFont(windowId, GetMoveName(GetBattleMoveRowMove(row)), 3, row * 28 + 2, 0, 12, FONT_SMALL, WindowWidthPx(windowId) - 3);
+        ConvertIntToDecimalStringN(gStringVar1, pp, STR_CONV_MODE_RIGHT_ALIGN, 2);
+        ConvertIntToDecimalStringN(gStringVar2, maxPP, STR_CONV_MODE_RIGHT_ALIGN, 2);
+        DynamicPlaceholderTextUtil_Reset();
+        DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, gStringVar1);
+        DynamicPlaceholderTextUtil_SetPlaceholderPtr(1, gStringVar2);
+        DynamicPlaceholderTextUtil_ExpandPlaceholders(gStringVar4, sMovesPPLayout);
+        text = gStringVar4;
+        ppState = GetCurrentPPToMaxPPState(pp, maxPP) + 9;
+        break;
+    default:
+        PrintTextOnWindow(windowId, gText_OneDash, 3, row * 28 + 2, 0, 12);
+        text = gText_TwoDashes;
+        ppState = 12;
+        break;
+    }
+    PrintTextOnWindowWithFont(windowId, text, 8, row * 28 + 16, 0, ppState, FONT_SMALL);
+}
+
+static void PrintBattleMoveRow(u8 row)
+{
+    if (IsShowingInnateMoves())
+        PrintInnateMoveRow(row);
+    else
+        PrintMoveNameAndPP(row);
+}
+
+static void PrintInnateCommandDetails(const u8 *description)
+{
+    u8 windowId = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_DESCRIPTION);
+    u8 desc[BW_MAX_MOVE_DESCRIPTION_LENGTH];
+
+    FillWindowPixelBuffer(windowId, PIXEL_FILL(0));
+    if (BW_SUMMARY_CATEGORY_ICONS)
+        DestroyCategoryIcon();
+    PrintMovePowerAndAccuracy(MOVE_NONE);
+    FormatTextByWidth(desc, 119, FONT_BW_SUMMARY_SCREEN, description, GetFontAttribute(FONT_BW_SUMMARY_SCREEN, FONTATTR_LETTER_SPACING));
+    PrintTextOnWindow_BW_Font(windowId, desc, 2, 0, 0, 0);
+    PutWindowTilemap(windowId);
+    ScheduleBgCopyTilemapToVram(0);
+}
+
+static void PrintBattleMoveRowDetails(u8 row)
+{
+    if (row < MAX_MON_MOVES && IsShowingInnateMoves())
+    {
+        switch (GetInnateMoveRowEntry(row))
+        {
+        case SUMMARY_INNATE_DODGE:
+            PrintInnateCommandDetails(sText_InnateDodgeDesc);
+            return;
+        case SUMMARY_INNATE_RECUPERATE:
+            PrintInnateCommandDetails(sText_InnateRecuperateDesc);
+            return;
+        default:
+            break;
+        }
+    }
+    PrintMoveDetails(GetBattleMoveRowMove(row));
+}
+
+static void ToggleInnateMovesView(void)
+{
+    u8 windowId = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_NAMES_PP);
+
+    sMonSummaryScreen->showInnateMoves = !sMonSummaryScreen->showInnateMoves;
+    FillWindowPixelBuffer(windowId, PIXEL_FILL(0));
+    PrintBattleMoves();
+    SetMoveTypeIcons();
+    PutWindowTilemap(windowId);
+    CopyWindowToVram(windowId, COPYWIN_GFX);
 }
 
 static void PrintMovePowerAndAccuracy(u16 moveIndex)
@@ -4724,16 +4947,16 @@ static void Task_PrintContestMoves(u8 taskId)
     switch (data[0])
     {
     case 1:
-        PrintMoveNameAndPP(0);
+        PrintBattleMoveRow(0);
         break;
     case 2:
-        PrintMoveNameAndPP(1);
+        PrintBattleMoveRow(1);
         break;
     case 3:
-        PrintMoveNameAndPP(2);
+        PrintBattleMoveRow(2);
         break;
     case 4:
-        PrintMoveNameAndPP(3);
+        PrintBattleMoveRow(3);
         break;
     case 5:
         if (sMonSummaryScreen->mode == SUMMARY_MODE_SELECT_MOVE)
@@ -4834,56 +5057,9 @@ static void PrintMoveDetails(u16 move)
     ScheduleBgCopyTilemapToVram(0);
 }
 
-// Fantasy Retold: the row below the four moves (where a move being learned or "Cancel" goes) shows the
-// Signature Move while browsing: name, type icon and its PP (out of SIGNATURE_MOVE_PP, no PP Ups). It gives the
-// row back while that row is in use, and is redrawn when the move details close.
-#define SIGNATURE_ROW_CLEAR_Y      112
-#define SIGNATURE_ROW_CLEAR_HEIGHT 32
-
-static bool32 ShouldShowSignatureMoveRow(void)
-{
-    return sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES
-        && sMonSummaryScreen->mode != SUMMARY_MODE_SELECT_MOVE
-        && sMonSummaryScreen->summary.signatureMove != MOVE_NONE;
-}
-
-static void PrintSignatureMoveRow(void)
-{
-    u8 windowId = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_NAMES_PP);
-    u16 move = sMonSummaryScreen->summary.signatureMove;
-
-    if (!ShouldShowSignatureMoveRow())
-        return;
-
-    FillWindowPixelRect(windowId, PIXEL_FILL(0), 0, SIGNATURE_ROW_CLEAR_Y, WindowWidthPx(windowId), SIGNATURE_ROW_CLEAR_HEIGHT);
-    PrintTextOnWindowToFitPx_WithFont(windowId, GetMoveName(move), 3, 114, 0, 12, FONT_SMALL, WindowWidthPx(windowId) - 3);
-    ConvertIntToDecimalStringN(gStringVar1, sMonSummaryScreen->summary.signaturePP, STR_CONV_MODE_RIGHT_ALIGN, 2);
-    ConvertIntToDecimalStringN(gStringVar2, SIGNATURE_MOVE_PP, STR_CONV_MODE_RIGHT_ALIGN, 2);
-    DynamicPlaceholderTextUtil_Reset();
-    DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, gStringVar1);
-    DynamicPlaceholderTextUtil_SetPlaceholderPtr(1, gStringVar2);
-    DynamicPlaceholderTextUtil_ExpandPlaceholders(gStringVar4, sMovesPPLayout);
-    PrintTextOnWindowWithFont(windowId, gStringVar4, 8, 128, 0, GetCurrentPPToMaxPPState(sMonSummaryScreen->summary.signaturePP, SIGNATURE_MOVE_PP) + 9, FONT_SMALL);
-}
-
-static void SetSignatureMoveTypeIcon(void)
-{
-    u16 move = sMonSummaryScreen->summary.signatureMove;
-
-    if (!ShouldShowSignatureMoveRow())
-        return;
-
-    enum MonState state = gMain.inBattle ? MON_IN_BATTLE : MON_OUTSIDE_BATTLE;
-    u32 type = P_SHOW_DYNAMIC_TYPES ? CheckDynamicMoveType(&sMonSummaryScreen->currentMon, move, 0, state) : GetMoveType(move);
-    SetTypeSpritePosAndPal(type, 8, 128, SPRITE_ARR_ID_TYPE + 4);
-}
-
 static void PrintNewMoveDetailsOrCancelText(void)
 {
     u8 windowId1 = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_NAMES_PP);
-
-    // Fantasy Retold: clear the Signature Move row first; "Cancel" / the new move take its place.
-    FillWindowPixelRect(windowId1, PIXEL_FILL(0), 0, SIGNATURE_ROW_CLEAR_Y, WindowWidthPx(windowId1), SIGNATURE_ROW_CLEAR_HEIGHT);
 
     if (sMonSummaryScreen->newMove == MOVE_NONE)
     {
@@ -4911,9 +5087,6 @@ static void ClearCancelText(void)
 {
     u8 windowId = AddWindowFromTemplateList(sPageMovesTemplate, PSS_DATA_WINDOW_MOVE_NAMES_PP);
     FillWindowPixelRect(windowId, PIXEL_FILL(0), 0, 116, 72, 16);
-    // Fantasy Retold: the row is free again — bring the Signature Move back.
-    PrintSignatureMoveRow();
-    SetSignatureMoveTypeIcon();
     CopyWindowToVram(windowId, COPYWIN_GFX);
 }
 
@@ -5060,7 +5233,6 @@ static void SetTypeIcons(void)
     case PSS_PAGE_BATTLE_MOVES:
         SetMoveTypeIcons();
         SetNewMoveTypeIcon();
-        SetSignatureMoveTypeIcon();
         break;
     case PSS_PAGE_CONTEST_MOVES:
         SetContestMoveTypeIcons();
@@ -5153,7 +5325,7 @@ static void SetMoveTypeIcons(void)
 
     for (i = 0; i < MAX_MON_MOVES; i++)
     {
-        move = summary->moves[i];
+        move = GetBattleMoveRowMove(i); // Fantasy Retold: the innate view's Signature / Itemized Move too
         if (move != MOVE_NONE)
         {
             enum MonState state = gMain.inBattle ? MON_IN_BATTLE : MON_OUTSIDE_BATTLE;
@@ -5634,6 +5806,26 @@ static void ShowMoveRelearner(void)
         sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_RELEARN_PROMPT] = CreateSprite(&sSpriteTemplate_RelearnPrompt, 61, 155, 0);
     
     gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_RELEARN_PROMPT]].invisible = FALSE;
+}
+
+// Fantasy Retold: the SELECT / INNATE prompt (design.md §10) shows on the battle moves page while browsing, right of
+// START RELEARN, or in its place when there's nothing to relearn.
+static void UpdateInnatePrompt(bool32 show)
+{
+    u8 *spriteId = &sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_INNATE_PROMPT];
+
+    show = show
+        && sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES
+        && sMonSummaryScreen->mode != SUMMARY_MODE_SELECT_MOVE
+        && !sMonSummaryScreen->summary.isEgg;
+    if (*spriteId == SPRITE_NONE)
+    {
+        if (!show)
+            return;
+        *spriteId = CreateSprite(&sSpriteTemplate_InnatePrompt, 61, 155, 0);
+    }
+    gSprites[*spriteId].x = ShouldShowMoveRelearner() ? 129 : 61;
+    gSprites[*spriteId].invisible = !show;
 }
 
 static void HideMoveRelearner(void)

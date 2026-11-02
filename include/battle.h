@@ -746,7 +746,8 @@ struct BattleStruct
     enum BattlerId soulheartBattlerId;
     struct LostItem itemLost[MAX_BATTLE_TRAINERS][PARTY_SIZE];
     u8 dodgeHalvedHit; // Fantasy Retold: battlers whose Dodge halved the current hit (for the result message)
-    u8 dodgeAnimShown;  // Fantasy Retold: battlers whose Dodge animation already played ahead of their own (later) action this round
+    u8 dodgeAnimShown;  // Fantasy Retold: battlers whose Dodge was already announced at the start of the turn (their action just pays the cost)
+    bool8 dodgeIntroDone; // Fantasy Retold: the start-of-turn Dodge announcements have run this turn
     enum Move moveUsedThisTurn[MAX_BATTLERS_COUNT]; // Fantasy Retold: move each battler is using this turn (Repeated Move Trapping)
     enum Move moveUsedLastTurn[MAX_BATTLERS_COUNT]; // Fantasy Retold: move each battler used the turn before; cleared when it leaves the field
     u8 statusRailsAppliedByMove[MAX_BATTLERS_COUNT]; // Fantasy Retold: rails inflicted by the current move cannot also crit-upgrade

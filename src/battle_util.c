@@ -1002,7 +1002,7 @@ void HandleAction_Dodge(void)
     if (battlerState->dodgeConsecutiveUses < 31)
         battlerState->dodgeConsecutiveUses++;
 
-    // A faster attacker's halved hit already showed this Dodge (animation + message) when it landed.
+    // The Dodge was announced and animated at the start of the turn (TryShowDodgesBeforeActions).
     if (gBattleStruct->dodgeAnimShown & (1u << battler))
     {
         gBattleStruct->dodgeAnimShown &= ~(1u << battler);

@@ -3681,6 +3681,7 @@ bool32 EndTurnEvents(void) // Called from Battle Script
 {
     gBattleStruct->speedTieBreaks = RandomUniform(RNG_SPEED_TIE, 0, Factorial(MAX_BATTLERS_COUNT) - 1);
     gBattleStruct->dodgeAnimShown = 0; // Fantasy Retold
+    gBattleStruct->dodgeIntroDone = FALSE;
 
     TurnValuesCleanUp(TRUE);
 
@@ -5202,10 +5203,40 @@ static void CheckChangingTurnOrderEffects(void)
     gBattleResources->battleScriptsStack->size = 0;
 }
 
+// Fantasy Retold: Dodge is announced and animated first in the turn, one dodger at a time in turn order, before any
+// action runs. Only the presentation moves up: the Dodge action itself still resolves in its own speed slot
+// (cost, and the full miss / half damage outcome that depends on that slot).
+static bool32 TryShowDodgesBeforeActions(void)
+{
+    if (gBattleStruct->dodgeIntroDone || gCurrentTurnActionNumber != 0)
+        return FALSE;
+
+    for (u32 i = 0; i < gBattlersCount; i++)
+    {
+        enum BattlerId battler = gBattlerByTurnOrder[i];
+
+        if (gActionsByTurnOrder[i] != B_ACTION_DODGE
+         || (gBattleStruct->dodgeAnimShown & (1u << battler))
+         || !IsBattlerAlive(battler))
+            continue;
+        gBattleStruct->dodgeAnimShown |= 1u << battler;
+        gBattlerAttacker = gBattleScripting.battler = battler;
+        BattleScriptExecute(BattleScript_FRDodgeIntro);
+        // BattleScriptExecute zeroes gCurrentActionFuncId (= B_ACTION_USE_MOVE); put back the first action's real
+        // type, or the first battler in turn order (e.g. the dodger itself) would also use its move this turn.
+        gCurrentActionFuncId = gActionsByTurnOrder[0];
+        return TRUE;
+    }
+    gBattleStruct->dodgeIntroDone = TRUE;
+    return FALSE;
+}
+
 static void RunTurnActionsFunctions(void)
 {
     if (gBattleOutcome != 0)
         gCurrentActionFuncId = B_ACTION_FINISHED;
+    else if (TryShowDodgesBeforeActions())
+        return;
 
     // Mega Evolve / Focus Punch-like moves after switching, items, running, but before using a move.
     if (gCurrentActionFuncId == B_ACTION_USE_MOVE && !gBattleStruct->effectsBeforeUsingMoveDone)
@@ -5390,10 +5421,43 @@ static void HandleEndTurn_MonFled(void)
     gBattleMainFunc = HandleEndTurn_FinishBattle;
 }
 
+// Fantasy Retold: before the battle closes, announce each move a party Pokémon mastered (design.md §10), one message
+// per move; returns TRUE while a message is being shown. Skipped after a loss: the moves stay unannounced until the
+// next battle.
+static bool32 TryAnnounceMasteredMove(void)
+{
+    if (gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_EREADER_TRAINER)
+     || gBattleOutcome == B_OUTCOME_LOST || gBattleOutcome == B_OUTCOME_DREW)
+        return FALSE;
+
+    for (u32 i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][i];
+        enum Move move;
+
+        if (GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NONE || GetMonData(mon, MON_DATA_IS_EGG))
+            continue;
+        move = PopUnannouncedMasteredMove(mon);
+        if (move == MOVE_NONE)
+            continue;
+        PREPARE_MON_NICK_BUFFER(gBattleTextBuff1, GetBattlerAtPosition(B_POSITION_PLAYER_LEFT), i);
+        PREPARE_MOVE_BUFFER(gBattleTextBuff2, move);
+        if (IsFullyEvolved(GetMonData(mon, MON_DATA_SPECIES)))
+            BattleScriptPushCursorAndCallback(BattleScript_FRMoveMastered);
+        else
+            BattleScriptPushCursorAndCallback(BattleScript_FRMoveMasteredNotFinal);
+        return TRUE;
+    }
+    return FALSE;
+}
+
 static void HandleEndTurn_FinishBattle(void)
 {
     if (gCurrentActionFuncId == B_ACTION_TRY_FINISH || gCurrentActionFuncId == B_ACTION_FINISHED)
     {
+        if (TryAnnounceMasteredMove())
+            return;
+
         if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK
                                   | BATTLE_TYPE_RECORDED_LINK
                                   | BATTLE_TYPE_FIRST_BATTLE
@@ -5504,9 +5568,10 @@ static void FreeResetData_ReturnToOvOrDoEvolutions(void)
     if (!gPaletteFade.active)
     {
         memset(&gBattleMons, 0, sizeof(struct BattlePokemon) * MAX_BATTLERS_COUNT);
-        // Fantasy Retold: Signature Moves are settled after battle, since gaining one frees a move slot.
+        // Fantasy Retold: fixes up saves that still hold a Signature Move in a slot (done after battle, since it
+        // frees a move slot).
         if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_EREADER_TRAINER)))
-            TryDetermineSignatureMovesForParty();
+            FixUpSignatureMovesForParty();
         gIsFishingEncounter = FALSE;
         gIsSurfingEncounter = FALSE;
         if (gDexNavSpecies && (gBattleOutcome == B_OUTCOME_WON || gBattleOutcome == B_OUTCOME_CAUGHT))

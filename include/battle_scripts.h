@@ -735,7 +735,7 @@ extern const u8 BattleScript_SilphScopeUnveiled[];
 extern const u8 BattleScript_StatChangeFailed[];
 extern const u8 BattleScript_FRDodge[];       // Fantasy Retold: L innate command
 extern const u8 BattleScript_FRRecuperate[];  // Fantasy Retold: R innate command
-extern const u8 BattleScript_FRDodgeAnim[];      // Fantasy Retold: Dodge animation ahead of the dodger's own action
+extern const u8 BattleScript_FRDodgeIntro[];     // Fantasy Retold: Dodge announced + animated at the start of the turn
 extern const u8 BattleScript_FRDodgeHalvedMsg[]; // Fantasy Retold: hit halved by Dodge
 extern const u8 BattleScript_FRDodgeShown[];     // Fantasy Retold: Dodge action whose animation already played
 extern const u8 BattleScript_FRRailEffectApplied[]; // Fantasy Retold: status rails
@@ -743,7 +743,9 @@ extern const u8 BattleScript_FRRailMessageRet[];    // Fantasy Retold: status ra
 extern const u8 BattleScript_FRFrightenedFlee[];    // Fantasy Retold: status rails
 extern const u8 BattleScript_FRStupefiedSelfHitRet[]; // Fantasy Retold: status rails
 extern const u8 BattleScript_FRFrightenedRefusedSwitch[]; // Fantasy Retold: status rails
-extern const u8 BattleScript_FRItemizedMoveLost[]; // Fantasy Retold: Itemized Move
+extern const u8 BattleScript_FRItemizedMoveLost[];
+extern const u8 BattleScript_FRMoveMastered[];
+extern const u8 BattleScript_FRMoveMasteredNotFinal[]; // Fantasy Retold: Itemized Move
 extern const u8 BattleScript_FRStatusBlocked[];          // Fantasy Retold: status rails
 extern const u8 BattleScript_FRMoveUsedInNightmare[];    // Fantasy Retold: status rails
 extern const u8 BattleScript_FRRecuperatePoisoned[];     // Fantasy Retold: R innate command while poisoned

@@ -13957,7 +13957,7 @@ const struct ItemInfo gItemsInfo[] =
 
     [ITEM_Z_POWER_RING] =
     {
-        .name = ITEM_NAME("Z-Power Ring"),
+        .name = ITEM_NAME("Z-Ring"),
         .price = 0,
         .importance = 1,
         .description = COMPOUND_STRING(

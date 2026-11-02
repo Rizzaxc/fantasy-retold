@@ -22,11 +22,19 @@ LittlerootTown_ProfessorBirchsLab_MapScripts::
 LittlerootTown_ProfessorBirchsLab_OnTransition:
 	call Common_EventScript_SetupRivalGfxId
 	call ProfBirch_EventScript_UpdateLocation
+	call_if_eq VAR_BIRCH_GIMMICK_STATE, BIRCH_GIMMICK_RING, LittlerootTown_ProfessorBirchsLab_EventScript_ShowBirchForGift
+	call_if_eq VAR_BIRCH_GIMMICK_STATE, BIRCH_GIMMICK_CALLED, LittlerootTown_ProfessorBirchsLab_EventScript_ShowBirchForGift
 	call_if_eq VAR_BIRCH_LAB_STATE, 4, LittlerootTown_ProfessorBirchsLab_EventScript_SetAidePosForPokedex
 	goto_if_ge VAR_DEX_UPGRADE_JOHTO_STARTER_STATE, 6, LittlerootTown_ProfessorBirchsLab_EventScript_SetAfterJohtoStarterLayout
 	goto_if_ge VAR_DEX_UPGRADE_JOHTO_STARTER_STATE, 4, LittlerootTown_ProfessorBirchsLab_EventScript_SetJohtoStarterLayout
 	goto_if_eq VAR_DEX_UPGRADE_JOHTO_STARTER_STATE, 3, LittlerootTown_ProfessorBirchsLab_EventScript_CheckReadyForJohtoStarter
 	end
+
+@ Fantasy Retold: while his ring gift waits, Birch is also in the lab, whatever his daily rotation says (he stays
+@ on his route too). The next ProfBirch_EventScript_UpdateLocation puts the flag back.
+LittlerootTown_ProfessorBirchsLab_EventScript_ShowBirchForGift::
+	clearflag FLAG_HIDE_LITTLEROOT_TOWN_BIRCHS_LAB_BIRCH
+	return
 
 @ Fantasy Retold: the Aide stands still for the Pokédex scene, so he can walk up to the player after it.
 LittlerootTown_ProfessorBirchsLab_EventScript_SetAidePosForPokedex::
@@ -471,6 +479,8 @@ LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedJohtoStarter::
 LittlerootTown_ProfessorBirchsLab_EventScript_Birch::
 	lock
 	faceplayer
+	goto_if_eq VAR_BIRCH_GIMMICK_STATE, BIRCH_GIMMICK_RING, ProfBirch_EventScript_GimmickGift
+	goto_if_eq VAR_BIRCH_GIMMICK_STATE, BIRCH_GIMMICK_CALLED, ProfBirch_EventScript_GimmickGift
 	goto_if_eq VAR_DEX_UPGRADE_JOHTO_STARTER_STATE, 5, LittlerootTown_ProfessorBirchsLab_EventScript_CanHaveAnyOneOfRarePokemon
 	goto_if_eq VAR_DEX_UPGRADE_JOHTO_STARTER_STATE, 2, LittlerootTown_ProfessorBirchsLab_EventScript_GrassyPatchWaiting
 	goto_if_unset FLAG_HAS_MATCH_CALL, LittlerootTown_ProfessorBirchsLab_EventScript_TryRatePokedexOrRegister

@@ -167,6 +167,7 @@ static void CB2_BeginEvolutionScene(void)
 #define tLearnMoveNoState   data[8]
 #define tEvoWasStopped      data[9]
 #define tPartyId            data[10]
+#define tSignatureMove      data[11] // Fantasy Retold: mastered move picked as the Signature Move
 
 #define TASK_BIT_CAN_STOP       (1 << 0)
 #define TASK_BIT_LEARN_MOVE     (1 << 7)
@@ -630,6 +631,7 @@ enum {
     EVOSTATE_LEARNED_MOVE,
     EVOSTATE_TRY_LEARN_ANOTHER_MOVE,
     EVOSTATE_REPLACE_MOVE,
+    EVOSTATE_COMMIT_SIGNATURE, // Fantasy Retold
 };
 
 // States for the switch in EVOSTATE_REPLACE_MOVE
@@ -649,8 +651,153 @@ enum {
     MVSTATE_RETRY_AFTER_HM,
 };
 
+// Fantasy Retold: states for the switch in EVOSTATE_COMMIT_SIGNATURE (design.md §10, Signature Moves)
+enum {
+    SIGSTATE_INTRO_MSG,
+    SIGSTATE_FADE_OUT,
+    SIGSTATE_SHOW_MOVE_SELECT,
+    SIGSTATE_HANDLE_MOVE_SELECT,
+    SIGSTATE_RETRY,
+    SIGSTATE_PRINT_YES_NO,
+    SIGSTATE_HANDLE_YES_NO,
+    SIGSTATE_DECLINED,
+    SIGSTATE_DONE,
+};
+
 // Task data from CycleEvolutionMonSprite
 #define tEvoStopped data[8]
+
+// Fantasy Retold (design.md §10, Signature Moves): the Pokémon just reached its final stage with at least one mastered
+// move. The player picks one in the move selection screen (only mastered moves can be picked) and confirms it, or backs
+// out and commits none.
+static void HandleCommitSignatureMove(u8 taskId, struct Pokemon *mon)
+{
+    switch (gTasks[taskId].tLearnMoveState)
+    {
+    case SIGSTATE_INTRO_MSG:
+        if (!IsTextPrinterActiveOnWindow(0) && !IsSEPlaying())
+        {
+            u8 nickname[POKEMON_NAME_BUFFER_SIZE];
+
+            if (!(gTasks[taskId].tBits & TASK_BIT_LEARN_MOVE))
+            {
+                StopMapMusic();
+                Overworld_PlaySpecialMapMusic();
+            }
+            gTasks[taskId].tBits |= TASK_BIT_LEARN_MOVE;
+            GetMonData(mon, MON_DATA_NICKNAME, nickname);
+            StringCopy_Nickname(gBattleTextBuff1, nickname);
+            BattleStringExpandPlaceholdersToDisplayedString(gBattleStringsTable[STRINGID_FRCANCOMMITSIGNATURE]);
+            BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MSG);
+            gTasks[taskId].tLearnMoveState++;
+        }
+        break;
+    case SIGSTATE_FADE_OUT:
+        if (!IsTextPrinterActiveOnWindow(0) && !IsSEPlaying())
+        {
+            BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_BLACK);
+            gTasks[taskId].tLearnMoveState++;
+        }
+        break;
+    case SIGSTATE_SHOW_MOVE_SELECT:
+        if (!gPaletteFade.active)
+        {
+            FreeAllWindowBuffers();
+            if (BW_SUMMARY_SCREEN)
+                ShowSelectSignatureMoveSummaryScreen_BW(gParties[B_TRAINER_PLAYER], gTasks[taskId].tPartyId,
+                            gPartiesCount[B_TRAINER_PLAYER] - 1, CB2_EvolutionSceneLoadGraphics);
+            else
+                ShowSelectMovePokemonSummaryScreen(gParties[B_TRAINER_PLAYER], gTasks[taskId].tPartyId,
+                            CB2_EvolutionSceneLoadGraphics, MOVE_NONE);
+            gTasks[taskId].tLearnMoveState++;
+        }
+        break;
+    case SIGSTATE_HANDLE_MOVE_SELECT:
+        if (!gPaletteFade.active && gMain.callback2 == CB2_EvolutionSceneUpdate)
+        {
+            u32 slot = GetMoveSlotToReplace();
+            enum Move move;
+
+            if (slot >= MAX_MON_MOVES)
+            {
+                gTasks[taskId].tLearnMoveState = SIGSTATE_DECLINED;
+                break;
+            }
+            move = GetMonData(mon, MON_DATA_MOVE1 + slot);
+            PREPARE_MOVE_BUFFER(gBattleTextBuff2, move)
+            if (!IsMoveMastered(mon, move))
+            {
+                BattleStringExpandPlaceholdersToDisplayedString(gBattleStringsTable[STRINGID_FRMOVENOTMASTERED]);
+                gTasks[taskId].tLearnMoveState = SIGSTATE_RETRY;
+            }
+            else
+            {
+                BattleStringExpandPlaceholdersToDisplayedString(gBattleStringsTable[STRINGID_FRCOMMITSIGNATUREASK]);
+                gTasks[taskId].tSignatureMove = move;
+                gTasks[taskId].tLearnMoveState = SIGSTATE_PRINT_YES_NO;
+            }
+            BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MSG);
+        }
+        break;
+    case SIGSTATE_RETRY:
+        if (!IsTextPrinterActiveOnWindow(0) && !IsSEPlaying())
+            gTasks[taskId].tLearnMoveState = SIGSTATE_FADE_OUT;
+        break;
+    case SIGSTATE_PRINT_YES_NO:
+        if (!IsTextPrinterActiveOnWindow(0) && !IsSEPlaying())
+        {
+            HandleBattleWindow(YESNOBOX_X_Y, 0);
+            BattlePutTextOnWindow(gText_BattleYesNoChoice, B_WIN_YESNO);
+            sEvoCursorPos = 0;
+            BattleCreateYesNoCursorAt(0);
+            gTasks[taskId].tLearnMoveState++;
+        }
+        break;
+    case SIGSTATE_HANDLE_YES_NO:
+        if (JOY_NEW(DPAD_UP) && sEvoCursorPos != 0)
+        {
+            PlaySE(SE_SELECT);
+            BattleDestroyYesNoCursorAt(sEvoCursorPos);
+            sEvoCursorPos = 0;
+            BattleCreateYesNoCursorAt(0);
+        }
+        if (JOY_NEW(DPAD_DOWN) && sEvoCursorPos == 0)
+        {
+            PlaySE(SE_SELECT);
+            BattleDestroyYesNoCursorAt(sEvoCursorPos);
+            sEvoCursorPos = 1;
+            BattleCreateYesNoCursorAt(1);
+        }
+        if (JOY_NEW(A_BUTTON) && sEvoCursorPos == 0)
+        {
+            // YES: commit it
+            HandleBattleWindow(YESNOBOX_X_Y, WINDOW_CLEAR);
+            PlaySE(SE_SELECT);
+            CommitSignatureMove(mon, gTasks[taskId].tSignatureMove);
+            PlayFanfare(MUS_LEVEL_UP);
+            BattleStringExpandPlaceholdersToDisplayedString(gBattleStringsTable[STRINGID_FRSIGNATURECOMMITTED]);
+            BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MSG);
+            gTasks[taskId].tLearnMoveState = SIGSTATE_DONE;
+        }
+        else if (JOY_NEW(A_BUTTON) || JOY_NEW(B_BUTTON))
+        {
+            // NO: back to the move selection
+            HandleBattleWindow(YESNOBOX_X_Y, WINDOW_CLEAR);
+            PlaySE(SE_SELECT);
+            gTasks[taskId].tLearnMoveState = SIGSTATE_FADE_OUT;
+        }
+        break;
+    case SIGSTATE_DECLINED:
+        BattleStringExpandPlaceholdersToDisplayedString(gBattleStringsTable[STRINGID_FRSIGNATUREDECLINED]);
+        BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_MSG);
+        gTasks[taskId].tLearnMoveState = SIGSTATE_DONE;
+        break;
+    case SIGSTATE_DONE:
+        if (!IsTextPrinterActiveOnWindow(0) && IsFanfareTaskInactive())
+            gTasks[taskId].tState = EVOSTATE_TRY_LEARN_MOVE;
+        break;
+    }
+}
 
 static void Task_EvolutionScene(u8 taskId)
 {
@@ -789,11 +936,18 @@ static void Task_EvolutionScene(u8 taskId)
             SetMonData(mon, MON_DATA_SPECIES, (void *)(&gTasks[taskId].tPostEvoSpecies));
             SetMonData(mon, MON_DATA_EVOLUTION_TRACKER, &zero);
             CalculateMonStats(mon);
-            TryDetermineSignatureMove(mon, gTasks[taskId].tPartyId);
+            FixUpSignatureMove(mon);
             EvolutionRenameMon(mon, gTasks[taskId].tPreEvoSpecies, gTasks[taskId].tPostEvoSpecies);
             GetSetPokedexFlag(SpeciesToNationalPokedexNum(gTasks[taskId].tPostEvoSpecies), FLAG_SET_SEEN);
             GetSetPokedexFlag(SpeciesToNationalPokedexNum(gTasks[taskId].tPostEvoSpecies), FLAG_SET_CAUGHT);
             IncrementGameStat(GAME_STAT_EVOLVED_POKEMON);
+            // Fantasy Retold: reaching the final stage with a mastered move offers to commit a Signature Move,
+            // before the evolution's new moves are learned.
+            if (CanCommitSignatureMove(mon))
+            {
+                gTasks[taskId].tState = EVOSTATE_COMMIT_SIGNATURE;
+                gTasks[taskId].tLearnMoveState = SIGSTATE_INTRO_MSG;
+            }
         }
         break;
     case EVOSTATE_TRY_LEARN_MOVE:
@@ -1070,6 +1224,9 @@ static void Task_EvolutionScene(u8 taskId)
             break;
         }
         break;
+    case EVOSTATE_COMMIT_SIGNATURE:
+        HandleCommitSignatureMove(taskId, mon);
+        break;
     }
 }
 
@@ -1226,7 +1383,7 @@ static void Task_TradeEvolutionScene(u8 taskId)
             SetMonData(mon, MON_DATA_SPECIES, (&gTasks[taskId].tPostEvoSpecies));
             SetMonData(mon, MON_DATA_EVOLUTION_TRACKER, &zero);
             CalculateMonStats(mon);
-            TryDetermineSignatureMove(mon, gTasks[taskId].tPartyId);
+            FixUpSignatureMove(mon); // a traded-in Pokémon has no mastered moves, so no Signature Move is offered
             EvolutionRenameMon(mon, gTasks[taskId].tPreEvoSpecies, gTasks[taskId].tPostEvoSpecies);
             GetSetPokedexFlag(SpeciesToNationalPokedexNum(gTasks[taskId].tPostEvoSpecies), FLAG_SET_SEEN);
             GetSetPokedexFlag(SpeciesToNationalPokedexNum(gTasks[taskId].tPostEvoSpecies), FLAG_SET_CAUGHT);

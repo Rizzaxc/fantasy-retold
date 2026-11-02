@@ -80,6 +80,7 @@ MauvilleCity_Gym_EventScript_Wattson::
 	goto_if_unset FLAG_RECEIVED_TM_SHOCK_WAVE, MauvilleCity_Gym_EventScript_GiveShockWave2
 	setvar VAR_0x8008, 3
 	call Common_EventScript_GymReward
+	call MauvilleCity_Gym_EventScript_GiveGimmickRing
 	goto_if_eq VAR_NEW_MAUVILLE_STATE, 2, MauvilleCity_Gym_EventScript_CompletedNewMauville
 	msgbox MauvilleCity_Gym_Text_WattsonPostBattle, MSGBOX_DEFAULT
 	release
@@ -120,6 +121,7 @@ MauvilleCity_Gym_EventScript_GiveShockWave2::
 	setflag FLAG_RECEIVED_TM_SHOCK_WAVE
 	setvar VAR_0x8008, 3
 	call Common_EventScript_GymReward
+	call MauvilleCity_Gym_EventScript_GiveGimmickRing
 	release
 	end
 
@@ -130,6 +132,7 @@ MauvilleCity_Gym_EventScript_GiveShockWave::
 	setflag FLAG_RECEIVED_TM_SHOCK_WAVE
 	setvar VAR_0x8008, 3
 	call Common_EventScript_GymReward
+	call MauvilleCity_Gym_EventScript_GiveGimmickRing
 	return
 
 MauvilleCity_Gym_EventScript_CompletedNewMauville::

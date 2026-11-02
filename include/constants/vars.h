@@ -187,7 +187,7 @@
 #define VAR_TRICK_HOUSE_BEING_WATCHED_STATE              0x40A5
 #define VAR_TRICK_HOUSE_FOUND_TRICK_MASTER               0x40A6
 #define VAR_TRICK_HOUSE_ENTRANCE_STATE                   0x40A7
-#define VAR_UNUSED_0x40A8                                0x40A8 // Unused Var
+#define VAR_GAME_CORNER_STOCK_KEY                        0x40A8 // Fantasy Retold: Game Corner gimmick stock
 #define VAR_CYCLING_CHALLENGE_STATE                      0x40A9
 #define VAR_SLATEPORT_MUSEUM_1F_STATE                    0x40AA
 #define VAR_TRICK_HOUSE_PUZZLE_1_STATE                   0x40AB
@@ -203,10 +203,10 @@
 #define VAR_TRICK_HOUSE_ENTER_FROM_CORRIDOR              0x40B5
 #define VAR_TRICK_HOUSE_PUZZLE_7_STATE_2                 0x40B6 // Leftover from RS, never set
 #define VAR_SLATEPORT_FAN_CLUB_STATE                     0x40B7
-#define VAR_UNUSED_0x40B8                                0x40B8 // Unused Var
+#define VAR_GAME_CORNER_MEGA_STONE_1                     0x40B8 // Fantasy Retold: Game Corner gimmick stock
 #define VAR_MT_PYRE_STATE                                0x40B9
 #define VAR_NEW_MAUVILLE_STATE                           0x40BA
-#define VAR_UNUSED_0x40BB                                0x40BB // Unused Var
+#define VAR_GAME_CORNER_MEGA_STONE_2                     0x40BB // Fantasy Retold: Game Corner gimmick stock
 #define VAR_BRAVO_TRAINER_BATTLE_TOWER_ON                0x40BC
 #define VAR_JAGGED_PASS_ASH_WEATHER                      0x40BD
 #define VAR_GLASS_WORKSHOP_STATE                         0x40BE
@@ -238,8 +238,8 @@
 #define VAR_SOOTOPOLIS_WALLACE_STATE                     0x40D8
 #define VAR_HAS_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT 0x40D9
 #define VAR_REGISTER_BIRCH_STATE                         0x40DA
-#define VAR_UNUSED_0x40DB                                0x40DB // Unused Var
-#define VAR_UNUSED_0x40DC                                0x40DC // Unused Var
+#define VAR_GAME_CORNER_MEGA_STONE_3                     0x40DB // Fantasy Retold: Game Corner gimmick stock
+#define VAR_GAME_CORNER_Z_CRYSTAL_1                      0x40DC // Fantasy Retold: Game Corner gimmick stock
 #define VAR_GIFT_PICHU_SLOT                              0x40DD
 #define VAR_GIFT_UNUSED_1                                0x40DE // Var is written to, but never read
 #define VAR_GIFT_UNUSED_2                                0x40DF // Var is written to, but never read
@@ -248,7 +248,7 @@
 #define VAR_GIFT_UNUSED_5                                0x40E2 // Var is written to, but never read
 #define VAR_GIFT_UNUSED_6                                0x40E3 // Var is written to, but never read
 #define VAR_GIFT_UNUSED_7                                0x40E4 // var is written to, but never read
-#define VAR_UNUSED_0x40E5                                0x40E5 // Unused Var
+#define VAR_GAME_CORNER_Z_CRYSTAL_2                      0x40E5 // Fantasy Retold: Game Corner gimmick stock
 #define VAR_DAILY_SLOTS                                  0x40E6
 #define VAR_DAILY_WILDS                                  0x40E7
 #define VAR_DAILY_BLENDER                                0x40E8
@@ -273,8 +273,8 @@
 #define VAR_LAB_RESEARCH_KEY                             0x40FB // Fantasy Retold: Birch's Aide research trade
 #define VAR_LAB_RESEARCH_COUNT                           0x40FC // Fantasy Retold: Birch's Aide research trade
 #define VAR_LAB_RESEARCH_TYPE                            0x40FD // Fantasy Retold: Birch's Aide research trade
-#define VAR_UNUSED_0x40FE                                0x40FE // Unused Var
-#define VAR_UNUSED_0x40FF                                0x40FF // Unused Var
+#define VAR_BIRCH_GIMMICK_STATE                          0x40FE // Fantasy Retold: Mega Ring / Z-Ring and Birch's starter gift
+#define VAR_GAME_CORNER_Z_CRYSTAL_3                      0x40FF // Fantasy Retold: Game Corner gimmick stock
 
 #define VARS_END                                         0x40FF
 #define VARS_COUNT                                       (VARS_END - VARS_START + 1)

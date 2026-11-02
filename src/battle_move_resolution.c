@@ -1097,9 +1097,16 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
         UpdateStaminaGaugeOnHealthbox(cv->battlerAtk); // Fantasy Retold: reflect action cost immediately.
     }
 
-    // Fantasy Retold: track move usage for signature move determination.
-    if (IsOnPlayerSide(cv->battlerAtk) && movePosition < MAX_MON_MOVES)
-        IncrementMoveUseCount(gBattlerPartyIndexes[cv->battlerAtk], movePosition);
+    // Fantasy Retold: count the move toward mastery (design.md §10), by move ID on the player's own mon (not a multi
+    // partner's), and only a move it really knows in that slot (not a Mimic / Transform copy).
+    if (movePosition < MAX_MON_MOVES && GetBattlerParty(cv->battlerAtk) == gParties[B_TRAINER_PLAYER])
+    {
+        struct Pokemon *mon = GetBattlerMon(cv->battlerAtk);
+        enum Move slotMove = GetMonData(mon, MON_DATA_MOVE1 + movePosition);
+
+        if (slotMove != MOVE_NONE && slotMove == gBattleMons[cv->battlerAtk].moves[movePosition])
+            IncrementMoveUseCount(mon, slotMove);
+    }
 
     gLastMoves[cv->battlerAtk] = gChosenMove;
 
