@@ -8,6 +8,7 @@ RustboroCity_Gym_EventScript_Roxanne::
 	goto_if_unset FLAG_RECEIVED_TM_ROCK_TOMB, RustboroCity_Gym_EventScript_GiveRockTomb
 	setvar VAR_0x8008, 1
 	call Common_EventScript_GymReward
+	call RustboroCity_Gym_EventScript_GiveTeraOrb
 	msgbox RustboroCity_Gym_Text_RoxannePostBattle, MSGBOX_DEFAULT
 	release
 	end
@@ -34,6 +35,7 @@ RustboroCity_Gym_EventScript_GiveRockTomb::
 	msgbox RustboroCity_Gym_Text_ExplainRockTomb, MSGBOX_DEFAULT
 	setvar VAR_0x8008, 1
 	call Common_EventScript_GymReward
+	call RustboroCity_Gym_EventScript_GiveTeraOrb
 	release
 	end
 

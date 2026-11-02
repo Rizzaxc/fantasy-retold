@@ -129,13 +129,13 @@ gText_LabResearchIntro::
 	.string "your POKéDEX!\p"
 	.string "I'm the PROF's AIDE. While he's out\n"
 	.string "in the field, I study POKéMON here.\p"
-	.string "Here's my request: bring me any two\n"
-	.string "POKéMON to research.\p"
+	.string "And you can help with it.\n"
+	.string "When you can, bring me any two POKéMON\n"
 	.string "In exchange, I'll give you one back.\n"
 	.string "It'll be a foreign POKéMON that\l"
 	.string "grows stronger than both of yours,\l"
 	.string "and shares one of their types.\p"
-	.string "I'll have a new request after every\n"
+	.string "I'll be available after every\n"
 	.string "GYM BADGE you earn.\p"
 	.string "Talk to me once you've caught\n"
 	.string "a few POKéMON!$"
@@ -160,21 +160,20 @@ gText_LabResearchIncomingCall::
 	.string "… … … … … Click!$"
 
 gText_LabResearchRequest::
-	.string "{PLAYER}! Can you help me with\n"
-	.string "my research?\p"
-	.string "Lend me any two POKéMON, and I'll\n"
-	.string "give you a stronger one in return.$"
+	.string "{PLAYER}! Are you turning in\n"
+	.string "POKéMON for my research?\p"
+	.string "I'll give you a stronger one in return.$"
 
 gText_LabResearchRequestTyped::
-	.string "{PLAYER}! Can you help me with\n"
-	.string "my research?\p"
+	.string "{PLAYER}! Are you turning in\n"
+	.string "POKéMON for my research?\p"
 	.string "This time I'm studying the\n"
 	.string "{STR_VAR_1} type.\p"
-	.string "Lend me any two POKéMON, as long as\n"
+	.string "Give me any two POKéMON, as long as\n"
 	.string "one of them is {STR_VAR_1} type.$"
 
 gText_LabResearchChooseFirst::
-	.string "Which POKéMON will you lend me\n"
+	.string "Which POKéMON will you give me\n"
 	.string "first?$"
 
 gText_LabResearchChooseSecond::
@@ -203,7 +202,7 @@ gText_LabResearchNoReward::
 	.string "trouble instead?$"
 
 gText_LabResearchSkipped::
-	.string "I'll wait for my next request,\n"
+	.string "Wait for my next request,\n"
 	.string "then. Keep it up, {PLAYER}!$"
 
 gText_LabResearchSkipBagFull::

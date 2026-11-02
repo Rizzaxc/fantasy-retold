@@ -661,6 +661,7 @@ gSpecials::
 	def_special GameCorner_BufferStock
 	def_special GameCorner_BufferOffer
 	def_special GameCorner_SetSold
+	def_special PokeMart_SetTMStock
 	def_special BirchGimmick_GetGift
 	def_special GuestLeader_GetState
 	def_special GuestLeader_BufferNames

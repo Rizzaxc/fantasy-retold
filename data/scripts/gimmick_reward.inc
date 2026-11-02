@@ -1,4 +1,4 @@
-@ Fantasy Retold: Mega Ring / Z-Ring and Birch's starter gift (design.md §10).
+@ Fantasy Retold: Mega Ring / Z-Ring, Birch's starter gift and the Tera Orb (design.md §10).
 
 @ Called by Wattson after his gym reward. The player keeps one ring for good; B puts the choice off and he
 @ offers it again when talked to.
@@ -174,3 +174,27 @@ gText_BirchGimmickGiftNone::
 	.string "PROF. BIRCH: Hmm… Sorry, {PLAYER}.\n"
 	.string "It turns out your partner's line\l"
 	.string "has no MEGA STONE after all.$"
+
+@ Called by Roxanne after her gym reward. Offered again whenever she is talked to until the orb is in the bag.
+RustboroCity_Gym_EventScript_GiveTeraOrb::
+	checkitem ITEM_TERA_ORB
+	goto_if_eq VAR_RESULT, TRUE, Common_EventScript_NopReturn
+	msgbox gText_TeraOrbOffer, MSGBOX_DEFAULT
+	giveitem ITEM_TERA_ORB
+	goto_if_eq VAR_RESULT, FALSE, MauvilleCity_Gym_EventScript_GimmickRingBagFull
+	msgbox gText_TeraOrbExplain, MSGBOX_DEFAULT
+	return
+
+gText_TeraOrbOffer::
+	.string "One more thing.\p"
+	.string "This orb was unearthed from\n"
+	.string "deep within a crystal cavern.\p"
+	.string "I believe a Trainer such as\n"
+	.string "you should have it.$"
+
+gText_TeraOrbExplain::
+	.string "With the TERA ORB, one of your\n"
+	.string "POKéMON can TERASTALLIZE\l"
+	.string "once per battle.\p"
+	.string "It shines like a gem, and its\n"
+	.string "type becomes its TERA TYPE.$"

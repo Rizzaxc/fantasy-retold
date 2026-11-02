@@ -4595,7 +4595,7 @@ AI: Basic Trainer / Force Setup First Turn
 Mugshot: Purple
 
 Mightyena
-Level: 46
+Level: 52
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Roar
 - Double Edge
@@ -4603,7 +4603,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Crunch
 
 Shiftry
-Level: 48
+Level: 54
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Torment
 - Double Team
@@ -4611,7 +4611,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Extrasensory
 
 Cacturne
-Level: 46
+Level: 52
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Leech Seed
 - Feint Attack
@@ -4619,7 +4619,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Cotton Spore
 
 Crawdaunt
-Level: 48
+Level: 54
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Surf
 - Swords Dance
@@ -4627,7 +4627,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Facade
 
 Absol @ Sitrus Berry
-Level: 49
+Level: 55
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Aerial Ace
 - Rock Slide
@@ -4645,7 +4645,7 @@ AI: Basic Trainer
 Mugshot: Green
 
 Dusclops
-Level: 48
+Level: 54
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Shadow Punch
 - Confuse Ray
@@ -4653,7 +4653,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Protect
 
 Banette
-Level: 49
+Level: 55
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Shadow Ball
 - Grudge
@@ -4661,7 +4661,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Feint Attack
 
 Sableye
-Level: 50
+Level: 56
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Shadow Ball
 - Double Team
@@ -4669,7 +4669,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Feint Attack
 
 Banette
-Level: 49
+Level: 55
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Shadow Ball
 - Psychic
@@ -4677,7 +4677,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Facade
 
 Dusclops @ Sitrus Berry
-Level: 51
+Level: 57
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Shadow Ball
 - Ice Beam
@@ -4695,7 +4695,7 @@ AI: Basic Trainer
 Mugshot: Pink
 
 Sealeo
-Level: 50
+Level: 56
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Encore
 - Body Slam
@@ -4703,7 +4703,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Ice Ball
 
 Glalie
-Level: 50
+Level: 56
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Light Screen
 - Crunch
@@ -4711,7 +4711,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Ice Beam
 
 Sealeo
-Level: 52
+Level: 58
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Attract
 - Double Edge
@@ -4719,7 +4719,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Blizzard
 
 Glalie
-Level: 52
+Level: 58
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Shadow Ball
 - Explosion
@@ -4727,7 +4727,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Ice Beam
 
 Walrein @ Sitrus Berry
-Level: 53
+Level: 59
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Surf
 - Body Slam
@@ -4745,7 +4745,7 @@ AI: Basic Trainer
 Mugshot: Blue
 
 Shelgon
-Level: 52
+Level: 58
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Rock Tomb
 - Dragon Claw
@@ -4753,7 +4753,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Double Edge
 
 Altaria
-Level: 54
+Level: 60
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Double Edge
 - Dragon Breath
@@ -4761,7 +4761,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Aerial Ace
 
 Kingdra
-Level: 53
+Level: 59
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Smokescreen
 - Dragon Dance
@@ -4769,7 +4769,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Body Slam
 
 Flygon
-Level: 53
+Level: 59
 IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Flamethrower
 - Crunch
@@ -4777,7 +4777,7 @@ IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Earthquake
 
 Salamence @ Sitrus Berry
-Level: 55
+Level: 61
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Flamethrower
 - Dragon Claw
@@ -4979,39 +4979,76 @@ Pic: Leader Flannery
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Numel
-Level: 24
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Overheat
-- Take Down
-- Magnitude
-- Sunny Day
+Ninetales @ Heat Rock
+Ability: Drought
+Level: 28
+EVs: 160 SpA / 160 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Flamethrower
+- Solar Beam
+- Will-O-Wisp
+- Nasty Plot
 
-Slugma
-Level: 24
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Overheat
-- Smog
-- Light Screen
-- Sunny Day
+Scovillain @ Life Orb
+Ability: Chlorophyll
+Level: 28
+EVs: 160 Atk / 160 Spe
+Adamant Nature
+Signature Move: Flamethrower
+- Seed Bomb
+- Fire Fang
+- Crunch
+- Zen Headbutt
 
-Camerupt
-Level: 26
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Overheat
-- Tackle
-- Sunny Day
-- Attract
-
-Torkoal @ White Herb
+Centiskorch @ Muscle Band
+Ability: Flash Fire
 Level: 29
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Overheat
-- Sunny Day
-- Body Slam
-- Attract
+EVs: 160 Atk / 160 Spe
+Jolly Nature
+Signature Move: Flare Blitz
+- Fire Lash
+- Lunge
+- Crunch
+- Coil
+
+Arcanine @ Sitrus Berry
+Ability: Intimidate
+Level: 29
+EVs: 160 HP / 160 Def
+Impish Nature
+Signature Move: Extreme Speed
+- Flare Blitz
+- Crunch
+- Wild Charge
+- Morning Sun
+
+Houndoom @ Houndoominite
+Ability: Flash Fire
+Level: 30
+EVs: 160 SpA / 160 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Flamethrower
+- Dark Pulse
+- Sludge Bomb
+- Nasty Plot
+
+Torkoal @ Leftovers
+Ability: Drought
+Level: 31
+Tera Type: Grass
+EVs: 160 HP / 160 Def
+Bold Nature
+Signature Move: Overheat
+- Lava Plume
+- Body Press
+- Solar Beam
+- Stealth Rock
 
 === TRAINER_NORMAN_1 ===
 Name: NORMAN
@@ -5020,39 +5057,74 @@ Pic: Leader Norman
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Spinda
-Level: 27
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Teeter Dance
-- Psybeam
-- Facade
-- Encore
+Ambipom @ Silk Scarf
+Ability: Technician
+Level: 33
+EVs: 200 Atk / 200 Spe
+Jolly Nature
+Signature Move: Double Hit
+- Fake Out
+- Low Kick
+- U-turn
+- Knock Off
 
-Vigoroth
-Level: 27
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Slash
-- Facade
-- Encore
-- Feint Attack
+Porygon2 @ Eviolite
+Ability: Download
+Level: 33
+EVs: 200 HP / 200 Def
+Calm Nature
+IVs: 0 Atk
+- Tri Attack
+- Ice Beam
+- Thunder Wave
+- Recover
 
-Linoone
-Level: 29
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Slash
-- Belly Drum
-- Facade
-- Headbutt
+Bewear @ Sitrus Berry
+Ability: Fluffy
+Level: 33
+EVs: 200 HP / 200 Atk
+Brave Nature
+Signature Move: Hammer Arm
+- Double-Edge
+- Drain Punch
+- Ice Punch
+- Swords Dance
 
-Slaking @ Sitrus Berry
-Level: 31
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Counter
-- Yawn
-- Facade
-- Feint Attack
+Staraptor @ Sharp Beak
+Ability: Reckless
+Level: 34
+EVs: 200 Atk / 200 Spe
+Adamant Nature
+Signature Move: Brave Bird
+- Double-Edge
+- Close Combat
+- U-turn
+- Quick Attack
+
+Kangaskhan @ Kangaskhanite
+Ability: Scrappy
+Level: 34
+EVs: 200 Atk / 200 Spe
+Adamant Nature
+Signature Move: Double-Edge
+- Fake Out
+- Power-Up Punch
+- Sucker Punch
+- Earthquake
+
+Slaking @ Life Orb
+Ability: Truant
+Level: 36
+Tera Type: Normal
+EVs: 252 Atk / 148 Spe
+Adamant Nature
+Signature Move: Giga Impact
+- Body Slam
+- Earthquake
+- Knock Off
+- Slack Off
 
 === TRAINER_WINONA_1 ===
 Name: WINONA
@@ -5061,47 +5133,75 @@ Pic: Leader Winona
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer / Risky
+AI: Smart Trainer
 
-Swablu
-Level: 29
-IVs: 25 HP / 25 Atk / 25 Def / 25 SpA / 25 SpD / 25 Spe
-- Perish Song
-- Mirror Move
-- Safeguard
-- Aerial Ace
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 36
+EVs: 252 HP / 228 Def
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Weather Ball
+- U-turn
+- Roost
 
-Tropius
-Level: 29
-IVs: 25 HP / 25 Atk / 25 Def / 25 SpA / 25 SpD / 25 Spe
-- Sunny Day
-- Aerial Ace
-- Solar Beam
-- Synthesis
+Skarmory @ Rocky Helmet
+Ability: Sturdy
+Level: 37
+EVs: 252 HP / 228 Def
+Impish Nature
+Signature Move: Brave Bird
+- Stealth Rock
+- Spikes
+- Body Press
+- Roost
 
-Pelipper
-Level: 30
-IVs: 25 HP / 25 Atk / 25 Def / 25 SpA / 25 SpD / 25 Spe
-- Water Gun
-- Supersonic
+Togekiss @ Leftovers
+Ability: Serene Grace
+Level: 37
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Air Slash
+- Dazzling Gleam
+- Aura Sphere
+- Thunder Wave
+- Roost
+
+Hawlucha @ Sitrus Berry
+Ability: Unburden
+Level: 38
+Tera Type: Flying
+EVs: 240 Atk / 240 Spe
+Jolly Nature
+Signature Move: Flying Press
+- Swords Dance
+- Acrobatics
+- Close Combat
+- Throat Chop
+
+Gliscor @ Toxic Orb
+Ability: Poison Heal
+Level: 38
+EVs: 244 HP / 236 Def
+Careful Nature
+Signature Move: Earthquake
+- Knock Off
+- Toxic
+- Roost
 - Protect
-- Aerial Ace
 
-Skarmory
-Level: 31
-IVs: 26 HP / 26 Atk / 26 Def / 26 SpA / 26 SpD / 26 Spe
-- Sand Attack
-- Fury Attack
-- Steel Wing
-- Aerial Ace
-
-Altaria @ Oran Berry
-Level: 33
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
-- Dragon Breath
+Altaria @ Altarianite
+Ability: Natural Cure
+Level: 40
+EVs: 240 Atk / 240 Spe
+Adamant Nature
+Signature Move: Double-Edge
 - Dragon Dance
-- Aerial Ace
+- Dragon Claw
+- Earthquake
+- Roost
 
 === TRAINER_TATE_AND_LIZA_1 ===
 Name: TATE&LIZA
@@ -5110,39 +5210,78 @@ Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Claydol
-Level: 41
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Earthquake
-- Ancient Power
-- Psychic
+Indeedee-F @ Psychic Seed
+Ability: Psychic Surge
+Level: 42
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Follow Me
+- Helping Hand
+- Expanding Force
+- Protect
+
+Hatterene @ Life Orb
+Ability: Magic Bounce
+Level: 43
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Dazzling Gleam
+- Expanding Force
+- Mystical Fire
+- Trick Room
+- Protect
+
+Claydol @ Light Clay
+Ability: Levitate
+Level: 42
+EVs: 252 HP / 252 Def / 6 SpA
+Relaxed Nature
+IVs: 0 Atk
+Signature Move: Earth Power
+- Reflect
 - Light Screen
-
-Xatu
-Level: 41
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
 - Psychic
-- Sunny Day
-- Confuse Ray
-- Calm Mind
+- Ally Switch
+
+Medicham @ Medichamite
+Ability: Pure Power
+Level: 43
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Close Combat
+- Fake Out
+- Zen Headbutt
+- Ice Punch
+- Bullet Punch
 
 Lunatone @ Sitrus Berry
-Level: 42
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Light Screen
+Ability: Levitate
+Level: 45
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Trick Room
 - Psychic
-- Hypnosis
-- Calm Mind
+- Earth Power
+- Protect
 
 Solrock @ Sitrus Berry
-Level: 42
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Sunny Day
-- Solar Beam
-- Psychic
-- Flamethrower
+Ability: Levitate
+Level: 45
+Tera Type: Fire
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Rock Slide
+- Zen Headbutt
+- Flare Blitz
+- Morning Sun
+- Protect
 
 === TRAINER_JUAN_1 ===
 Name: JUAN
@@ -5151,47 +5290,78 @@ Pic: Leader Juan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Luvdisc
-Level: 41
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Water Pulse
-- Attract
-- Sweet Kiss
-- Flail
-
-Whiscash
-Level: 41
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Rain Dance
-- Water Pulse
-- Amnesia
-- Earthquake
-
-Sealeo
-Level: 43
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Encore
-- Body Slam
-- Aurora Beam
-- Water Pulse
-
-Crawdaunt
-Level: 43
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- Water Pulse
-- Crabhammer
-- Taunt
-- Leer
-
-Kingdra @ Chesto Berry
+Politoed @ Damp Rock
+Ability: Drizzle
 Level: 46
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Water Pulse
-- Double Team
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
 - Ice Beam
-- Rest
+- Encore
+- Perish Song
+
+Milotic @ Leftovers
+Ability: Competitive
+Level: 47
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
+- Ice Beam
+- Recover
+- Haze
+
+Walrein @ Sitrus Berry
+Ability: Thick Fat
+Level: 47
+EVs: 252 HP / 252 Def / 6 SpA
+Relaxed Nature
+IVs: 0 Atk
+Signature Move: Blizzard
+- Surf
+- Ice Beam
+- Toxic
+- Protect
+
+Ludicolo @ Expert Belt
+Ability: Swift Swim
+Level: 46
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+Signature Move: Energy Ball
+- Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+
+Sharpedo @ Sharpedonite
+Ability: Speed Boost
+Level: 48
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Crunch
+- Waterfall
+- Psychic Fangs
+- Ice Fang
+- Protect
+
+Kingdra @ Life Orb
+Ability: Swift Swim
+Level: 50
+Tera Type: Dragon
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Hydro Pump
+- Hurricane
+- Ice Beam
+- Dragon Pulse
 
 === TRAINER_JERRY_1 ===
 Name: JERRY
@@ -6320,7 +6490,7 @@ AI: Basic Trainer
 Mugshot: Yellow
 
 Wailord
-Level: 57
+Level: 63
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Rain Dance
 - Water Spout
@@ -6328,7 +6498,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Blizzard
 
 Tentacruel
-Level: 55
+Level: 61
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Toxic
 - Hydro Pump
@@ -6336,7 +6506,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Ice Beam
 
 Ludicolo
-Level: 56
+Level: 62
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Giga Drain
 - Surf
@@ -6344,7 +6514,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Double Team
 
 Whiscash
-Level: 56
+Level: 62
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Earthquake
 - Surf
@@ -6352,7 +6522,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Hyper Beam
 
 Gyarados
-Level: 56
+Level: 62
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Dragon Dance
 - Earthquake
@@ -6360,7 +6530,7 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Surf
 
 Milotic @ Sitrus Berry
-Level: 58
+Level: 64
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Recover
 - Surf
@@ -9527,47 +9697,78 @@ Pic: Wally
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Altaria
-Level: 44
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Aerial Ace
-- Safeguard
-- Dragon Breath
+Delcatty @ Sitrus Berry
+Ability: Wonder Skin
+Level: 47
+EVs: 252 HP / 252 Def / 6 Spe
+Bold Nature
+Signature Move: Play Rough
+- Fake Out
+- Body Slam
+- Thunder Wave
+- Wish
+
+Roserade @ Black Sludge
+Ability: Natural Cure
+Level: 48
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Sludge Bomb
+- Giga Drain
+- Shadow Ball
+- Toxic Spikes
+- Leaf Storm
+
+Magnezone @ Leftovers
+Ability: Sturdy
+Level: 48
+EVs: 252 HP / 252 SpA / 6 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flash Cannon
+- Volt Switch
+- Thunder Wave
+- Tri Attack
+
+Flygon @ Life Orb
+Ability: Levitate
+Level: 49
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Earthquake
+- Dragon Claw
+- U-turn
+- Fire Punch
 - Dragon Dance
 
-Delcatty
-Level: 43
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Sing
-- Assist
-- Charm
-- Feint Attack
+Altaria @ Leftovers
+Ability: Natural Cure
+Level: 50
+Tera Type: Fairy
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Dragon Pulse
+- Flamethrower
+- Cotton Guard
+- Roost
 
-Roselia
-Level: 44
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Magical Leaf
-- Leech Seed
-- Giga Drain
-- Toxic
-
-Magneton
-Level: 41
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Supersonic
-- Thunderbolt
-- Tri Attack
-- Screech
-
-Gardevoir
-Level: 45
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Double Team
+Gardevoir @ Gardevoirite
+Ability: Trace
+Level: 52
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Moonblast
 - Calm Mind
-- Psychic
-- Future Sight
+- Mystical Fire
+- Thunderbolt
 
 === TRAINER_BRENDAN_ROUTE_103_MUDKIP ===
 Name: BRENDAN
@@ -9589,19 +9790,61 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Slugma
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Numel @ Eviolite
+Ability: Simple
+Level: 19
+EVs: 80 HP / 80 Def
+Bold Nature
+- Flame Burst
+- Bulldoze
+- Yawn
+- Focus Energy
 
-Wingull
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
-
-Grovyle
+Wingull @ Eviolite
+Ability: Keen Eye
 Level: 20
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+EVs: 80 SpA / 80 Spe
+Timid Nature
+IVs: 0 Atk
+- Water Pulse
+- Air Cutter
+- Supersonic
+- Quick Attack
+
+Electrike @ Eviolite
+Ability: Lightning Rod
+Level: 20
+EVs: 80 SpA / 80 Spe
+Timid Nature
+- Shock Wave
+- Spark
+- Thunder Wave
+- Howl
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 20
+EVs: 80 Atk / 80 Spe
+Hasty Nature
+Signature Move: Bite
+- Quick Attack
+- Slash
+- Double Team
+- Swords Dance
+
+Grovyle @ Miracle Seed
+Ability: Overgrow
+Level: 22
+Tera Type: Grass
+EVs: 80 SpA / 80 Spe
+Timid Nature
+IVs: 0 Atk
+- Giga Drain
+- Dragon Breath
+- Quick Attack
+- Detect
 
 === TRAINER_BRENDAN_ROUTE_119_MUDKIP ===
 Name: BRENDAN
@@ -9610,19 +9853,76 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Slugma
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
+Level: 33
+EVs: 200 HP / 200 SpA
+Quiet Nature
+Signature Move: Earth Power
+- Lava Plume
+- Ancient Power
+- Stealth Rock
+- Yawn
 
-Pelipper
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 34
+EVs: 200 HP / 200 Def
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Weather Ball
+- U-turn
+- Roost
 
-Grovyle
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 34
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
+
+Tropius @ Leftovers
+Ability: Harvest
+Level: 33
+EVs: 200 HP / 200 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 35
+EVs: 200 Atk / 200 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Sceptile @ Miracle Seed
+Ability: Overgrow
+Level: 37
+Tera Type: Grass
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Leaf Storm
+- Giga Drain
+- Dragon Pulse
+- Focus Blast
+- Leech Seed
 
 === TRAINER_BRENDAN_ROUTE_103_TREECKO ===
 Name: BRENDAN
@@ -9644,19 +9944,60 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Wingull
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Lombre @ Eviolite
+Ability: Rain Dish
+Level: 19
+EVs: 80 HP / 80 Def
+Bold Nature
+- Giga Drain
+- Bubble Beam
+- Leech Seed
+- Fake Out
 
-Lombre
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
-
-Combusken
+Wingull @ Eviolite
+Ability: Keen Eye
 Level: 20
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+EVs: 80 SpA / 80 Spe
+Timid Nature
+IVs: 0 Atk
+- Water Pulse
+- Air Cutter
+- Supersonic
+- Quick Attack
+
+Electrike @ Eviolite
+Ability: Lightning Rod
+Level: 20
+EVs: 80 SpA / 80 Spe
+Timid Nature
+- Shock Wave
+- Spark
+- Thunder Wave
+- Howl
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 20
+EVs: 80 Atk / 80 Spe
+Hasty Nature
+Signature Move: Bite
+- Quick Attack
+- Slash
+- Double Team
+- Swords Dance
+
+Combusken @ Charcoal
+Ability: Blaze
+Level: 22
+Tera Type: Fire
+EVs: 80 Atk / 80 Spe
+Adamant Nature
+- Double Kick
+- Flame Charge
+- Bulk Up
+- Slash
 
 === TRAINER_BRENDAN_ROUTE_119_TREECKO ===
 Name: BRENDAN
@@ -9665,19 +10006,75 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Pelipper
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Ludicolo @ Life Orb
+Ability: Swift Swim
+Level: 33
+EVs: 200 SpA / 200 Spe
+Modest Nature
+Signature Move: Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+- Rain Dance
 
-Lombre
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 34
+EVs: 200 HP / 200 Def
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Weather Ball
+- U-turn
+- Roost
 
-Combusken
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 34
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
+
+Tropius @ Leftovers
+Ability: Harvest
+Level: 33
+EVs: 200 HP / 200 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 35
+EVs: 200 Atk / 200 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Blaziken @ Charcoal
+Ability: Speed Boost
+Level: 37
+Tera Type: Fire
+EVs: 200 Atk / 200 Spe
+Adamant Nature
+Signature Move: Blaze Kick
+- Flare Blitz
+- Close Combat
+- Swords Dance
+- Thunder Punch
 
 === TRAINER_BRENDAN_ROUTE_103_TORCHIC ===
 Name: BRENDAN
@@ -9699,19 +10096,59 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Lombre
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Lombre @ Eviolite
+Ability: Rain Dish
+Level: 19
+EVs: 80 HP / 80 Def
+Bold Nature
+- Giga Drain
+- Bubble Beam
+- Leech Seed
+- Fake Out
 
-Slugma
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Numel @ Eviolite
+Ability: Simple
+Level: 19
+EVs: 80 HP / 80 Def
+Bold Nature
+- Flame Burst
+- Bulldoze
+- Yawn
+- Focus Energy
 
-Marshtomp
+Electrike @ Eviolite
+Ability: Lightning Rod
 Level: 20
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+EVs: 80 SpA / 80 Spe
+Timid Nature
+- Shock Wave
+- Spark
+- Thunder Wave
+- Howl
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 20
+EVs: 80 Atk / 80 Spe
+Hasty Nature
+Signature Move: Bite
+- Quick Attack
+- Slash
+- Double Team
+- Swords Dance
+
+Marshtomp @ Mystic Water
+Ability: Torrent
+Level: 22
+Tera Type: Water
+EVs: 80 HP / 80 Def
+Impish Nature
+- Mud Shot
+- Water Pulse
+- Rock Smash
+- Protect
 
 === TRAINER_BRENDAN_ROUTE_119_TORCHIC ===
 Name: BRENDAN
@@ -9720,19 +10157,75 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Lombre
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Ludicolo @ Life Orb
+Ability: Swift Swim
+Level: 33
+EVs: 200 SpA / 200 Spe
+Modest Nature
+Signature Move: Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+- Rain Dance
 
-Slugma
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
+Level: 34
+EVs: 200 HP / 200 SpA
+Quiet Nature
+Signature Move: Earth Power
+- Lava Plume
+- Ancient Power
+- Stealth Rock
+- Yawn
 
-Marshtomp
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 34
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
+
+Tropius @ Leftovers
+Ability: Harvest
+Level: 33
+EVs: 200 HP / 200 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 35
+EVs: 200 Atk / 200 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Swampert @ Mystic Water
+Ability: Torrent
+Level: 37
+Tera Type: Water
+EVs: 200 HP / 200 Def
+Impish Nature
+Signature Move: Earthquake
+- Waterfall
+- Ice Punch
+- Stealth Rock
+- Yawn
 
 === TRAINER_MAY_ROUTE_103_MUDKIP ===
 Name: MAY
@@ -9754,19 +10247,61 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Wingull
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Numel @ Eviolite
+Ability: Simple
+Level: 19
+EVs: 80 HP / 80 Def
+Bold Nature
+- Flame Burst
+- Bulldoze
+- Yawn
+- Focus Energy
 
-Slugma
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
-
-Grovyle
+Wingull @ Eviolite
+Ability: Keen Eye
 Level: 20
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+EVs: 80 SpA / 80 Spe
+Timid Nature
+IVs: 0 Atk
+- Water Pulse
+- Air Cutter
+- Supersonic
+- Quick Attack
+
+Electrike @ Eviolite
+Ability: Lightning Rod
+Level: 20
+EVs: 80 SpA / 80 Spe
+Timid Nature
+- Shock Wave
+- Spark
+- Thunder Wave
+- Howl
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 20
+EVs: 80 Atk / 80 Spe
+Hasty Nature
+Signature Move: Bite
+- Quick Attack
+- Slash
+- Double Team
+- Swords Dance
+
+Grovyle @ Miracle Seed
+Ability: Overgrow
+Level: 22
+Tera Type: Grass
+EVs: 80 SpA / 80 Spe
+Timid Nature
+IVs: 0 Atk
+- Giga Drain
+- Dragon Breath
+- Quick Attack
+- Detect
 
 === TRAINER_MAY_ROUTE_119_MUDKIP ===
 Name: MAY
@@ -9775,19 +10310,76 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Slugma
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
+Level: 33
+EVs: 200 HP / 200 SpA
+Quiet Nature
+Signature Move: Earth Power
+- Lava Plume
+- Ancient Power
+- Stealth Rock
+- Yawn
 
-Lombre
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 34
+EVs: 200 HP / 200 Def
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Weather Ball
+- U-turn
+- Roost
 
-Grovyle
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 34
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
+
+Tropius @ Leftovers
+Ability: Harvest
+Level: 33
+EVs: 200 HP / 200 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 35
+EVs: 200 Atk / 200 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Sceptile @ Miracle Seed
+Ability: Overgrow
+Level: 37
+Tera Type: Grass
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Leaf Storm
+- Giga Drain
+- Dragon Pulse
+- Focus Blast
+- Leech Seed
 
 === TRAINER_MAY_ROUTE_103_TREECKO ===
 Name: MAY
@@ -9809,19 +10401,60 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Wingull
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Lombre @ Eviolite
+Ability: Rain Dish
+Level: 19
+EVs: 80 HP / 80 Def
+Bold Nature
+- Giga Drain
+- Bubble Beam
+- Leech Seed
+- Fake Out
 
-Lombre
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
-
-Combusken
+Wingull @ Eviolite
+Ability: Keen Eye
 Level: 20
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+EVs: 80 SpA / 80 Spe
+Timid Nature
+IVs: 0 Atk
+- Water Pulse
+- Air Cutter
+- Supersonic
+- Quick Attack
+
+Electrike @ Eviolite
+Ability: Lightning Rod
+Level: 20
+EVs: 80 SpA / 80 Spe
+Timid Nature
+- Shock Wave
+- Spark
+- Thunder Wave
+- Howl
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 20
+EVs: 80 Atk / 80 Spe
+Hasty Nature
+Signature Move: Bite
+- Quick Attack
+- Slash
+- Double Team
+- Swords Dance
+
+Combusken @ Charcoal
+Ability: Blaze
+Level: 22
+Tera Type: Fire
+EVs: 80 Atk / 80 Spe
+Adamant Nature
+- Double Kick
+- Flame Charge
+- Bulk Up
+- Slash
 
 === TRAINER_MAY_ROUTE_119_TREECKO ===
 Name: MAY
@@ -9830,19 +10463,75 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Pelipper
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Ludicolo @ Life Orb
+Ability: Swift Swim
+Level: 33
+EVs: 200 SpA / 200 Spe
+Modest Nature
+Signature Move: Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+- Rain Dance
 
-Lombre
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 34
+EVs: 200 HP / 200 Def
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Weather Ball
+- U-turn
+- Roost
 
-Combusken
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 34
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
+
+Tropius @ Leftovers
+Ability: Harvest
+Level: 33
+EVs: 200 HP / 200 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 35
+EVs: 200 Atk / 200 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Blaziken @ Charcoal
+Ability: Speed Boost
+Level: 37
+Tera Type: Fire
+EVs: 200 Atk / 200 Spe
+Adamant Nature
+Signature Move: Blaze Kick
+- Flare Blitz
+- Close Combat
+- Swords Dance
+- Thunder Punch
 
 === TRAINER_MAY_ROUTE_103_TORCHIC ===
 Name: MAY
@@ -9864,19 +10553,59 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Lombre
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Lombre @ Eviolite
+Ability: Rain Dish
+Level: 19
+EVs: 80 HP / 80 Def
+Bold Nature
+- Giga Drain
+- Bubble Beam
+- Leech Seed
+- Fake Out
 
-Slugma
-Level: 18
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Numel @ Eviolite
+Ability: Simple
+Level: 19
+EVs: 80 HP / 80 Def
+Bold Nature
+- Flame Burst
+- Bulldoze
+- Yawn
+- Focus Energy
 
-Marshtomp
+Electrike @ Eviolite
+Ability: Lightning Rod
 Level: 20
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+EVs: 80 SpA / 80 Spe
+Timid Nature
+- Shock Wave
+- Spark
+- Thunder Wave
+- Howl
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 20
+EVs: 80 Atk / 80 Spe
+Hasty Nature
+Signature Move: Bite
+- Quick Attack
+- Slash
+- Double Team
+- Swords Dance
+
+Marshtomp @ Mystic Water
+Ability: Torrent
+Level: 22
+Tera Type: Water
+EVs: 80 HP / 80 Def
+Impish Nature
+- Mud Shot
+- Water Pulse
+- Rock Smash
+- Protect
 
 === TRAINER_MAY_ROUTE_119_TORCHIC ===
 Name: MAY
@@ -9885,19 +10614,75 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Lombre
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Ludicolo @ Life Orb
+Ability: Swift Swim
+Level: 33
+EVs: 200 SpA / 200 Spe
+Modest Nature
+Signature Move: Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+- Rain Dance
 
-Slugma
-Level: 29
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
+Level: 34
+EVs: 200 HP / 200 SpA
+Quiet Nature
+Signature Move: Earth Power
+- Lava Plume
+- Ancient Power
+- Stealth Rock
+- Yawn
 
-Marshtomp
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 34
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
+
+Tropius @ Leftovers
+Ability: Harvest
+Level: 33
+EVs: 200 HP / 200 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 35
+EVs: 200 Atk / 200 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Swampert @ Mystic Water
+Ability: Torrent
+Level: 37
+Tera Type: Water
+EVs: 200 HP / 200 Def
+Impish Nature
+Signature Move: Earthquake
+- Waterfall
+- Ice Punch
+- Stealth Rock
+- Yawn
 
 === TRAINER_ISAAC_1 ===
 Name: ISAAC
@@ -10917,15 +11702,48 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Check Bad Move
+AI: Smart Trainer
 
-Lotad
+Lotad @ Oran Berry
+Ability: Rain Dish
 Level: 13
-IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
+EVs: 40 HP / 40 Def
+Bold Nature
+- Mega Drain
+- Water Gun
+- Leech Seed
+- Growl
 
-Torchic
-Level: 15
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Wingull @ Oran Berry
+Ability: Keen Eye
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Water Gun
+- Wing Attack
+- Supersonic
+- Quick Attack
+
+Electrike @ Oran Berry
+Ability: Static
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Spark
+- Shock Wave
+- Thunder Wave
+- Quick Attack
+
+Combusken @ Charcoal
+Ability: Blaze
+Level: 16
+Tera Type: Fire
+EVs: 40 Atk / 40 Spe
+Adamant Nature
+- Double Kick
+- Flame Charge
+- Quick Attack
+- Bulk Up
 
 === TRAINER_BRENDAN_RUSTBORO_MUDKIP ===
 Name: BRENDAN
@@ -10934,15 +11752,48 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Check Bad Move
+AI: Smart Trainer
 
-Wingull
+Numel @ Oran Berry
+Ability: Oblivious
 Level: 13
-IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
+EVs: 40 HP / 40 Def
+Bold Nature
+- Ember
+- Magnitude
+- Yawn
+- Growl
 
-Treecko
-Level: 15
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Wingull @ Oran Berry
+Ability: Keen Eye
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Water Gun
+- Wing Attack
+- Supersonic
+- Quick Attack
+
+Electrike @ Oran Berry
+Ability: Static
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Spark
+- Shock Wave
+- Thunder Wave
+- Quick Attack
+
+Grovyle @ Miracle Seed
+Ability: Overgrow
+Level: 16
+Tera Type: Grass
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Mega Drain
+- Quick Guard
+- Quick Attack
+- Detect
 
 === TRAINER_PAXTON ===
 Name: PAXTON
@@ -11041,15 +11892,48 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Slugma
+Lotad @ Oran Berry
+Ability: Rain Dish
 Level: 13
-IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
+EVs: 40 HP / 40 Def
+Bold Nature
+- Mega Drain
+- Water Gun
+- Leech Seed
+- Growl
 
-Mudkip
-Level: 15
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Numel @ Oran Berry
+Ability: Oblivious
+Level: 14
+EVs: 40 HP / 40 Def
+Bold Nature
+- Ember
+- Magnitude
+- Yawn
+- Growl
+
+Electrike @ Oran Berry
+Ability: Static
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Spark
+- Shock Wave
+- Thunder Wave
+- Quick Attack
+
+Marshtomp @ Mystic Water
+Ability: Torrent
+Level: 16
+Tera Type: Water
+EVs: 40 HP / 40 Def
+Impish Nature
+- Mud Shot
+- Water Gun
+- Rock Smash
+- Protect
 
 === TRAINER_MAY_RUSTBORO_MUDKIP ===
 Name: MAY
@@ -11058,15 +11942,48 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Check Bad Move / Try To Faint / Force Setup First Turn
+AI: Smart Trainer
 
-Wingull
+Numel @ Oran Berry
+Ability: Oblivious
 Level: 13
-IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
+EVs: 40 HP / 40 Def
+Bold Nature
+- Ember
+- Magnitude
+- Yawn
+- Growl
 
-Treecko
-Level: 15
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Wingull @ Oran Berry
+Ability: Keen Eye
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Water Gun
+- Wing Attack
+- Supersonic
+- Quick Attack
+
+Electrike @ Oran Berry
+Ability: Static
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Spark
+- Shock Wave
+- Thunder Wave
+- Quick Attack
+
+Grovyle @ Miracle Seed
+Ability: Overgrow
+Level: 16
+Tera Type: Grass
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Mega Drain
+- Quick Guard
+- Quick Attack
+- Detect
 
 === TRAINER_MAXIE_MAGMA_HIDEOUT ===
 Name: MAXIE
@@ -12105,11 +13022,19 @@ Pic: Wally
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
 Ralts
-Level: 16
-IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
+Ability: Synchronize
+Level: 18
+Tera Type: Fairy
+EVs: 80 SpA / 80 Spe
+Modest Nature
+IVs: 0 Atk
+- Confusion
+- Disarming Voice
+- Double Team
+- Teleport
 
 === TRAINER_WALLY_VR_2 ===
 Name: WALLY
@@ -12118,47 +13043,78 @@ Pic: Wally
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Altaria
-Level: 47
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Aerial Ace
-- Safeguard
-- Dragon Breath
+Delcatty @ Sitrus Berry
+Ability: Wonder Skin
+Level: 50
+EVs: 252 HP / 252 Def / 6 Spe
+Bold Nature
+Signature Move: Play Rough
+- Fake Out
+- Body Slam
+- Thunder Wave
+- Wish
+
+Roserade @ Black Sludge
+Ability: Natural Cure
+Level: 51
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Sludge Bomb
+- Giga Drain
+- Shadow Ball
+- Toxic Spikes
+- Leaf Storm
+
+Magnezone @ Leftovers
+Ability: Sturdy
+Level: 51
+EVs: 252 HP / 252 SpA / 6 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flash Cannon
+- Volt Switch
+- Thunder Wave
+- Tri Attack
+
+Flygon @ Life Orb
+Ability: Levitate
+Level: 52
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Earthquake
+- Dragon Claw
+- U-turn
+- Fire Punch
 - Dragon Dance
 
-Delcatty
-Level: 46
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Sing
-- Assist
-- Charm
-- Feint Attack
+Altaria @ Leftovers
+Ability: Natural Cure
+Level: 53
+Tera Type: Fairy
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Dragon Pulse
+- Flamethrower
+- Cotton Guard
+- Roost
 
-Roselia
-Level: 47
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Magical Leaf
-- Leech Seed
-- Giga Drain
-- Toxic
-
-Magneton
-Level: 44
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Supersonic
-- Thunderbolt
-- Tri Attack
-- Screech
-
-Gardevoir
-Level: 48
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Double Team
+Gardevoir @ Gardevoirite
+Ability: Trace
+Level: 55
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Moonblast
 - Calm Mind
-- Psychic
-- Future Sight
+- Mystical Fire
+- Thunderbolt
 
 === TRAINER_WALLY_VR_3 ===
 Name: WALLY
@@ -12167,47 +13123,78 @@ Pic: Wally
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Altaria
-Level: 50
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Aerial Ace
-- Safeguard
-- Dragon Breath
+Delcatty @ Sitrus Berry
+Ability: Wonder Skin
+Level: 53
+EVs: 252 HP / 252 Def / 6 Spe
+Bold Nature
+Signature Move: Play Rough
+- Fake Out
+- Body Slam
+- Thunder Wave
+- Wish
+
+Roserade @ Black Sludge
+Ability: Natural Cure
+Level: 54
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Sludge Bomb
+- Giga Drain
+- Shadow Ball
+- Toxic Spikes
+- Leaf Storm
+
+Magnezone @ Leftovers
+Ability: Sturdy
+Level: 54
+EVs: 252 HP / 252 SpA / 6 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flash Cannon
+- Volt Switch
+- Thunder Wave
+- Tri Attack
+
+Flygon @ Life Orb
+Ability: Levitate
+Level: 55
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Earthquake
+- Dragon Claw
+- U-turn
+- Fire Punch
 - Dragon Dance
 
-Delcatty
-Level: 49
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Sing
-- Assist
-- Charm
-- Feint Attack
+Altaria @ Leftovers
+Ability: Natural Cure
+Level: 56
+Tera Type: Fairy
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Dragon Pulse
+- Flamethrower
+- Cotton Guard
+- Roost
 
-Roselia
-Level: 50
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Magical Leaf
-- Leech Seed
-- Giga Drain
-- Toxic
-
-Magneton
-Level: 47
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Supersonic
-- Thunderbolt
-- Tri Attack
-- Screech
-
-Gardevoir
-Level: 51
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Double Team
+Gardevoir @ Gardevoirite
+Ability: Trace
+Level: 58
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Moonblast
 - Calm Mind
-- Psychic
-- Future Sight
+- Mystical Fire
+- Thunderbolt
 
 === TRAINER_WALLY_VR_4 ===
 Name: WALLY
@@ -12216,47 +13203,78 @@ Pic: Wally
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Altaria
-Level: 53
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Aerial Ace
-- Safeguard
-- Dragon Breath
+Delcatty @ Sitrus Berry
+Ability: Wonder Skin
+Level: 56
+EVs: 252 HP / 252 Def / 6 Spe
+Bold Nature
+Signature Move: Play Rough
+- Fake Out
+- Body Slam
+- Thunder Wave
+- Wish
+
+Roserade @ Black Sludge
+Ability: Natural Cure
+Level: 57
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Sludge Bomb
+- Giga Drain
+- Shadow Ball
+- Toxic Spikes
+- Leaf Storm
+
+Magnezone @ Leftovers
+Ability: Sturdy
+Level: 57
+EVs: 252 HP / 252 SpA / 6 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flash Cannon
+- Volt Switch
+- Thunder Wave
+- Tri Attack
+
+Flygon @ Life Orb
+Ability: Levitate
+Level: 58
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Earthquake
+- Dragon Claw
+- U-turn
+- Fire Punch
 - Dragon Dance
 
-Delcatty
-Level: 52
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Sing
-- Assist
-- Charm
-- Feint Attack
+Altaria @ Leftovers
+Ability: Natural Cure
+Level: 59
+Tera Type: Fairy
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Dragon Pulse
+- Flamethrower
+- Cotton Guard
+- Roost
 
-Roselia
-Level: 53
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Magical Leaf
-- Leech Seed
-- Giga Drain
-- Toxic
-
-Magneton
-Level: 50
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Supersonic
-- Thunderbolt
-- Tri Attack
-- Screech
-
-Gardevoir
-Level: 54
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Double Team
+Gardevoir @ Gardevoirite
+Ability: Trace
+Level: 61
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Moonblast
 - Calm Mind
-- Psychic
-- Future Sight
+- Mystical Fire
+- Thunderbolt
 
 === TRAINER_WALLY_VR_5 ===
 Name: WALLY
@@ -12265,47 +13283,78 @@ Pic: Wally
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Altaria
-Level: 56
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Aerial Ace
-- Safeguard
-- Dragon Breath
+Delcatty @ Sitrus Berry
+Ability: Wonder Skin
+Level: 59
+EVs: 252 HP / 252 Def / 6 Spe
+Bold Nature
+Signature Move: Play Rough
+- Fake Out
+- Body Slam
+- Thunder Wave
+- Wish
+
+Roserade @ Black Sludge
+Ability: Natural Cure
+Level: 60
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Sludge Bomb
+- Giga Drain
+- Shadow Ball
+- Toxic Spikes
+- Leaf Storm
+
+Magnezone @ Leftovers
+Ability: Sturdy
+Level: 60
+EVs: 252 HP / 252 SpA / 6 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flash Cannon
+- Volt Switch
+- Thunder Wave
+- Tri Attack
+
+Flygon @ Life Orb
+Ability: Levitate
+Level: 61
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Earthquake
+- Dragon Claw
+- U-turn
+- Fire Punch
 - Dragon Dance
 
-Delcatty
-Level: 55
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Sing
-- Assist
-- Charm
-- Feint Attack
+Altaria @ Leftovers
+Ability: Natural Cure
+Level: 62
+Tera Type: Fairy
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Dragon Pulse
+- Flamethrower
+- Cotton Guard
+- Roost
 
-Roselia
-Level: 56
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Magical Leaf
-- Leech Seed
-- Giga Drain
-- Toxic
-
-Magneton
-Level: 53
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
-- Supersonic
-- Thunderbolt
-- Tri Attack
-- Screech
-
-Gardevoir
-Level: 57
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Double Team
+Gardevoir @ Gardevoirite
+Ability: Trace
+Level: 64
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Moonblast
 - Calm Mind
-- Psychic
-- Future Sight
+- Mystical Fire
+- Thunderbolt
 
 === TRAINER_BRENDAN_LILYCOVE_MUDKIP ===
 Name: BRENDAN
@@ -12314,23 +13363,76 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Tropius
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
+Level: 37
+EVs: 240 HP / 240 SpA
+Quiet Nature
+Signature Move: Earth Power
+- Lava Plume
+- Ancient Power
+- Stealth Rock
+- Yawn
 
-Slugma
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 38
+EVs: 240 HP / 240 Def
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Weather Ball
+- U-turn
+- Roost
 
-Pelipper
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 38
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
 
-Grovyle
-Level: 34
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tropius @ Leftovers
+Ability: Harvest
+Level: 38
+Tera Type: Flying
+EVs: 240 HP / 240 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 39
+EVs: 240 Atk / 240 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Sceptile @ Sceptilite
+Ability: Overgrow
+Level: 41
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Leaf Storm
+- Giga Drain
+- Dragon Pulse
+- Focus Blast
+- Leech Seed
 
 === TRAINER_BRENDAN_LILYCOVE_TREECKO ===
 Name: BRENDAN
@@ -12339,23 +13441,75 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Tropius
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Ludicolo @ Life Orb
+Ability: Swift Swim
+Level: 37
+EVs: 240 SpA / 240 Spe
+Modest Nature
+Signature Move: Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+- Rain Dance
 
-Pelipper
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 38
+EVs: 240 HP / 240 Def
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Weather Ball
+- U-turn
+- Roost
 
-Ludicolo
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 38
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
 
-Combusken
-Level: 34
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tropius @ Leftovers
+Ability: Harvest
+Level: 38
+Tera Type: Flying
+EVs: 240 HP / 240 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 39
+EVs: 240 Atk / 240 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Blaziken @ Blazikenite
+Ability: Speed Boost
+Level: 41
+EVs: 240 Atk / 240 Spe
+Adamant Nature
+Signature Move: Blaze Kick
+- Flare Blitz
+- Close Combat
+- Swords Dance
+- Thunder Punch
 
 === TRAINER_BRENDAN_LILYCOVE_TORCHIC ===
 Name: BRENDAN
@@ -12364,23 +13518,75 @@ Pic: Brendan
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Tropius
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Ludicolo @ Life Orb
+Ability: Swift Swim
+Level: 37
+EVs: 240 SpA / 240 Spe
+Modest Nature
+Signature Move: Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+- Rain Dance
 
-Ludicolo
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
+Level: 38
+EVs: 240 HP / 240 SpA
+Quiet Nature
+Signature Move: Earth Power
+- Lava Plume
+- Ancient Power
+- Stealth Rock
+- Yawn
 
-Slugma
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 38
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
 
-Marshtomp
-Level: 34
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tropius @ Leftovers
+Ability: Harvest
+Level: 38
+Tera Type: Flying
+EVs: 240 HP / 240 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 39
+EVs: 240 Atk / 240 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Swampert @ Swampertite
+Ability: Torrent
+Level: 41
+EVs: 240 HP / 240 Def
+Impish Nature
+Signature Move: Earthquake
+- Waterfall
+- Ice Punch
+- Stealth Rock
+- Yawn
 
 === TRAINER_MAY_LILYCOVE_MUDKIP ===
 Name: MAY
@@ -12389,23 +13595,76 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Tropius
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
+Level: 37
+EVs: 240 HP / 240 SpA
+Quiet Nature
+Signature Move: Earth Power
+- Lava Plume
+- Ancient Power
+- Stealth Rock
+- Yawn
 
-Slugma
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 38
+EVs: 240 HP / 240 Def
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Weather Ball
+- U-turn
+- Roost
 
-Pelipper
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 38
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
 
-Grovyle
-Level: 34
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tropius @ Leftovers
+Ability: Harvest
+Level: 38
+Tera Type: Flying
+EVs: 240 HP / 240 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 39
+EVs: 240 Atk / 240 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Sceptile @ Sceptilite
+Ability: Overgrow
+Level: 41
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Leaf Storm
+- Giga Drain
+- Dragon Pulse
+- Focus Blast
+- Leech Seed
 
 === TRAINER_MAY_LILYCOVE_TREECKO ===
 Name: MAY
@@ -12414,23 +13673,75 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Tropius
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Ludicolo @ Life Orb
+Ability: Swift Swim
+Level: 37
+EVs: 240 SpA / 240 Spe
+Modest Nature
+Signature Move: Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+- Rain Dance
 
-Pelipper
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Pelipper @ Damp Rock
+Ability: Drizzle
+Level: 38
+EVs: 240 HP / 240 Def
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Weather Ball
+- U-turn
+- Roost
 
-Ludicolo
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 38
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
 
-Combusken
-Level: 34
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tropius @ Leftovers
+Ability: Harvest
+Level: 38
+Tera Type: Flying
+EVs: 240 HP / 240 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 39
+EVs: 240 Atk / 240 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Blaziken @ Blazikenite
+Ability: Speed Boost
+Level: 41
+EVs: 240 Atk / 240 Spe
+Adamant Nature
+Signature Move: Blaze Kick
+- Flare Blitz
+- Close Combat
+- Swords Dance
+- Thunder Punch
 
 === TRAINER_MAY_LILYCOVE_TORCHIC ===
 Name: MAY
@@ -12439,23 +13750,75 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Tropius
-Level: 31
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Ludicolo @ Life Orb
+Ability: Swift Swim
+Level: 37
+EVs: 240 SpA / 240 Spe
+Modest Nature
+Signature Move: Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+- Rain Dance
 
-Ludicolo
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
+Level: 38
+EVs: 240 HP / 240 SpA
+Quiet Nature
+Signature Move: Earth Power
+- Lava Plume
+- Ancient Power
+- Stealth Rock
+- Yawn
 
-Slugma
-Level: 32
-IVs: 18 HP / 18 Atk / 18 Def / 18 SpA / 18 SpD / 18 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 38
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Flamethrower
+- Volt Switch
+- Thunder Wave
+- Overheat
 
-Marshtomp
-Level: 34
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tropius @ Leftovers
+Ability: Harvest
+Level: 38
+Tera Type: Flying
+EVs: 240 HP / 240 Def
+Sassy Nature
+Signature Move: Air Slash
+- Giga Drain
+- Leech Seed
+- Synthesis
+- Protect
+
+Absol @ Scope Lens
+Ability: Super Luck
+Level: 39
+EVs: 240 Atk / 240 Spe
+Hasty Nature
+Signature Move: Night Slash
+- Psycho Cut
+- Sucker Punch
+- Swords Dance
+- Superpower
+
+Swampert @ Swampertite
+Ability: Torrent
+Level: 41
+EVs: 240 HP / 240 Def
+Impish Nature
+Signature Move: Earthquake
+- Waterfall
+- Ice Punch
+- Stealth Rock
+- Yawn
 
 === TRAINER_JONAH ===
 Name: JONAH
@@ -14189,15 +15552,48 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Lotad
+Lotad @ Oran Berry
+Ability: Rain Dish
 Level: 13
-IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
+EVs: 40 HP / 40 Def
+Bold Nature
+- Mega Drain
+- Water Gun
+- Leech Seed
+- Growl
 
-Torchic
-Level: 15
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Wingull @ Oran Berry
+Ability: Keen Eye
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Water Gun
+- Wing Attack
+- Supersonic
+- Quick Attack
+
+Electrike @ Oran Berry
+Ability: Static
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Spark
+- Shock Wave
+- Thunder Wave
+- Quick Attack
+
+Combusken @ Charcoal
+Ability: Blaze
+Level: 16
+Tera Type: Fire
+EVs: 40 Atk / 40 Spe
+Adamant Nature
+- Double Kick
+- Flame Charge
+- Quick Attack
+- Bulk Up
 
 === TRAINER_MAY_RUSTBORO_TORCHIC ===
 Name: MAY
@@ -14206,15 +15602,48 @@ Pic: May
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Torkoal
+Lotad @ Oran Berry
+Ability: Rain Dish
 Level: 13
-IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
+EVs: 40 HP / 40 Def
+Bold Nature
+- Mega Drain
+- Water Gun
+- Leech Seed
+- Growl
 
-Mudkip
-Level: 15
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Numel @ Oran Berry
+Ability: Oblivious
+Level: 14
+EVs: 40 HP / 40 Def
+Bold Nature
+- Ember
+- Magnitude
+- Yawn
+- Growl
+
+Electrike @ Oran Berry
+Ability: Static
+Level: 14
+EVs: 40 SpA / 40 Spe
+Timid Nature
+- Spark
+- Shock Wave
+- Thunder Wave
+- Quick Attack
+
+Marshtomp @ Mystic Water
+Ability: Torrent
+Level: 16
+Tera Type: Water
+EVs: 40 HP / 40 Def
+Impish Nature
+- Mud Shot
+- Water Gun
+- Rock Smash
+- Protect
 
 === TRAINER_ROXANNE_2 ===
 Name: ROXANNE
@@ -14768,39 +16197,79 @@ Pic: Leader Wattson
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Mareep
+Galvantula @ Focus Sash
+Ability: Compound Eyes
 Level: 36
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+EVs: 160 SpA / 160 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Bug Buzz
 - Thunder
+- Sticky Web
+- Electroweb
 - Protect
-- Thunder Wave
-- Light Screen
 
-Electrode
+Rotom-Wash @ Sitrus Berry
+Ability: Levitate
 Level: 36
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rollout
-- Thunder
-- Explosion
-- Rain Dance
+EVs: 160 HP / 160 Def
+Calm Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Hydro Pump
+- Will-O-Wisp
+- Electroweb
+- Protect
 
-Magneton @ Sitrus Berry
+Ampharos @ Leftovers
+Ability: Static
+Level: 37
+EVs: 160 HP / 160 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunder
+- Discharge
+- Dazzling Gleam
+- Thunder Wave
+- Protect
+
+Vikavolt @ Life Orb
+Ability: Levitate
+Level: 37
+EVs: 160 HP / 160 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Bug Buzz
+- Thunderbolt
+- Energy Ball
+- Air Slash
+- Protect
+
+Raichu @ Raichunite X
+Ability: Lightning Rod
 Level: 38
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Supersonic
+EVs: 160 Atk / 160 Spe
+Jolly Nature
+Signature Move: Volt Tackle
+- Fake Out
+- Extreme Speed
+- Volt Switch
 - Protect
-- Thunder
-- Rain Dance
 
-Manectric @ Sitrus Berry
+Manectric @ Choice Specs
+Ability: Lightning Rod
 Level: 40
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Bite
-- Thunder Wave
-- Thunder
-- Protect
+Tera Type: Electric
+EVs: 160 SpA / 160 Spe
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunder
+- Discharge
+- Flamethrower
+- Hyper Voice
+- Overheat
 
 === TRAINER_WATTSON_3 ===
 Name: WATTSON
@@ -14809,47 +16278,79 @@ Pic: Leader Wattson
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Pikachu
-Level: 39
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Thunder
-- Slam
-- Rain Dance
-- Shock Wave
+Magnezone @ Assault Vest
+Ability: Sturdy
+Level: 40
+EVs: 200 HP / 200 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Discharge
+- Flash Cannon
+- Volt Switch
+- Electroweb
 
-Flaaffy
+Rotom-Wash @ Sitrus Berry
+Ability: Levitate
 Level: 41
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Thunder
+EVs: 200 HP / 200 Def
+Calm Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Hydro Pump
+- Will-O-Wisp
+- Electroweb
 - Protect
+
+Ampharos @ Leftovers
+Ability: Static
+Level: 42
+EVs: 200 HP / 200 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunder
+- Discharge
+- Dazzling Gleam
 - Thunder Wave
-- Light Screen
+- Protect
 
-Electrode
-Level: 41
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rollout
-- Thunder
-- Explosion
-- Rain Dance
+Vikavolt @ Life Orb
+Ability: Levitate
+Level: 42
+EVs: 200 HP / 200 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Bug Buzz
+- Thunderbolt
+- Energy Ball
+- Air Slash
+- Protect
 
-Magneton @ Sitrus Berry
+Raichu @ Raichunite X
+Ability: Lightning Rod
 Level: 43
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Supersonic
+EVs: 200 Atk / 200 Spe
+Jolly Nature
+Signature Move: Volt Tackle
+- Fake Out
+- Extreme Speed
+- Volt Switch
 - Protect
-- Thunder
-- Rain Dance
 
-Manectric @ Sitrus Berry
+Manectric @ Choice Specs
+Ability: Lightning Rod
 Level: 45
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Bite
-- Thunder Wave
-- Thunder
-- Protect
+Tera Type: Electric
+EVs: 200 SpA / 200 Spe
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunder
+- Discharge
+- Flamethrower
+- Hyper Voice
+- Overheat
 
 === TRAINER_WATTSON_4 ===
 Name: WATTSON
@@ -14858,47 +16359,78 @@ Pic: Leader Wattson
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Raichu
-Level: 44
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Thunder
-- Slam
-- Rain Dance
-- Protect
+Magnezone @ Assault Vest
+Ability: Sturdy
+Level: 45
+EVs: 240 HP / 240 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Discharge
+- Flash Cannon
+- Volt Switch
+- Electroweb
 
-Ampharos
+Rotom-Wash @ Sitrus Berry
+Ability: Levitate
 Level: 46
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Thunder
+EVs: 240 HP / 240 Def
+Calm Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Hydro Pump
+- Will-O-Wisp
+- Electroweb
 - Protect
+
+Ampharos @ Leftovers
+Ability: Static
+Level: 47
+EVs: 240 HP / 240 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunder
+- Discharge
+- Dazzling Gleam
 - Thunder Wave
-- Light Screen
+- Protect
 
-Electrode
-Level: 46
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rollout
-- Thunder
-- Explosion
-- Rain Dance
+Electivire @ Life Orb
+Ability: Motor Drive
+Level: 47
+EVs: 240 Atk / 240 Spe
+Adamant Nature
+Signature Move: Wild Charge
+- Ice Punch
+- Cross Chop
+- Earthquake
+- Protect
 
-Magneton @ Sitrus Berry
+Raichu @ Raichunite X
+Ability: Lightning Rod
 Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Supersonic
+EVs: 240 Atk / 240 Spe
+Jolly Nature
+Signature Move: Volt Tackle
+- Fake Out
+- Extreme Speed
+- Volt Switch
 - Protect
-- Thunder
-- Rain Dance
 
-Manectric @ Sitrus Berry
+Manectric @ Choice Specs
+Ability: Lightning Rod
 Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Bite
-- Thunder Wave
-- Thunder
-- Protect
+Tera Type: Electric
+EVs: 240 SpA / 240 Spe
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunder
+- Discharge
+- Flamethrower
+- Hyper Voice
+- Overheat
 
 === TRAINER_WATTSON_5 ===
 Name: WATTSON
@@ -14907,55 +16439,77 @@ Pic: Leader Wattson
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Electabuzz
+Magnezone @ Assault Vest
+Ability: Sturdy
 Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Swift
-- Focus Punch
-- Thunder Punch
-- Light Screen
+EVs: 252 HP / 252 SpA / 6 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Discharge
+- Flash Cannon
+- Volt Switch
+- Electroweb
 
-Raichu
+Rotom-Wash @ Sitrus Berry
+Ability: Levitate
 Level: 51
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Thunder
-- Slam
-- Rain Dance
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Hydro Pump
+- Will-O-Wisp
+- Electroweb
 - Protect
 
-Ampharos
-Level: 51
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Thunder
-- Protect
-- Thunder Wave
-- Light Screen
+Eelektross @ Assault Vest
+Ability: Levitate
+Level: 52
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Thunder Punch
+- Wild Charge
+- Flamethrower
+- Drain Punch
+- U-turn
 
-Electrode
+Electivire @ Life Orb
+Ability: Motor Drive
+Level: 52
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Wild Charge
+- Ice Punch
+- Cross Chop
+- Earthquake
+- Protect
+
+Raichu @ Raichunite X
+Ability: Lightning Rod
 Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rollout
-- Thunder
-- Explosion
-- Rain Dance
-
-Magneton @ Sitrus Berry
-Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Supersonic
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Volt Tackle
+- Fake Out
+- Extreme Speed
+- Volt Switch
 - Protect
-- Thunder
-- Rain Dance
 
-Manectric @ Sitrus Berry
+Manectric @ Choice Specs
+Ability: Lightning Rod
 Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Bite
-- Thunder Wave
-- Thunder
-- Protect
+Tera Type: Electric
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Thunder
+- Discharge
+- Flamethrower
+- Hyper Voice
+- Overheat
 
 === TRAINER_FLANNERY_2 ===
 Name: FLANNERY
@@ -14964,39 +16518,76 @@ Pic: Leader Flannery
 Gender: Female
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Magcargo @ White Herb
-Level: 38
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Attract
-- Light Screen
-- Rock Slide
-
-Ponyta
-Level: 36
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Flamethrower
-- Attract
+Ninetales @ Heat Rock
+Ability: Drought
+Level: 35
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Heat Wave
 - Solar Beam
-- Bounce
+- Will-O-Wisp
+- Protect
 
-Camerupt @ White Herb
+Scovillain @ Life Orb
+Ability: Chlorophyll
+Level: 36
+EVs: 200 Atk / 200 Spe
+Adamant Nature
+Signature Move: Flamethrower
+- Seed Bomb
+- Fire Fang
+- Crunch
+- Protect
+
+Centiskorch @ Muscle Band
+Ability: Flash Fire
+Level: 37
+EVs: 200 Atk / 200 Spe
+Jolly Nature
+Signature Move: Flare Blitz
+- Fire Lash
+- Lunge
+- Crunch
+- Protect
+
+Arcanine @ Sitrus Berry
+Ability: Intimidate
+Level: 37
+EVs: 200 HP / 200 Def
+Impish Nature
+Signature Move: Extreme Speed
+- Flare Blitz
+- Snarl
+- Will-O-Wisp
+- Protect
+
+Houndoom @ Houndoominite
+Ability: Flash Fire
 Level: 38
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Sunny Day
-- Earthquake
-- Attract
+EVs: 200 SpA / 200 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Heat Wave
+- Dark Pulse
+- Sludge Bomb
+- Nasty Plot
 
-Torkoal @ White Herb
+Torkoal @ Leftovers
+Ability: Drought
 Level: 40
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Sunny Day
-- Explosion
-- Attract
+Tera Type: Grass
+EVs: 200 HP / 200 Def
+Bold Nature
+Signature Move: Eruption
+- Heat Wave
+- Body Press
+- Solar Beam
+- Protect
 
 === TRAINER_FLANNERY_3 ===
 Name: FLANNERY
@@ -15005,47 +16596,77 @@ Pic: Leader Flannery
 Gender: Female
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Growlithe
-Level: 41
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Helping Hand
-- Flamethrower
-- Roar
-- Sunny Day
-
-Magcargo @ White Herb
-Level: 43
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Attract
-- Light Screen
-- Rock Slide
-
-Ponyta
-Level: 41
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Flamethrower
-- Attract
+Ninetales @ Heat Rock
+Ability: Drought
+Level: 40
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Heat Wave
 - Solar Beam
-- Bounce
+- Will-O-Wisp
+- Protect
 
-Camerupt @ White Herb
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
+Level: 41
+EVs: 240 HP / 240 SpA
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Eruption
+- Heat Wave
+- Earth Power
+- Yawn
+- Protect
+
+Centiskorch @ Muscle Band
+Ability: Flash Fire
+Level: 42
+EVs: 240 Atk / 240 Spe
+Jolly Nature
+Signature Move: Flare Blitz
+- Fire Lash
+- Lunge
+- Crunch
+- Protect
+
+Arcanine @ Sitrus Berry
+Ability: Intimidate
+Level: 42
+EVs: 240 HP / 240 Def
+Impish Nature
+Signature Move: Extreme Speed
+- Flare Blitz
+- Snarl
+- Will-O-Wisp
+- Protect
+
+Houndoom @ Houndoominite
+Ability: Flash Fire
 Level: 43
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Sunny Day
-- Earthquake
-- Attract
+EVs: 240 SpA / 240 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Heat Wave
+- Dark Pulse
+- Sludge Bomb
+- Nasty Plot
 
-Torkoal @ White Herb
+Torkoal @ Leftovers
+Ability: Drought
 Level: 45
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Sunny Day
-- Explosion
-- Attract
+Tera Type: Grass
+EVs: 240 HP / 240 Def
+Bold Nature
+Signature Move: Eruption
+- Heat Wave
+- Body Press
+- Solar Beam
+- Protect
 
 === TRAINER_FLANNERY_4 ===
 Name: FLANNERY
@@ -15054,55 +16675,78 @@ Pic: Leader Flannery
 Gender: Female
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Houndour
-Level: 46
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Roar
+Ninetales @ Heat Rock
+Ability: Drought
+Level: 45
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Heat Wave
 - Solar Beam
-- Taunt
-- Sunny Day
+- Will-O-Wisp
+- Protect
 
-Growlithe
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
 Level: 46
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Helping Hand
-- Flamethrower
-- Sunny Day
-- Roar
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Eruption
+- Heat Wave
+- Earth Power
+- Yawn
+- Protect
 
-Magcargo @ White Herb
+Magcargo @ Leftovers
+Ability: Flame Body
+Level: 47
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+IVs: 0 Atk
+Signature Move: Lava Plume
+- Heat Wave
+- Power Gem
+- Shell Smash
+- Protect
+
+Arcanine @ Sitrus Berry
+Ability: Intimidate
+Level: 47
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Extreme Speed
+- Flare Blitz
+- Snarl
+- Will-O-Wisp
+- Protect
+
+Houndoom @ Houndoominite
+Ability: Flash Fire
 Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Attract
-- Light Screen
-- Rock Slide
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Heat Wave
+- Dark Pulse
+- Sludge Bomb
+- Nasty Plot
 
-Rapidash
-Level: 46
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Flamethrower
-- Attract
-- Solar Beam
-- Bounce
-
-Camerupt @ White Herb
-Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Sunny Day
-- Earthquake
-- Attract
-
-Torkoal @ White Herb
+Torkoal @ Leftovers
+Ability: Drought
 Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Sunny Day
-- Explosion
-- Attract
+Tera Type: Grass
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+Signature Move: Eruption
+- Heat Wave
+- Body Press
+- Solar Beam
+- Protect
 
 === TRAINER_FLANNERY_5 ===
 Name: FLANNERY
@@ -15111,55 +16755,77 @@ Pic: Leader Flannery
 Gender: Female
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Arcanine
+Talonflame @ Sharp Beak
+Ability: Gale Wings
+Level: 50
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Brave Bird
+- Flare Blitz
+- Tailwind
+- Swords Dance
+- Protect
+
+Camerupt @ Sitrus Berry
+Ability: Solid Rock
 Level: 51
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Helping Hand
-- Flamethrower
-- Sunny Day
-- Roar
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Eruption
+- Heat Wave
+- Earth Power
+- Yawn
+- Protect
 
-Magcargo @ White Herb
+Magcargo @ Leftovers
+Ability: Flame Body
+Level: 52
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+IVs: 0 Atk
+Signature Move: Lava Plume
+- Heat Wave
+- Power Gem
+- Shell Smash
+- Protect
+
+Arcanine @ Sitrus Berry
+Ability: Intimidate
+Level: 52
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Extreme Speed
+- Flare Blitz
+- Snarl
+- Will-O-Wisp
+- Protect
+
+Houndoom @ Houndoominite
+Ability: Flash Fire
 Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Attract
-- Light Screen
-- Rock Slide
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Heat Wave
+- Dark Pulse
+- Sludge Bomb
+- Nasty Plot
 
-Houndoom
-Level: 51
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Roar
-- Solar Beam
-- Taunt
-- Sunny Day
-
-Rapidash
-Level: 51
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Flamethrower
-- Attract
-- Solar Beam
-- Bounce
-
-Camerupt @ White Herb
-Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Sunny Day
-- Earthquake
-- Attract
-
-Torkoal @ White Herb
+Torkoal @ Leftovers
+Ability: Drought
 Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Overheat
-- Sunny Day
-- Explosion
-- Attract
+Tera Type: Grass
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+Signature Move: Eruption
+- Heat Wave
+- Body Press
+- Solar Beam
+- Protect
 
 === TRAINER_NORMAN_2 ===
 Name: NORMAN
@@ -15168,39 +16834,74 @@ Pic: Leader Norman
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Chansey
+Ambipom @ Silk Scarf
+Ability: Technician
+Level: 40
+EVs: 240 Atk / 240 Spe
+Jolly Nature
+Signature Move: Double Hit
+- Fake Out
+- Low Kick
+- U-turn
+- Knock Off
+
+Porygon2 @ Eviolite
+Ability: Download
+Level: 41
+EVs: 240 HP / 240 Def
+Calm Nature
+IVs: 0 Atk
+- Tri Attack
+- Ice Beam
+- Trick Room
+- Recover
+
+Bewear @ Sitrus Berry
+Ability: Fluffy
 Level: 42
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Light Screen
-- Sing
-- Skill Swap
-- Focus Punch
+EVs: 240 HP / 240 Atk
+Brave Nature
+Signature Move: Hammer Arm
+- Double-Edge
+- Drain Punch
+- Ice Punch
+- Protect
 
-Slaking @ Sitrus Berry
+Staraptor @ Sharp Beak
+Ability: Reckless
 Level: 42
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Blizzard
-- Shadow Ball
-- Double Edge
-- Fire Blast
+EVs: 240 Atk / 240 Spe
+Adamant Nature
+Signature Move: Brave Bird
+- Double-Edge
+- Close Combat
+- U-turn
+- Protect
 
-Spinda
+Kangaskhan @ Kangaskhanite
+Ability: Scrappy
 Level: 43
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Teeter Dance
-- Skill Swap
-- Facade
-- Hypnosis
+EVs: 240 Atk / 240 Spe
+Adamant Nature
+Signature Move: Double-Edge
+- Fake Out
+- Power-Up Punch
+- Sucker Punch
+- Protect
 
-Slaking @ Sitrus Berry
+Slaking @ Life Orb
+Ability: Truant
 Level: 45
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hyper Beam
-- Flamethrower
-- Thunderbolt
-- Shadow Ball
+Tera Type: Normal
+EVs: 240 Atk / 240 Spe
+Adamant Nature
+Signature Move: Giga Impact
+- Body Slam
+- Earthquake
+- Knock Off
+- Slack Off
 
 === TRAINER_NORMAN_3 ===
 Name: NORMAN
@@ -15209,47 +16910,75 @@ Pic: Leader Norman
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Slaking @ Sitrus Berry
-Level: 47
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Blizzard
-- Shadow Ball
-- Double Edge
-- Fire Blast
-
-Chansey
-Level: 47
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Light Screen
-- Sing
-- Skill Swap
-- Focus Punch
-
-Kangaskhan
+Ambipom @ Silk Scarf
+Ability: Technician
 Level: 45
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Double Hit
 - Fake Out
-- Dizzy Punch
-- Endure
-- Reversal
+- Low Kick
+- U-turn
+- Knock Off
 
-Spinda
+Blissey @ Leftovers
+Ability: Natural Cure
+Level: 46
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Hyper Voice
+- Seismic Toss
+- Thunder Wave
+- Helping Hand
+- Soft-Boiled
+
+Bewear @ Sitrus Berry
+Ability: Fluffy
+Level: 47
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Hammer Arm
+- Double-Edge
+- Drain Punch
+- Ice Punch
+- Protect
+
+Staraptor @ Sharp Beak
+Ability: Reckless
+Level: 47
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Brave Bird
+- Double-Edge
+- Close Combat
+- U-turn
+- Protect
+
+Kangaskhan @ Kangaskhanite
+Ability: Scrappy
 Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Teeter Dance
-- Skill Swap
-- Facade
-- Hypnosis
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Double-Edge
+- Fake Out
+- Power-Up Punch
+- Sucker Punch
+- Protect
 
-Slaking @ Sitrus Berry
+Slaking @ Life Orb
+Ability: Truant
 Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hyper Beam
-- Flamethrower
-- Thunderbolt
-- Shadow Ball
+Tera Type: Normal
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Giga Impact
+- Body Slam
+- Earthquake
+- Knock Off
+- Slack Off
 
 === TRAINER_NORMAN_4 ===
 Name: NORMAN
@@ -15258,47 +16987,75 @@ Pic: Leader Norman
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Slaking @ Sitrus Berry
-Level: 52
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Blizzard
-- Shadow Ball
-- Double Edge
-- Fire Blast
-
-Blissey
-Level: 52
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Light Screen
-- Sing
-- Skill Swap
-- Focus Punch
-
-Kangaskhan
+Ambipom @ Silk Scarf
+Ability: Technician
 Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Double Hit
 - Fake Out
-- Dizzy Punch
-- Endure
-- Reversal
+- Low Kick
+- U-turn
+- Knock Off
 
-Spinda
+Blissey @ Leftovers
+Ability: Natural Cure
+Level: 51
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Hyper Voice
+- Seismic Toss
+- Thunder Wave
+- Helping Hand
+- Soft-Boiled
+
+Snorlax @ Leftovers
+Ability: Thick Fat
+Level: 52
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Body Slam
+- High Horsepower
+- Curse
+- Rest
+- Protect
+
+Staraptor @ Sharp Beak
+Ability: Reckless
+Level: 52
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Brave Bird
+- Double-Edge
+- Close Combat
+- U-turn
+- Protect
+
+Kangaskhan @ Kangaskhanite
+Ability: Scrappy
 Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Teeter Dance
-- Skill Swap
-- Facade
-- Hypnosis
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Double-Edge
+- Fake Out
+- Power-Up Punch
+- Sucker Punch
+- Protect
 
-Slaking @ Sitrus Berry
+Slaking @ Life Orb
+Ability: Truant
 Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hyper Beam
-- Flamethrower
-- Thunderbolt
-- Shadow Ball
+Tera Type: Normal
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Giga Impact
+- Body Slam
+- Earthquake
+- Knock Off
+- Slack Off
 
 === TRAINER_NORMAN_5 ===
 Name: NORMAN
@@ -15307,55 +17064,76 @@ Pic: Leader Norman
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Slaking @ Sitrus Berry
-Level: 57
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Blizzard
-- Shadow Ball
-- Double Edge
-- Fire Blast
-
-Blissey
-Level: 57
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Protect
-- Sing
-- Skill Swap
-- Focus Punch
-
-Kangaskhan
+Ambipom @ Silk Scarf
+Ability: Technician
 Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Double Hit
 - Fake Out
-- Dizzy Punch
-- Endure
-- Reversal
+- Low Kick
+- U-turn
+- Knock Off
 
-Tauros
+Blissey @ Leftovers
+Ability: Natural Cure
+Level: 56
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Hyper Voice
+- Seismic Toss
+- Thunder Wave
+- Helping Hand
+- Soft-Boiled
+
+Snorlax @ Leftovers
+Ability: Thick Fat
 Level: 57
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Take Down
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Body Slam
+- High Horsepower
+- Curse
+- Rest
 - Protect
-- Fire Blast
-- Earthquake
 
-Spinda
-Level: 58
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Teeter Dance
-- Skill Swap
-- Facade
-- Hypnosis
-
-Slaking @ Sitrus Berry
-Level: 60
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hyper Beam
-- Flamethrower
+Porygon-Z @ Choice Specs
+Ability: Adaptability
+Level: 57
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Hyper Beam
+- Tri Attack
+- Ice Beam
 - Thunderbolt
 - Shadow Ball
+
+Kangaskhan @ Kangaskhanite
+Ability: Scrappy
+Level: 58
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Double-Edge
+- Fake Out
+- Power-Up Punch
+- Sucker Punch
+- Protect
+
+Slaking @ Life Orb
+Ability: Truant
+Level: 60
+Tera Type: Normal
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Giga Impact
+- Body Slam
+- Earthquake
+- Knock Off
+- Slack Off
 
 === TRAINER_WINONA_2 ===
 Name: WINONA
@@ -15364,47 +17142,75 @@ Pic: Leader Winona
 Gender: Female
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer / Risky
+AI: Smart Trainer
 
-Dratini @ Sitrus Berry
+Pelipper @ Damp Rock
+Ability: Drizzle
 Level: 40
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Thunder Wave
-- Thunderbolt
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Tailwind
+- U-turn
 - Protect
-- Ice Beam
 
-Tropius
-Level: 38
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sunny Day
-- Aerial Ace
-- Solar Beam
-- Earthquake
-
-Pelipper
+Skarmory @ Rocky Helmet
+Ability: Sturdy
 Level: 41
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Surf
-- Supersonic
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Brave Bird
+- Iron Head
+- Tailwind
+- Body Press
+- Roost
+
+Togekiss @ Leftovers
+Ability: Serene Grace
+Level: 42
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Air Slash
+- Dazzling Gleam
+- Follow Me
+- Thunder Wave
 - Protect
-- Aerial Ace
 
-Skarmory
+Hawlucha @ Sitrus Berry
+Ability: Unburden
+Level: 42
+Tera Type: Flying
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Flying Press
+- Swords Dance
+- Acrobatics
+- Close Combat
+- Protect
+
+Gliscor @ Toxic Orb
+Ability: Poison Heal
 Level: 43
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Whirlwind
-- Spikes
-- Steel Wing
-- Aerial Ace
+EVs: 252 HP / 252 Def / 6 SpD
+Careful Nature
+Signature Move: Earthquake
+- Knock Off
+- Tailwind
+- Roost
+- Protect
 
-Altaria @ Chesto Berry
+Altaria @ Altarianite
+Ability: Natural Cure
 Level: 45
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Aerial Ace
-- Rest
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Double-Edge
 - Dragon Dance
+- Dragon Claw
 - Earthquake
+- Protect
 
 === TRAINER_WINONA_3 ===
 Name: WINONA
@@ -15413,55 +17219,75 @@ Pic: Leader Winona
 Gender: Female
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer / Risky
+AI: Smart Trainer
 
-Hoothoot
-Level: 43
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Psychic
-- Reflect
-- Dream Eater
-
-Tropius
-Level: 43
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sunny Day
-- Aerial Ace
-- Solar Beam
-- Earthquake
-
-Dragonair @ Sitrus Berry
+Pelipper @ Damp Rock
+Ability: Drizzle
 Level: 45
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Thunder Wave
-- Thunderbolt
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Tailwind
+- U-turn
 - Protect
-- Ice Beam
 
-Pelipper
+Skarmory @ Rocky Helmet
+Ability: Sturdy
 Level: 46
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Surf
-- Supersonic
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Brave Bird
+- Iron Head
+- Tailwind
+- Body Press
+- Roost
+
+Togekiss @ Leftovers
+Ability: Serene Grace
+Level: 47
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Air Slash
+- Dazzling Gleam
+- Follow Me
+- Thunder Wave
 - Protect
-- Aerial Ace
 
-Skarmory
+Hawlucha @ Sitrus Berry
+Ability: Unburden
+Level: 47
+Tera Type: Flying
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Flying Press
+- Swords Dance
+- Acrobatics
+- Close Combat
+- Protect
+
+Corviknight @ Leftovers
+Ability: Mirror Armor
 Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Whirlwind
-- Spikes
-- Steel Wing
-- Aerial Ace
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Brave Bird
+- Iron Head
+- Tailwind
+- Bulk Up
+- Roost
 
-Altaria @ Chesto Berry
+Altaria @ Altarianite
+Ability: Natural Cure
 Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Aerial Ace
-- Rest
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Double-Edge
 - Dragon Dance
+- Dragon Claw
 - Earthquake
+- Protect
 
 === TRAINER_WINONA_4 ===
 Name: WINONA
@@ -15470,55 +17296,75 @@ Pic: Leader Winona
 Gender: Female
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer / Risky
+AI: Smart Trainer
 
-Noctowl
-Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Psychic
-- Reflect
-- Dream Eater
-
-Tropius
-Level: 49
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sunny Day
-- Aerial Ace
-- Solar Beam
-- Earthquake
-
-Dragonair @ Sitrus Berry
+Pelipper @ Damp Rock
+Ability: Drizzle
 Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Thunder Wave
-- Thunderbolt
+EVs: 252 HP / 252 Def / 6 SpD
+Bold Nature
+Signature Move: Hurricane
+- Scald
+- Tailwind
+- U-turn
 - Protect
-- Ice Beam
 
-Pelipper
+Skarmory @ Rocky Helmet
+Ability: Sturdy
 Level: 51
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Surf
-- Supersonic
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Brave Bird
+- Iron Head
+- Tailwind
+- Body Press
+- Roost
+
+Togekiss @ Leftovers
+Ability: Serene Grace
+Level: 52
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Air Slash
+- Dazzling Gleam
+- Follow Me
+- Thunder Wave
 - Protect
-- Aerial Ace
 
-Skarmory
-Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Whirlwind
-- Spikes
-- Steel Wing
-- Aerial Ace
-
-Altaria @ Chesto Berry
+Dragonite @ Lum Berry
+Ability: Multiscale
 Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Aerial Ace
-- Rest
-- Dragon Dance
+Tera Type: Flying
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Hurricane
+- Dragon Claw
+- Extreme Speed
 - Earthquake
+- Protect
+
+Corviknight @ Leftovers
+Ability: Mirror Armor
+Level: 53
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Brave Bird
+- Iron Head
+- Tailwind
+- Bulk Up
+- Roost
+
+Altaria @ Altarianite
+Ability: Natural Cure
+Level: 55
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Double-Edge
+- Dragon Dance
+- Dragon Claw
+- Earthquake
+- Protect
 
 === TRAINER_WINONA_5 ===
 Name: WINONA
@@ -15527,55 +17373,75 @@ Pic: Leader Winona
 Gender: Female
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer / Risky
+AI: Smart Trainer
 
-Noctowl
-Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Psychic
-- Reflect
-- Dream Eater
-
-Tropius
-Level: 54
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sunny Day
-- Aerial Ace
-- Solar Beam
-- Earthquake
-
-Pelipper
+Gyarados @ Sitrus Berry
+Ability: Intimidate
 Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Surf
-- Supersonic
-- Protect
-- Aerial Ace
-
-Dragonite @ Sitrus Berry
-Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hyper Beam
-- Thunderbolt
-- Earthquake
-- Ice Beam
-
-Skarmory
-Level: 58
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Whirlwind
-- Spikes
-- Steel Wing
-- Aerial Ace
-
-Altaria @ Chesto Berry
-Level: 60
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sky Attack
-- Rest
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Bounce
+- Waterfall
 - Dragon Dance
+- Thunder Wave
+- Protect
+
+Skarmory @ Rocky Helmet
+Ability: Sturdy
+Level: 56
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Brave Bird
+- Iron Head
+- Tailwind
+- Body Press
+- Roost
+
+Togekiss @ Leftovers
+Ability: Serene Grace
+Level: 57
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Air Slash
+- Dazzling Gleam
+- Follow Me
+- Thunder Wave
+- Protect
+
+Dragonite @ Lum Berry
+Ability: Multiscale
+Level: 57
+Tera Type: Flying
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Hurricane
+- Dragon Claw
+- Extreme Speed
 - Earthquake
+- Protect
+
+Corviknight @ Leftovers
+Ability: Mirror Armor
+Level: 58
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Brave Bird
+- Iron Head
+- Tailwind
+- Bulk Up
+- Roost
+
+Altaria @ Altarianite
+Ability: Natural Cure
+Level: 60
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Double-Edge
+- Dragon Dance
+- Dragon Claw
+- Earthquake
+- Protect
 
 === TRAINER_TATE_AND_LIZA_2 ===
 Name: TATE&LIZA
@@ -15584,47 +17450,78 @@ Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Slowpoke
-Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Yawn
-- Psychic
-- Calm Mind
+Indeedee-F @ Psychic Seed
+Ability: Psychic Surge
+Level: 45
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Follow Me
+- Helping Hand
+- Expanding Force
 - Protect
 
-Claydol
-Level: 49
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
-- Ancient Power
-- Psychic
+Hatterene @ Life Orb
+Ability: Magic Bounce
+Level: 46
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Dazzling Gleam
+- Expanding Force
+- Mystical Fire
+- Trick Room
+- Protect
+
+Claydol @ Light Clay
+Ability: Levitate
+Level: 47
+EVs: 252 HP / 252 Def / 6 SpA
+Relaxed Nature
+IVs: 0 Atk
+Signature Move: Earth Power
+- Reflect
 - Light Screen
-
-Xatu @ Chesto Berry
-Level: 49
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Psychic
-- Rest
-- Confuse Ray
-- Calm Mind
+- Ally Switch
 
-Lunatone @ Chesto Berry
-Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
+Medicham @ Medichamite
+Ability: Pure Power
+Level: 47
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Close Combat
+- Fake Out
+- Zen Headbutt
+- Ice Punch
+- Bullet Punch
+
+Lunatone @ Sitrus Berry
+Ability: Levitate
+Level: 48
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Trick Room
 - Psychic
-- Rest
-- Calm Mind
+- Earth Power
+- Protect
 
 Solrock @ Sitrus Berry
+Ability: Levitate
 Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sunny Day
-- Solar Beam
-- Psychic
-- Flamethrower
+Tera Type: Fire
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Rock Slide
+- Zen Headbutt
+- Flare Blitz
+- Morning Sun
+- Protect
 
 === TRAINER_TATE_AND_LIZA_3 ===
 Name: TATE&LIZA
@@ -15633,55 +17530,78 @@ Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Drowzee
-Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Dream Eater
-- Headbutt
+Indeedee-F @ Psychic Seed
+Ability: Psychic Surge
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Follow Me
+- Helping Hand
+- Expanding Force
 - Protect
 
-Slowpoke
-Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Yawn
-- Psychic
-- Calm Mind
+Hatterene @ Life Orb
+Ability: Magic Bounce
+Level: 51
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Dazzling Gleam
+- Expanding Force
+- Mystical Fire
+- Trick Room
 - Protect
 
-Claydol
-Level: 54
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
-- Explosion
-- Psychic
-- Light Screen
+Slowbro @ Sitrus Berry
+Ability: Regenerator
+Level: 52
+EVs: 252 HP / 252 Def / 6 SpA
+Relaxed Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Scald
+- Trick Room
+- Slack Off
+- Protect
 
-Xatu @ Chesto Berry
-Level: 54
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Psychic
-- Rest
-- Confuse Ray
-- Calm Mind
+Medicham @ Medichamite
+Ability: Pure Power
+Level: 52
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Close Combat
+- Fake Out
+- Zen Headbutt
+- Ice Punch
+- Bullet Punch
 
-Lunatone @ Chesto Berry
-Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
+Lunatone @ Sitrus Berry
+Ability: Levitate
+Level: 53
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Trick Room
 - Psychic
-- Rest
-- Calm Mind
+- Earth Power
+- Protect
 
 Solrock @ Sitrus Berry
+Ability: Levitate
 Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sunny Day
-- Solar Beam
-- Psychic
-- Flamethrower
+Tera Type: Fire
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Rock Slide
+- Zen Headbutt
+- Flare Blitz
+- Morning Sun
+- Protect
 
 === TRAINER_TATE_AND_LIZA_4 ===
 Name: TATE&LIZA
@@ -15690,55 +17610,78 @@ Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Hypno
-Level: 58
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Dream Eater
-- Headbutt
+Indeedee-F @ Psychic Seed
+Ability: Psychic Surge
+Level: 55
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Follow Me
+- Helping Hand
+- Expanding Force
 - Protect
 
-Claydol
-Level: 59
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
-- Explosion
+Reuniclus @ Life Orb
+Ability: Magic Guard
+Level: 56
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Psyshock
 - Psychic
-- Light Screen
-
-Slowpoke
-Level: 58
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Yawn
-- Psychic
-- Calm Mind
+- Focus Blast
+- Trick Room
 - Protect
 
-Xatu @ Chesto Berry
-Level: 59
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Psychic
-- Rest
-- Confuse Ray
-- Calm Mind
+Slowbro @ Sitrus Berry
+Ability: Regenerator
+Level: 57
+EVs: 252 HP / 252 Def / 6 SpA
+Relaxed Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Scald
+- Trick Room
+- Slack Off
+- Protect
 
-Lunatone @ Chesto Berry
-Level: 60
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
+Medicham @ Medichamite
+Ability: Pure Power
+Level: 57
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Close Combat
+- Fake Out
+- Zen Headbutt
+- Ice Punch
+- Bullet Punch
+
+Lunatone @ Sitrus Berry
+Ability: Levitate
+Level: 58
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Trick Room
 - Psychic
-- Rest
-- Calm Mind
+- Earth Power
+- Protect
 
 Solrock @ Sitrus Berry
+Ability: Levitate
 Level: 60
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sunny Day
-- Solar Beam
-- Psychic
-- Flamethrower
+Tera Type: Fire
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Rock Slide
+- Zen Headbutt
+- Flare Blitz
+- Morning Sun
+- Protect
 
 === TRAINER_TATE_AND_LIZA_5 ===
 Name: TATE&LIZA
@@ -15747,55 +17690,78 @@ Pic: Leader Tate And Liza
 Gender: Male
 Music: Female
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Hypno
-Level: 63
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Dream Eater
-- Headbutt
+Farigiraf @ Sitrus Berry
+Ability: Armor Tail
+Level: 60
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Twin Beam
+- Hyper Voice
+- Psychic
+- Trick Room
 - Protect
 
-Claydol
-Level: 64
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
-- Explosion
+Reuniclus @ Life Orb
+Ability: Magic Guard
+Level: 61
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Psyshock
 - Psychic
-- Light Screen
-
-Slowking
-Level: 63
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Yawn
-- Psychic
-- Calm Mind
+- Focus Blast
+- Trick Room
 - Protect
 
-Xatu @ Chesto Berry
-Level: 64
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Psychic
-- Rest
-- Confuse Ray
-- Calm Mind
+Slowbro @ Sitrus Berry
+Ability: Regenerator
+Level: 62
+EVs: 252 HP / 252 Def / 6 SpA
+Relaxed Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Scald
+- Trick Room
+- Slack Off
+- Protect
 
-Lunatone @ Chesto Berry
-Level: 65
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
+Medicham @ Medichamite
+Ability: Pure Power
+Level: 62
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Close Combat
+- Fake Out
+- Zen Headbutt
+- Ice Punch
+- Bullet Punch
+
+Lunatone @ Sitrus Berry
+Ability: Levitate
+Level: 63
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Moonblast
+- Trick Room
 - Psychic
-- Rest
-- Calm Mind
+- Earth Power
+- Protect
 
 Solrock @ Sitrus Berry
+Ability: Levitate
 Level: 65
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Sunny Day
-- Solar Beam
-- Psychic
-- Flamethrower
+Tera Type: Fire
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Rock Slide
+- Zen Headbutt
+- Flare Blitz
+- Morning Sun
+- Protect
 
 === TRAINER_JUAN_2 ===
 Name: JUAN
@@ -15804,47 +17770,78 @@ Pic: Leader Juan
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Poliwag
-Level: 46
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Rain Dance
-- Protect
-- Hydro Pump
+Politoed @ Damp Rock
+Ability: Drizzle
+Level: 50
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
+- Icy Wind
+- Helping Hand
+- Perish Song
 
-Whiscash
-Level: 46
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rain Dance
-- Water Pulse
-- Double Team
-- Fissure
-
-Walrein
-Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Water Pulse
-- Body Slam
-- Protect
-- Ice Beam
-
-Crawdaunt @ Chesto Berry
-Level: 48
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rest
-- Crabhammer
-- Taunt
-- Double Team
-
-Kingdra @ Chesto Berry
+Milotic @ Leftovers
+Ability: Competitive
 Level: 51
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Water Pulse
-- Double Team
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
 - Ice Beam
-- Rest
+- Recover
+- Protect
+
+Walrein @ Sitrus Berry
+Ability: Thick Fat
+Level: 52
+EVs: 252 HP / 252 Def / 6 SpA
+Relaxed Nature
+IVs: 0 Atk
+Signature Move: Blizzard
+- Surf
+- Ice Beam
+- Yawn
+- Protect
+
+Ludicolo @ Expert Belt
+Ability: Swift Swim
+Level: 52
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+Signature Move: Energy Ball
+- Hydro Pump
+- Giga Drain
+- Ice Beam
+- Fake Out
+
+Sharpedo @ Sharpedonite
+Ability: Speed Boost
+Level: 53
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Crunch
+- Waterfall
+- Psychic Fangs
+- Ice Fang
+- Protect
+
+Kingdra @ Life Orb
+Ability: Swift Swim
+Level: 55
+Tera Type: Dragon
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Muddy Water
+- Hurricane
+- Ice Beam
+- Protect
 
 === TRAINER_JUAN_3 ===
 Name: JUAN
@@ -15853,47 +17850,78 @@ Pic: Leader Juan
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Poliwhirl
-Level: 50
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Rain Dance
-- Protect
-- Hydro Pump
+Politoed @ Damp Rock
+Ability: Drizzle
+Level: 55
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
+- Icy Wind
+- Helping Hand
+- Perish Song
 
-Whiscash
-Level: 51
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rain Dance
-- Water Pulse
-- Double Team
-- Fissure
-
-Walrein
-Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Water Pulse
-- Body Slam
-- Protect
-- Ice Beam
-
-Crawdaunt @ Chesto Berry
-Level: 53
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rest
-- Guillotine
-- Taunt
-- Double Team
-
-Kingdra @ Chesto Berry
+Milotic @ Leftovers
+Ability: Competitive
 Level: 56
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Water Pulse
-- Double Team
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
 - Ice Beam
-- Rest
+- Recover
+- Protect
+
+Walrein @ Sitrus Berry
+Ability: Thick Fat
+Level: 57
+EVs: 252 HP / 252 Def / 6 SpA
+Relaxed Nature
+IVs: 0 Atk
+Signature Move: Blizzard
+- Surf
+- Ice Beam
+- Yawn
+- Protect
+
+Crawdaunt @ Life Orb
+Ability: Adaptability
+Level: 57
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Crabhammer
+- Knock Off
+- Aqua Jet
+- Swords Dance
+- Protect
+
+Sharpedo @ Sharpedonite
+Ability: Speed Boost
+Level: 58
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Crunch
+- Waterfall
+- Psychic Fangs
+- Ice Fang
+- Protect
+
+Kingdra @ Life Orb
+Ability: Swift Swim
+Level: 60
+Tera Type: Dragon
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Muddy Water
+- Hurricane
+- Ice Beam
+- Protect
 
 === TRAINER_JUAN_4 ===
 Name: JUAN
@@ -15902,55 +17930,78 @@ Pic: Leader Juan
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Lapras
-Level: 56
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hydro Pump
+Politoed @ Damp Rock
+Ability: Drizzle
+Level: 60
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
+- Icy Wind
+- Helping Hand
 - Perish Song
-- Ice Beam
-- Confuse Ray
 
-Whiscash
-Level: 58
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rain Dance
-- Water Pulse
-- Double Team
-- Fissure
-
-Poliwhirl
-Level: 56
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Rain Dance
-- Protect
-- Hydro Pump
-
-Walrein
-Level: 58
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Water Pulse
-- Body Slam
-- Protect
-- Ice Beam
-
-Crawdaunt @ Chesto Berry
-Level: 58
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rest
-- Guillotine
-- Taunt
-- Double Team
-
-Kingdra @ Chesto Berry
+Milotic @ Leftovers
+Ability: Competitive
 Level: 61
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Water Pulse
-- Double Team
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
 - Ice Beam
-- Rest
+- Recover
+- Protect
+
+Lapras @ Assault Vest
+Ability: Water Absorb
+Level: 62
+EVs: 252 HP / 252 SpA / 6 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Blizzard
+- Sparkling Aria
+- Freeze-Dry
+- Icy Wind
+- Thunderbolt
+
+Crawdaunt @ Life Orb
+Ability: Adaptability
+Level: 62
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Crabhammer
+- Knock Off
+- Aqua Jet
+- Swords Dance
+- Protect
+
+Sharpedo @ Sharpedonite
+Ability: Speed Boost
+Level: 63
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Crunch
+- Waterfall
+- Psychic Fangs
+- Ice Fang
+- Protect
+
+Kingdra @ Life Orb
+Ability: Swift Swim
+Level: 65
+Tera Type: Dragon
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Muddy Water
+- Hurricane
+- Ice Beam
+- Protect
 
 === TRAINER_JUAN_5 ===
 Name: JUAN
@@ -15959,55 +18010,78 @@ Pic: Leader Juan
 Gender: Male
 Music: Male
 Double Battle: Yes
-AI: Basic Trainer
+AI: Smart Trainer
 
-Lapras
-Level: 61
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hydro Pump
-- Perish Song
-- Ice Beam
-- Confuse Ray
-
-Whiscash
-Level: 63
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rain Dance
-- Water Pulse
-- Double Team
-- Fissure
-
-Politoed
-Level: 61
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Hypnosis
-- Rain Dance
-- Hydro Pump
+Politoed @ Damp Rock
+Ability: Drizzle
+Level: 65
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
+- Icy Wind
+- Helping Hand
 - Perish Song
 
-Walrein
-Level: 63
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Water Pulse
-- Body Slam
-- Protect
-- Sheer Cold
-
-Crawdaunt @ Chesto Berry
-Level: 63
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rest
-- Guillotine
-- Taunt
-- Double Team
-
-Kingdra @ Chesto Berry
+Milotic @ Leftovers
+Ability: Competitive
 Level: 66
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Water Pulse
-- Double Team
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Scald
 - Ice Beam
-- Rest
+- Recover
+- Protect
+
+Lapras @ Assault Vest
+Ability: Water Absorb
+Level: 67
+EVs: 252 HP / 252 SpA / 6 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Blizzard
+- Sparkling Aria
+- Freeze-Dry
+- Icy Wind
+- Thunderbolt
+
+Barbaracle @ White Herb
+Ability: Tough Claws
+Level: 67
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Liquidation
+- Razor Shell
+- Stone Edge
+- Shell Smash
+- Protect
+
+Sharpedo @ Sharpedonite
+Ability: Speed Boost
+Level: 68
+EVs: 252 Atk / 252 Spe / 6 HP
+Adamant Nature
+Signature Move: Crunch
+- Waterfall
+- Psychic Fangs
+- Ice Fang
+- Protect
+
+Kingdra @ Life Orb
+Ability: Swift Swim
+Level: 70
+Tera Type: Dragon
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Muddy Water
+- Hurricane
+- Ice Beam
+- Protect
 
 === TRAINER_ANGELO ===
 Name: ANGELO

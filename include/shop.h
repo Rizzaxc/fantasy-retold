@@ -7,5 +7,6 @@ void CreatePokemartMenu(const u16 *itemsForSale);
 void CreateDecorationShop1Menu(const u16 *itemsForSale);
 void CreateDecorationShop2Menu(const u16 *itemsForSale);
 void CB2_ExitSellMenu(void);
+void PokeMart_SetTMStock(void);
 
 #endif // GUARD_SHOP_H

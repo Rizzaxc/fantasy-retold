@@ -6,6 +6,8 @@ MauvilleCity_Mart_EventScript_Clerk::
 	faceplayer
 	message gText_HowMayIServeYou
 	waitmessage
+	setvar VAR_0x8004, MART_TMS_MAUVILLE
+	special PokeMart_SetTMStock
 	pokemart MauvilleCity_Mart_Pokemart
 	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
 	release

@@ -4,6 +4,7 @@
 #include "decompress.h"
 #include "decoration.h"
 #include "decoration_inventory.h"
+#include "event_data.h"
 #include "event_object_movement.h"
 #include "field_player_avatar.h"
 #include "field_screen_effect.h"
@@ -25,6 +26,7 @@
 #include "overworld.h"
 #include "palette.h"
 #include "party_menu.h"
+#include "random.h"
 #include "scanline_effect.h"
 #include "script.h"
 #include "shop.h"
@@ -38,6 +40,7 @@
 #include "constants/decorations.h"
 #include "constants/event_objects.h"
 #include "constants/items.h"
+#include "constants/mart_tms.h"
 #include "constants/metatile_behaviors.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
@@ -92,6 +95,7 @@ struct MartInfo
     u16 itemCount;
     u8 windowId;
     u8 martType;
+    u8 tmStockId; // MART_TMS_*: this town mart's 5 TMs are added to its list
 };
 
 struct ShopData
@@ -111,8 +115,9 @@ struct ShopData
 static EWRAM_DATA struct MartInfo sMartInfo = {0};
 static EWRAM_DATA struct ShopData *sShopData = NULL;
 static EWRAM_DATA struct ListMenuItem *sListMenuItems = NULL;
-static EWRAM_DATA u8 (*sItemNames)[ITEM_NAME_LENGTH + 2] = {0};
+static EWRAM_DATA u8 (*sItemNames)[ITEM_NAME_LENGTH + MOVE_NAME_LENGTH + 2] = {0}; // + move name for TMs
 static EWRAM_DATA u8 sPurchaseHistoryId = 0;
+static EWRAM_DATA u8 sPendingTMStockId = 0;
 EWRAM_DATA struct ItemSlot gMartPurchaseHistory[SMARTSHOPPER_NUM_ITEMS] = {0};
 
 static void Task_ShopMenu(u8 taskId);
@@ -158,6 +163,8 @@ static void Task_HandleShopMenuBuy(u8 taskId);
 static void Task_HandleShopMenuSell(u8 taskId);
 static void BuyMenuPrintItemDescriptionAndShowItemIcon(s32 item, bool8 onInit, struct ListMenu *list);
 static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y);
+static void BuyMenuAppendMartTMs(void);
+static u32 BuyMenuGetItemPrice(enum Item item);
 
 static const struct YesNoFuncTable sShopPurchaseYesNoFuncs =
 {
@@ -349,6 +356,8 @@ static u8 CreateShopMenu(u8 martType)
 
     LockPlayerFieldControls();
     sMartInfo.martType = martType;
+    sMartInfo.tmStockId = (martType == MART_TYPE_NORMAL) ? sPendingTMStockId : MART_TMS_NONE;
+    sPendingTMStockId = MART_TMS_NONE;
 
     if (martType == MART_TYPE_NORMAL)
     {
@@ -531,7 +540,10 @@ static void CB2_InitBuyMenu(void)
         sShopData->itemSpriteIds[0] = SPRITE_NONE;
         sShopData->itemSpriteIds[1] = SPRITE_NONE;
         if (sMartInfo.martType == MART_TYPE_NORMAL)
+        {
             TryBuildDynamicShopItemList(&sMartInfo.itemList, &sMartInfo.itemCount);
+            BuyMenuAppendMartTMs();
+        }
         BuyMenuBuildListMenuTemplate();
         BuyMenuInitBgs();
         FillBgTilemapBufferRect_Palette0(0, 0, 0, 0, 0x20, 0x20);
@@ -597,7 +609,16 @@ static void BuyMenuBuildListMenuTemplate(void)
 static void BuyMenuSetListEntry(struct ListMenuItem *menuItem, enum Item item, u8 *name)
 {
     if (sMartInfo.martType == MART_TYPE_NORMAL)
-        CopyItemName(item, name);
+    {
+        u8 *end = CopyItemName(item, name);
+
+        // Fantasy Retold: TMs are listed as "TM08 Bulk Up" (design.md §10, Mart TMs)
+        if (GetItemPocket(item) == POCKET_TM_HM)
+        {
+            end = StringCopy(end, gText_Space);
+            StringCopy(end, GetMoveName(ItemIdToBattleMoveId(item)));
+        }
+    }
     else
         StringCopy(name, gDecorations[item].name);
 
@@ -644,7 +665,7 @@ static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y)
         {
             ConvertIntToDecimalStringN(
                 gStringVar1,
-                GetItemPrice(itemId) >> IsPokeNewsActive(POKENEWS_SLATEPORT),
+                BuyMenuGetItemPrice(itemId),
                 STR_CONV_MODE_LEFT_ALIGN,
                 6);
         }
@@ -664,6 +685,103 @@ static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y)
         x = GetStringRightAlignXOffset(FONT_NARROW, gStringVar4, 120);
         AddTextPrinterParameterized4(windowId, FONT_NARROW, x, y, 0, 0, sShopBuyMenuTextColors[COLORID_ITEM_LIST], TEXT_SKIP_DRAW, gStringVar4);
     }
+}
+
+// Fantasy Retold: town mart TMs (design.md §10, Mart TMs). The gym leaders' TMs stay gym-only.
+static const enum Item sMartTMExcluded[] =
+{
+    ITEM_TM_ROCK_TOMB,   // Roxanne
+    ITEM_TM_BULK_UP,     // Brawly
+    ITEM_TM_SHOCK_WAVE,  // Wattson
+    ITEM_TM_OVERHEAT,    // Flannery
+    ITEM_TM_FACADE,      // Norman
+    ITEM_TM_AERIAL_ACE,  // Winona
+    ITEM_TM_CALM_MIND,   // Tate & Liza
+    ITEM_TM_WATER_PULSE, // Juan
+};
+
+static bool32 IsMartTMExcluded(enum Item item)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sMartTMExcluded); i++)
+    {
+        if (sMartTMExcluded[i] == item)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// Every town mart's TMs are a slice of one shuffle of the TM pool, seeded by the trainer ID:
+// fixed for the save, never repeated within a mart, and the first marts (story order) share none.
+static void GetMartTMs(u32 stockId, enum Item *tms)
+{
+    enum Item pool[NUM_TECHNICAL_MACHINES];
+    u32 i, j, temp, count = 0;
+    rng_value_t rng = LocalRandomSeed(READ_OTID_FROM_SAVE ^ 0x4D415254); // "MART"
+
+    for (i = 0; i < NUM_TECHNICAL_MACHINES; i++)
+    {
+        enum Item tm = GetTMHMItemId(i + 1);
+
+        if (!IsMartTMExcluded(tm))
+            pool[count++] = tm;
+    }
+
+    for (i = count - 1; i > 0; i--)
+    {
+        j = LocalRandom32(&rng) % (i + 1);
+        SWAP(pool[i], pool[j], temp);
+    }
+
+    for (i = 0; i < MART_TMS_PER_MART; i++)
+        tms[i] = pool[((stockId - 1) * MART_TMS_PER_MART + i) % count];
+}
+
+// Runs after TryBuildDynamicShopItemList, so the list being replaced is that function's allocation
+// (TryFreeDynamicShopItemList then frees this one and restores the script's list).
+static void BuyMenuAppendMartTMs(void)
+{
+    enum Item tms[MART_TMS_PER_MART];
+    u16 *list;
+    u32 i, j, count = sMartInfo.itemCount;
+
+    if (sMartInfo.tmStockId == MART_TMS_NONE || sMartInfo.tmStockId > MART_TMS_COUNT)
+        return;
+
+    GetMartTMs(sMartInfo.tmStockId, tms);
+    list = Alloc((count + MART_TMS_PER_MART + 1) * sizeof(*list));
+    for (i = 0; i < count; i++)
+        list[i] = sMartInfo.itemList[i];
+
+    for (i = 0; i < MART_TMS_PER_MART; i++)
+    {
+        for (j = 0; j < sMartInfo.itemCount && list[j] != tms[i]; j++)
+            ;
+        if (j == sMartInfo.itemCount)
+            list[count++] = tms[i];
+    }
+    list[count] = ITEM_NONE;
+
+    Free((u16 *)sMartInfo.itemList);
+    sMartInfo.itemList = list;
+    sMartInfo.itemCount = count;
+}
+
+static u32 BuyMenuGetItemPrice(enum Item item)
+{
+    u32 price = GetItemPrice(item);
+
+    if (sMartInfo.tmStockId != MART_TMS_NONE && GetItemPocket(item) == POCKET_TM_HM)
+        price = MART_TM_PRICE;
+
+    return price >> IsPokeNewsActive(POKENEWS_SLATEPORT);
+}
+
+// Called by a town mart clerk right before pokemart, VAR_0x8004 = MART_TMS_*.
+void PokeMart_SetTMStock(void)
+{
+    sPendingTMStockId = gSpecialVar_0x8004;
 }
 
 static void BuyMenuAddScrollIndicatorArrows(void)
@@ -1017,7 +1135,7 @@ static void Task_BuyMenu(u8 taskId)
             BuyMenuPrintCursor(tListTaskId, COLORID_GRAY_CURSOR);
 
             if (sMartInfo.martType == MART_TYPE_NORMAL)
-                sShopData->totalCost = (GetItemPrice(itemId) >> IsPokeNewsActive(POKENEWS_SLATEPORT));
+                sShopData->totalCost = BuyMenuGetItemPrice(itemId);
             else
                 sShopData->totalCost = gDecorations[itemId].price;
 
@@ -1037,7 +1155,7 @@ static void Task_BuyMenu(u8 taskId)
                         ConvertIntToDecimalStringN(gStringVar2, sShopData->totalCost, STR_CONV_MODE_LEFT_ALIGN, 6);
                         StringExpandPlaceholders(gStringVar4, gText_YouWantedVar1ThatllBeVar2);
                         tItemCount = 1;
-                        sShopData->totalCost = (GetItemPrice(tItemId) >> IsPokeNewsActive(POKENEWS_SLATEPORT)) * tItemCount;
+                        sShopData->totalCost = BuyMenuGetItemPrice(tItemId) * tItemCount;
                         BuyMenuDisplayMessage(taskId, gStringVar4, BuyMenuConfirmPurchase);
                     }
                     else if (GetItemPocket(itemId) == POCKET_TM_HM)
@@ -1104,7 +1222,7 @@ static void Task_BuyHowManyDialogueHandleInput(u8 taskId)
 
     if (AdjustQuantityAccordingToDPadInput(&tItemCount, sShopData->maxQuantity) == TRUE)
     {
-        sShopData->totalCost = (GetItemPrice(tItemId) >> IsPokeNewsActive(POKENEWS_SLATEPORT)) * tItemCount;
+        sShopData->totalCost = BuyMenuGetItemPrice(tItemId) * tItemCount;
         BuyMenuPrintItemQuantityAndPrice(taskId);
     }
     else

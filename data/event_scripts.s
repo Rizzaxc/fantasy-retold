@@ -43,6 +43,7 @@
 #include "constants/heal_locations.h"
 #include "constants/lab_research.h"
 #include "constants/gimmick_reward.h"
+#include "constants/mart_tms.h"
 #include "constants/layouts.h"
 #include "constants/lilycove_lady.h"
 #include "constants/map_scripts.h"

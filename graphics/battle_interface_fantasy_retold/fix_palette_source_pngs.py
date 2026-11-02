@@ -49,7 +49,8 @@ def main():
 
     print("Fixing palette source PNGs (preserving original graphics)...")
     replace_palette_only('ball_status_bar.png', orig_dir, healthbox_palette)
-    replace_palette_only('ball_display.png', orig_dir, healthbar_palette)
+    # ball_display.png is hand-drawn on healthbar_palette now; a palette-only swap of the
+    # vanilla pixels scrambles the balls (vanilla index meanings don't match), so don't redo it.
     print("Done!")
 
 if __name__ == '__main__':

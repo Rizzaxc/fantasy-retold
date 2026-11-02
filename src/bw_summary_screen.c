@@ -4086,7 +4086,7 @@ static const u8 *const sNatureInnateNames[] = {
 
 static const u8 *const sNatureInnateDescs[] = {
     [INNATE_NONE]         = COMPOUND_STRING(""),
-    [INNATE_ADVANTAGE]    = COMPOUND_STRING("Guaranteed hit when acting first."),
+    [INNATE_ADVANTAGE]    = COMPOUND_STRING("When faster, moves with >= 70% accuracy cannot miss."),
     [INNATE_SUPER_LUCK]   = COMPOUND_STRING("Heightened critical-hit rate."),
     [INNATE_SHEER_FORCE]  = COMPOUND_STRING("+30% power, no Lv1 secondaries."),
     [INNATE_QUICK_START]  = COMPOUND_STRING("+1 Speed on switch-in."),

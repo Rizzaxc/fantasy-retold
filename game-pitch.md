@@ -1,34 +1,34 @@
-# Fantasy Retold
+# reddit post
+TL;DR
+>!I'm developing an emerald hack (based on RHH's 1.17) that alters battle rules significantly. Pokemon gains 2 innate commands, can have up to 6 moves; rebalance natures with a bonus ability, new/ reworked status effects that can all stack with each other! !<
 
-What if pokemon battle mechanics resembles the anime's? **Fantasy Retold** is a comprehensive overhaul and architectural redesign for Pokemon Emerald, transforming the traditional high-frequency-switching, type-immunity-driven meta of vanilla Pokémon into an individual-focused, resource-managed tactical JRPG battle system. The type chart still matters, but not as much as how you build and train your team. A single pokemon now cannot carry a battle on its own, but will need the support from both a smart trainer and its teammate.
+# Intro
+I'm sure everyone of us who grows up watching the anime always once wondered why we can't just shout "Pikachu, Dodge!" and whatever comes our way will miss. The initial idea of this hack comes from that. I'm also trying to "fix" some of my gripes with the standard battle rules (these come from the 6v6 singles pov, have nothing to do with the single player games), namely the persistent speed tier, boring nature choices, the over reliance on switching/ typing match up, and hax. As a result, the game I'm designing will be "difficult", as in you'll need to take into account all the old and new mechanics to beat it. I try not to design for brute force gameplay, so a lot of QoLs are also implemented. Keep in mind, the game is in **Alpha** stage. It is not finished, and not close to being finished.
 
-## Core System Highlights
+*What this is not*: >! a story/ region remake, nor a capture-first exploration hack. The game should be treated as a new puzzle collections, set in Hoenn.!<
 
-- **Reworked Battle Pacing**: effective damage is halved to allow each pokemon to maneuver and shine individually. This is countered by the fact that unhealable trauma damage is very present, so plan your moves carefully.
+# The changes
+- The biggest that drives the rest of the design, is that SpDef is **replaced** by **Stamina**. Mitigation will only use the Def stat, but each move will now cost Stamina to use.
+- Turn speed is **calculated live** each turn, based on Stamina of the battlers. Fast pokemons that don't invest in Stamina will run out of gas really quick, and there will be consequences.
+- Pokemon will gain 2 innate commands, Dodge and Recuperate. You can decide to use these innate moves instead of a regular move, as the situation calls for. Dodge check runs separately from accuracy, and has many smaller rules you'll have to play to find out. Recuperate will restore Stamina, among other things, so use this lest you wanna risk automatic **crits**.
+- That's right. Exhausted mons (0 live stamina) are automatically subjected to critical hits. Crits also deal the bonus damage as **Trauma** (unhealable xp damage).
+- What the hell is Trauma??? Well, what I also hate about vanilla rules is mons die too damn quick, but if they stall they die too damn slow. So I halve the effective damage in the calculation, making players think more about what to do instead of clicking the SE move. Crits and Special damage will inflict Trauma so tanks don't live forever, but in the meantime you'll have to deal with what's in front of you.
+- What about Physical damage? It doesn't deal Trauma, but exerts stamina pressure. Taking physical damage will drain stamina. Physical crits deal both.
+- Hax shouldn't frustrate you anymore, because now they procs **twice** as often. Secondary effects now inflict **Lv1 Statuses**, stackable with itself and each other. An unfortunate proc doesn't ruin your day, but ignore it and you'll have a bad time since statuses have synergies and anti-synergies. 
+- Do you get irritated that your starter isn't Adamant/ Modest/ Jolly/ Timid? I do; so I give each nature an innate ability. They're designed to cope with and or abuse the new mechanics.
+- Your pokemons can get a Signature Move. This does not take up a move slot. But beware, your rivals do too.
 
-- **Unified Defense & Repurposed Stamina:** The traditional Defense stat handles mitigation for both Physical and Special attacks. Special Defense is stripped of its mitigation role and rebuilt as **Stamina** (`BaseSta`), governing action speed, execution costs, and defensive thresholds.
+These are only the big changes. Many smaller ones are >!4x resistance/ effectiveness clamped to 2x; held TMs allow using the move; accelerated overworld speed; free repel; global EXP; faster EXP in level band; non-Hoenn pokemons; TM in marts/ Mega/ Z Moves/ Tera etc etc !<
 
-- **The Stamina Economy & Speed Decay:** Pokemon speed is now dynamic. A fast but exhausted mon will move slower than a slow but fresher opponent. Exhausting your Stamina also drops you into the *Exhaustion Zone*, where incoming hits trigger automatic critical hits.
+# The progress
+This post is less of a marketing post and more a **help wanted** one.
 
-- **Damage Modality (Health vs. Trauma):** A single HP bar tracks two metrics: current HP and accumulated **Trauma** (unhealable permanent damage). Special attacks and critical hits channel a percentage of damage straight into Trauma, bypassing standard recovery and acting as an inescapable clock against defensive walls.
+I'd like to think all the engine mechanics are done, but more playtest is needed. All the big battles have to be redesigned, but only **up to the 3rd gym** are. 
 
-- **Reworked Statuses**: now statuses are not just hax, but fair and visible chance you can build your strategy around. Original statuses are split into stackable stages, and a pokemon can be affected by multiple statues. 
+Questlines that give out gimmick held items are tbd. They're now in shops but require farming/ grinding, which is not what I want.
 
-- **Innate System Commands:** Access high-priority tactical options directly from the move menu:
-  
-  - **Dodge:** An active mitigation maneuver. See a big hit coming? Just dodge it!
-  
-  - **Recuperate:** Your pokemon will need to take a breather lest it risks unhealable Trauma!
-  
-  - **Signature Moves:** Now your most trusted pokemons can have a Signature Move that do not take up a moveslot, allowing you to train your favorites the way you want. Beware, a signature is not without its limits!
+I'd love to connect with artists to redesign the UI (and arts), since they're AI generated at the moment. It's usable as placeholder, but clobbered together.
 
-- **Rebalanced Natures:** now all natures have a place in your team. An offensive pokemon with a defensive nature is now a viable strategy.
-  
-  
-  The game is based on `pokeemerald-expansion`, so it has all the QoLs you expect from a modern hack. EV training is also taken out; you can freely allocate EV points every time your pokemon levels up.
-
-## Development & Engine Architecture
-
-Built on top of upstream `pokeemerald-expansion`, Fantasy Retold accelerates overworld logic simulation (`4x`) while maintaining stable VBlank timing for music and save clocks, alongside battle presentation optimizations to ensure fluid combat pacing without menu hangs.
-
-
+# The patch
+Here. 
+I'll update with the Github repo soon. I'll try my best to answer questions/ requests on both reddit and github.

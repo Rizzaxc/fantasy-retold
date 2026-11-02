@@ -492,6 +492,12 @@ After the badge and TM, each Hoenn gym leader offers **one extra reward, picked 
 
 * **Engine.** `Common_EventScript_GymReward` (`data/scripts/gym_reward.inc`), called with `VAR_0x8008` = gym number at the end of each gym's give-TM scripts and in the leader's post-battle talk once the TM is owned. Specials: `GymReward_IsClaimed` / `GymReward_SetClaimed` (`FLAG_GYM_REWARD_1`–`_8`, the old unused flags 0x21–0x28), `GymReward_BufferType` (type name for the offer), `GymReward_RollItem`, `GymReward_GiveEgg` (`PickEggRewardSpecies`, then `ScriptGiveEgg`). Kanto (FRLG) gyms are not hooked.
 
+### Tera Orb
+
+* **Roxanne's gift.** After her gym reward (§ Gym Leader Rewards), Roxanne gives the **TERA ORB** (Key Items). With it, one of the player's Pokémon can Terastallize **once per battle** into its Tera Type, as upstream (`CanTerastallize` looks for the orb in the bag). A full Key Items pocket says so; she offers it again whenever talked to (after the post-battle reward flow) until it is in the bag.
+* **No recharging.** The orb is always charged (`B_TERA_ORB_ALWAYS_CHARGED` = `TRUE` in `include/config/battle.h`): no Pokémon Center visit is needed, the once-per-battle limit is the only one, as for Mega Evolution and Z-Moves.
+* **Engine.** `RustboroCity_Gym_EventScript_GiveTeraOrb` (`data/scripts/gimmick_reward.inc`, texts there too), called after `Common_EventScript_GymReward` in Roxanne's give-TM script and her post-battle talk. No flag: owning `ITEM_TERA_ORB` (a key item, never lost) closes the offer.
+
 ### Mega Ring / Z-Ring
 
 The player gets **one** of the two gimmick rings, for good, and with it the items to use it.
@@ -522,7 +528,50 @@ The rematches (`TRAINER_<LEADER>_2`–`_5`) are built from the leader's reworked
 
 * **Roxanne** (core Aron, Geodude, Corsola, Nosepass; adds Hoenn fossils). Tier 2 (Lv32–37): Lairon, Graveler, Corsola, Probopass (sig. Power Gem). Tier 3 (37–42): + Armaldo, Golem (sig. Stone Edge). Tier 4 (42–47): Aggron (Rock Head), Corsola gets sig. Wave Crash. Tier 5 (47–52): + Cradily, Aggron gets sig. Head Smash.
 * **Brawly** (core Croagunk, Meditite, Timburr, Makuhita; adds Water / Hoenn fighters). Tier 2 (Lv33–37): Toxicroak, Medicham, Gurdurr, Hariyama (sig. Close Combat). Tier 3 (38–42): Medicham gets sig. High Jump Kick. Tier 4 (40–47): + Poliwrath, Conkeldurr replaces Gurdurr, Toxicroak gets sig. Poison Jab. Tier 5 (46–52): + Breloom, Conkeldurr gets sig. Drain Punch.
-* **Not yet:** gyms 3–8 still use vanilla rematch teams.
+* **Gyms 3–8** follow the Gym & Rival Lineups rules instead of the tier EVs above. Every tier is a **6-Pokémon double battle**: tier 2 is the first-fight team retuned for doubles (Protect, spread moves, Tailwind / Trick Room / Follow Me), and tiers 3, 4 and 5 each swap one member for a new one. EVs are the first fight's total **+80 per tier** (cap 510), the gimmicks stay the first fight's Mega + Tera (Wattson adds Tera Electric Manectric), and every fully evolved member has a Signature Move. Levels keep vanilla's tier aces (Juan +4, so tier 2 is above his first fight); the others sit 2–5 below the ace, never under their evolution level.
+  * **Wattson** (ace 40 / 45 / 50 / 55): Galvantula, Rotom-Wash, Ampharos, Vikavolt, Mega Raichu X, Manectric (Specs). Swaps: Galvantula → Magnezone, Vikavolt → Electivire, Ampharos → Eelektross.
+  * **Flannery** (40–55): Ninetales, Scovillain, Centiskorch, Arcanine, Mega Houndoom, Torkoal (sig. Eruption). Swaps: Scovillain → Camerupt, Centiskorch → Magcargo, Ninetales → Talonflame.
+  * **Norman** (45–60): Ambipom, Porygon2 (Trick Room), Bewear, Staraptor, Mega Kangaskhan, Slaking. Swaps: Porygon2 → Blissey, Bewear → Snorlax, Staraptor → Porygon-Z.
+  * **Winona** (45–60): Pelipper, Skarmory, Togekiss (Follow Me), Hawlucha, Gliscor, Mega Altaria; Tailwind team. Swaps: Gliscor → Corviknight, Hawlucha → Dragonite (Lv55, takes the Tera Flying), Pelipper → Gyarados.
+  * **Tate & Liza** (50–65): the first-fight Trick Room team. Swaps: Claydol → Slowbro, Hatterene → Reuniclus, Indeedee-F → Farigiraf (Armor Tail).
+  * **Juan** (55–70): the first-fight rain team. Swaps: Ludicolo → Crawdaunt, Walrein → Lapras, Crawdaunt → Barbaracle.
+* **Known exception:** Wattson's Raichu keeps Extreme Speed from his first fight, which Raichu can't legally learn.
+
+### Elite Four & Champion levels
+
+Every level of Sidney, Phoebe, Glacia, Drake and Wallace is **+6** over vanilla (aces 55 / 57 / 59 / 61 / 64), so the League sits above Juan (50) and Wally (52). Their teams are still vanilla; a redesign under the lineup rules is planned.
+
+### Gym & Rival Lineups
+
+From the **4th gym** on, every gym leader's first fight follows one set of rules; the rivals follow them from their **first battle after Roxanne** (Rustboro). Roxanne, Brawly and Wattson were tuned by hand before these rules and stay as they are.
+
+* **Rules (gyms).** 6 Pokémon, all of the gym's type; no restricted / sub-legendary, mythical, Paradox or Ultra Beast. Every evolution stage must be reachable at its level under vanilla rules of any generation (Slaking needs Lv36, so Norman's ace is 36). 31 IVs (the trainerproc default; special attackers get `IVs: 0 Atk`). EVs: each Pokémon's total is **+80 over the last gym** (Wattson 240, Flannery 320, Norman 400, Winona 480), capped at the vanilla **510** (Tate & Liza, Juan), never over 252 in a stat. Natures are picked for their innate (§5) and the spread for the role. At least one vanilla gimmick (Mega, Z-Move, Tera; Dynamax is off), never all of them: each of gyms 4–8 has one Mega and one Tera. The vanilla ace stays on the team, not necessarily as the highest level. Every **fully evolved** member has a **Signature Move** (§10; damaging, never one of its four); unevolved members (Eviolite users, Porygon2, rival stage-2 starters) have none, since a Signature Move is committed on the final evolution. All use `AI: Smart Trainer` (the only AI that uses Signature Moves) and carry no bag items (§9).
+* **Rules (rivals).** The same, except: no shared type, the rival always has their starter, and before gym 4 the party is as big as the last gym's (Roxanne 4, Brawly 5). Their EVs match the last gym beaten, counting back from Wattson (gym 1 → 80, gym 2 → 160). May and Brendan have the same team for the same player starter. Wally's Mauville battle stays a single Ralts (he just caught it). Route 103 is untouched.
+* **Levels.** The curve is above vanilla, since players reach Wattson at ~22–24.
+
+| Battle | After | Levels | EVs | Party | Gimmicks |
+| --- | --- | --- | --- | --- | --- |
+| Rival, Rustboro | gym 1 | 13–16 | 80 | 4 | Tera (starter) |
+| Rival, Route 110 | gym 2 | 19–22 | 160 | 5 | Tera (starter) |
+| Wally, Mauville | gym 2 | 18 | 160 | 1 | Tera (Ralts) |
+| Flannery | — | 28–31 | 320 | 6 | Mega Houndoom, Tera Grass Torkoal |
+| Norman | — | 33–36 | 400 | 6 | Mega Kangaskhan, Tera Normal Slaking |
+| Rival, Route 119 | gym 5 | 33–37 | 400 | 6 | Tera (starter) |
+| Winona | — | 36–40 | 480 | 6 | Mega Altaria, Tera Flying Hawlucha |
+| Rival, Lilycove | gym 6 | 37–41 | 480 | 6 | Mega starter, Tera Flying Tropius |
+| Tate & Liza (doubles) | — | 42–45 | 510 | 6 | Mega Medicham, Tera Fire Solrock |
+| Juan | — | 46–50 | 510 | 6 | Mega Sharpedo, Tera Dragon Kingdra |
+| Wally, Victory Road | gym 8 | 47–52 (+3 per rematch) | 510 | 6 | Mega Gardevoir, Tera Fairy Altaria |
+
+* **Teams.**
+  * *Flannery* (sun): Ninetales (Drought), Scovillain (Chlorophyll), Centiskorch, Arcanine (Impish), Mega Houndoom, ace **Torkoal** (Drought, Bold, Body Press).
+  * *Norman*: Ambipom (Fake Out), Porygon2 (Eviolite, Calm), Bewear, Staraptor (Reckless), Mega Kangaskhan, ace **Slaking** (Giga Impact as its Signature Move, so the recharge falls on its Truant turn).
+  * *Winona* (rain): Pelipper (Drizzle), Skarmory (hazards), Togekiss (Serene Grace), Hawlucha (Unburden, sig. Flying Press), Gliscor (Poison Heal), ace **Mega Altaria** (Dragon Dance, Pixilate Double-Edge).
+  * *Tate & Liza* (Trick Room doubles): Indeedee-F (Psychic Surge, Follow Me), Hatterene, Claydol (screens), Mega Medicham, aces **Lunatone** (Trick Room) and **Solrock** (Brave, slow attackers for Trick Room).
+  * *Juan* (rain): Politoed (Drizzle), Milotic, Walrein, Ludicolo (Swift Swim), Mega Sharpedo, ace **Kingdra** (Swift Swim, sig. Draco Meteor).
+  * *Rival* (suffix = player's starter): the counter-starter, the two other starter types (Lotad line for Grass, Wingull line for Water, Numel line for Fire, which replaces vanilla's Slugma because Magcargo can't be legal at Route 119), the Electrike line, Absol (Super Luck crit-fisher, from Route 110) and Tropius (from Route 119). The starter is stage 2 from Rustboro, fully evolved from Route 119 and Mega Evolves at Lilycove.
+  * *Wally, Victory Road*: Delcatty, Roserade, Magnezone, Flygon, Altaria (Calm, Cotton Guard), ace **Mega Gardevoir**. Rematches 2–5 are the same team, 3 levels higher per tier.
+* **Engine.** Data only: `src/data/trainers.party` (`TRAINER_FLANNERY_1`, `_NORMAN_1`, `_WINONA_1`, `_TATE_AND_LIZA_1`, `_JUAN_1`, `TRAINER_{BRENDAN,MAY}_{RUSTBORO,ROUTE_110,ROUTE_119,LILYCOVE}_*`, `TRAINER_WALLY_MAUVILLE`, `TRAINER_WALLY_VR_1`–`_5`). A `Tera Type:` line is what lets the AI Terastallize (`ShouldTrainerBattlerUseGimmick`); a held Mega Stone is enough for Mega Evolution. Every move and Signature Move is in the species' `all_learnables.json` entry; levels below a move's level-up level rely on egg / TM / tutor access, which the evolution-stage rule doesn't restrict. Guest leaders (§10) still match their ace to the home ace's level.
 
 ### Daycare Egg Shop
 
@@ -538,6 +587,17 @@ The Route 117 **Day-Care Lady** also sells Eggs. Talking to her opens `DAY-CARE`
   * *Strong:* lines where some member, in any form, has been Smogon **OU or Ubers in any generation**, excluding Starter / Powerhouse lines, legendaries, mythicals, Ultra Beasts and Paradoxes: Bellsprout, Shellder, Gastly, Drowzee, Cubone, Exeggcute, Chansey, Kangaskhan, Smoochum, Scyther, Tauros, Lapras, Porygon, Aerodactyl, Snorlax, Slowpoke, Galarian Slowpoke, Meowth, Nidoran♂, Diglett, Cleffa, Poliwag, Tangela, Onix, Togepi, Pineco, Gligar, Sneasel, Swinub, Houndour, Miltank, Smeargle, Murkrow, Yanma, Aipom, Paldean Wooper, Teddiursa, Riolu, Bronzor, Hippopotas, Snover, Croagunk, Shellos, Rotom, Buneary, Ferroseed, Drilbur, Frillish, Timburr, Solosis, Gothita, Litwick, Axew, Mienfoo, Pawniard, Foongus, Darumaka, Galarian Darumaka, Vullaby, Tympole, Fletchling, Honedge, Klefki, Hawlucha, Mareanie, Mimikyu, Rookidee, Arrokuda, Impidimp, Hatenna, Nacli, Glimmet, Dondozo, Tinkatink, Tandemaus, Duraludon, Applin. (Hoenn-dex lines such as Gyarados, Skarmory, Heracross or Magnezone would qualify but are dropped by the Hoenn rule.)
   * *Powerhouse:* the pseudo-legendaries (Dratini, Larvitar, Gible, Deino, Goomy, Jangmo-o, Dreepy, Frigibax; Bagon and Beldum are Hoenn), plus Larvesta, Greavard, White-Striped Basculin, Flittle, Mankey, Finizen and Hisuian Sneasel.
 * **Engine.** `src/egg_shop.c` + `Common_EventScript_EggShop` (`data/scripts/egg_shop.inc`), reached from `Route117_PokemonDayCare_EventScript_DaycareWoman`. Each slot is one var (`VAR_EGG_SHOP_SLOT_1`–`_3`, the old unused 0x40F8–0x40FA): tier in bits 0–3, `enum Region` in bits 4–11, bit 15 = in stock (0 = sold). `VAR_EGG_SHOP_STOCK_KEY` (0x40F7) holds milestones + 1 for the current stock (`GetEggShopMilestones`: badge flags, `HasTrainerBeenFought` on the rival trainer IDs, `GAME_STAT_ENTERED_HOF`). Specials: `EggShop_Restock` (restocks if needed, returns Eggs left), `EggShop_BufferMenu` (rows in `STR_VAR_1`–`3`), `EggShop_BufferOffer` / `EggShop_CanAfford` / `EggShop_Buy` (slot in `VAR_0x8004`; `Buy` rolls the species with `PickEggShopSpecies(tier, region)`). Region: `GetEggShopRegion`. The Hoenn rule is `IsInHoennFamily` (`gym_reward.c`, now shared through `gym_reward.h`). Prices are `sEggShopPrices`; slot *n* is tier *n*.
+
+### Mart TMs
+
+Every Hoenn **town mart** (the clerk in each `*_Mart`: Oldale, Petalburg, Rustboro, Slateport, Mauville, Verdanturf, Fallarbor, Lavaridge, Fortree, Mossdeep, Sootopolis) sells **5 TMs** after its normal stock, at a flat **¥5,000** each.
+
+* **Fixed per save.** The TMs are rolled once per playthrough and never refresh: they are derived from the **trainer ID**, so nothing is stored and a new game rolls new ones. They show from the first visit, whatever the mart's basic / expanded stock.
+* **Pool.** The 50 TMs minus the **8 gym TMs** (Rock Tomb, Bulk Up, Shock Wave, Overheat, Facade, Aerial Ace, Calm Mind, Water Pulse), which stay gym-only: 42 TMs. HMs are never sold.
+* **Spread.** The pool is shuffled once (seeded by the trainer ID) and each mart takes the next 5 in **story order** (Oldale first, Sootopolis last), wrapping around. So a mart never lists the same TM twice, the first 8 marts share none, and only the last 3 (Fortree, Mossdeep, Sootopolis) repeat TMs from earlier marts (55 slots for 42 TMs).
+* **Price.** ¥5,000 in these marts only (Slateport's PokéNews sale halves it, as any mart price); the TM's own price is unchanged elsewhere (Lilycove, selling).
+* **Names.** Every mart's buy list shows a TM with its move, **`TM08 Bulk Up`** (the list font narrows to fit), not just `TM08`. This also applies to the Lilycove Department Store TM counters.
+* **Engine.** `src/shop.c` + `include/constants/mart_tms.h`. Each clerk script runs `setvar VAR_0x8004, MART_TMS_<TOWN>` + `special PokeMart_SetTMStock` before its `pokemart`; the special leaves the id pending and `CreateShopMenu` moves it into `sMartInfo.tmStockId` (cleared for every other shop). `CB2_InitBuyMenu` runs `BuyMenuAppendMartTMs` after `TryBuildDynamicShopItemList`, replacing that allocated list with one holding the 5 TMs (`GetMartTMs`: pool = `FOREACH_TM` minus `sMartTMExcluded`, Fisher-Yates with `LocalRandomSeed(OTID ^ "MART")`, slice `(id - 1) * 5`). Every buy-menu price goes through `BuyMenuGetItemPrice` (`MART_TM_PRICE` for a TM while `tmStockId` is set). `BuyMenuSetListEntry` appends the move name to TM / HM names (`sItemNames` widened by `MOVE_NAME_LENGTH`). No vars or flags.
 
 ### Lab Research Trade
 
@@ -637,9 +697,12 @@ Pressing **SELECT** in the overworld opens a small menu (it replaces vanilla's d
 | Items      | Bag in battle                   | none in trainer battles; big-battle trainers carry no items        |
 | AI         | Smart Trainer extras            | bonus cap +3, never on a KO move; decisive speed control +4        |
 | Gym reward | Choice per gym                  | random held item (shared pool), or Egg: random non-Hoenn, non-legendary, gym type |
+| Tera Orb   | Roxanne, after her gym reward  | always charged; Terastallize once per battle |
 | Gimmick ring | Wattson, pick one (permanent) | Mega Ring or Z-Ring; Birch then gives the starter's Mega Stone / type Z-Crystal; Game Corner: stock of 3 unowned Mega Stones (4,000 coins) + 3 Z-Crystals (3,000), restocked per badge / rival / E4 clear |
 | Guest leader | Gyms 4–8, first fight      | 20% per roll (rerolled on whiteout); Kanto guest of another type, once per save; tag team / doubles / guest only, 1/3 each, locked till win or whiteout; ace = home ace, EVs × level; top 3 each in tag / doubles |
+| Lineups    | Gyms 4–8, rivals from Rustboro | 6 mons (gym type), 31 IVs, EVs +80 per gym (Wattson 240 → cap 510), 1 Mega + 1 Tera, Signature Move on every fully evolved member, Smart Trainer AI; rematches (gyms 3–8) 6-mon doubles, +80 EVs per tier, one swap per tier; E4 / Champion +6 Lv |
 | Egg shop   | Prices (Starter / Strong / Powerhouse) | ¥30,000 / ¥60,000 / ¥120,000; one `<REGION> <TIER> EGG` per tier, region and species uniform (species hidden), restocked per badge / rival / E4 clear |
+| Mart TMs   | 5 per Hoenn town mart, ¥5,000 | fixed per save (trainer ID); 42-TM pool (no HMs, no gym TMs), no repeats within a mart, first 8 marts disjoint; listed as `TM08 Bulk Up` |
 | Lab trade  | 2 party Pokémon → 1 reward       | Lv5 first-stage, non-Hoenn, non-legendary; line shares a rolled input type; line BST > both inputs; IVs best of 2 per stat; 1 per badge / E4 clear; typed from the 4th; Rare Candy if no reward |
 | Pacing     | Time-to-death (physical)        | frail 5–7 / mid 7–10 / giga 10+ turns                              |
 | Sweep      | Optimal-case trade              | 1 for 2–2.5                                                        |
@@ -684,6 +747,9 @@ The branch tracks `rh-hideout/pokeemerald-expansion` **`master`** (not `upcoming
 ### Battle UI graphics folder
 
 Fantasy Retold battle-interface art lives in `graphics/battle_interface_fantasy_retold/` (a fork of upstream's `graphics/battle_interface/`); `src/graphics.c`, `gimmicks.h`, `battle_interface.c` and the level-up banner point there. Concatenated outputs (`textbox.gbapal`, `battle_bar.4bpp`) have their own rules in `graphics_file_rules.mk` under `FRBATINTGFXDIR`.
+
+* **`L / INNATE` tab** (`move_info_window_l/r.png`). It's drawn with the ability popup's palette (`TAG_ABILITY_POP_UP`), not the PNG's own, so the label uses index 3 (near-black) over index D (yellow). Index 5 is white in that palette and was unreadable there.
+* **Party status balls** (`ball_display.png`: healthy, empty, fainted, status). They share the healthbar palette (`TAG_HEALTHBAR_PAL`), so they're drawn on its indices: healthy is a red/black/white Poké Ball, status is the same ball with a purple top, fainted is a filled dark ball, and empty is an outline. Don't make them by swapping the palette onto the vanilla pixels: vanilla's index meanings don't match, and that's how they came out as dark, scrambled blobs.
 
 * **Palettes.** `textbox.gbapal` is built as `textbox_0.gbapal` + `textbox_1.gbapal`, which come from the JASC `textbox_0.pal` / `textbox_1.pal`. Those `.pal` files are written by `generate_jasc_pals.py`; `generate_dark_palettes.py` holds the same colour lists for the raw `.gbapal` outputs. Edit a palette in **both** scripts and rerun `generate_jasc_pals.py` — the build only reads the `.pal` files.
 * **Battle menu text** (move names, PP / type, FIGHT / BAG menu) uses the **vanilla** `graphics/battle_interface/text.pal` / `text_pp.pal` (dark grey on white). The dark `text.pal` in the Fantasy Retold folder is no longer used.

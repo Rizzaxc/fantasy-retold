@@ -6,6 +6,8 @@ VerdanturfTown_Mart_EventScript_Clerk::
 	faceplayer
 	message gText_HowMayIServeYou
 	waitmessage
+	setvar VAR_0x8004, MART_TMS_VERDANTURF
+	special PokeMart_SetTMStock
 	pokemart VerdanturfTown_Mart_Pokemart
 	msgbox gText_PleaseComeAgain, MSGBOX_DEFAULT
 	release
