@@ -574,7 +574,12 @@ static void CB2_InitBuyMenu(void)
 static void BuyMenuFreeMemory(void)
 {
     if (sMartInfo.martType == MART_TYPE_NORMAL)
+    {
         TryFreeDynamicShopItemList(&sMartInfo.itemList);
+        // itemCount still counts the built list (+ mart TMs); recount the restored script list, or
+        // reopening BUY reads past its ITEM_NONE into script bytes.
+        SetShopItemsForSale(sMartInfo.itemList);
+    }
 
     Free(sShopData);
     Free(sListMenuItems);
