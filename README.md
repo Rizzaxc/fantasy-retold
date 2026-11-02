@@ -1,5 +1,9 @@
 # README
 
+![Select Menu](./screenshot/select_menu.png)
+![Summary Screen](./screenshot/summ_screen.png)
+![Status Example](./screenshot/nightmare.png)
+
 ## TL;DR
 
 This is an emerald hack (based on RHH's 1.17) that alters battle rules significantly. Pokemon gains 2 innate commands, can have up to 6 moves; rebalance natures with a bonus ability, new/ reworked status effects that can all stack with each other!  
