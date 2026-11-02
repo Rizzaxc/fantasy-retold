@@ -4,7 +4,11 @@
 // Fantasy Retold: guest gym leaders (design.md §10).
 
 #define GUEST_LEADER_FIRST_GYM 4  // gyms 4-8 can host a guest
-#define GUEST_LEADER_CHANCE    100 // % per roll
+#ifdef RELEASE
+#define GUEST_LEADER_CHANCE    24  // % per roll
+#else
+#define GUEST_LEADER_CHANCE    100 // % per roll (dev builds: always, for testing)
+#endif
 #define GUEST_LEADER_TRIM_SIZE 3  // mons each leader brings in tag team / doubles
 
 // Locked format, rolled on engage

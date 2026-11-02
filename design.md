@@ -518,7 +518,7 @@ The player gets **one** of the two gimmick rings, for good, and with it the item
 
 From the **4th gym** on (Flannery, Norman, Winona, Tate & Liza, Juan), the **first** fight with the leader may host a **guest leader from another region**: Kanto for now (the 8 FRLG leaders). Johto joins once its leader sprites are in.
 
-* **Appearance.** Each gym gets one roll: a **20%** chance of a guest, and which guest. It is rolled the first time that leader is engaged (in practice, after the previous badge) and **rerolled on every whiteout**, anywhere, until the gym is beaten. The guest is picked evenly among Kanto leaders whose **type differs from the home gym's** (no Blaine at Lavaridge, Sabrina at Mossdeep or Misty at Sootopolis) and who **haven't been beaten yet**: each guest can be beaten once per save. Nothing in the gym hints at it; the leader reveals the guest when talked to.
+* **Appearance.** Each gym gets one roll: a **24%** chance of a guest (release builds, `make release`; dev builds always roll a guest for testing, see `GUEST_LEADER_CHANCE`), and which guest. It is rolled the first time that leader is engaged (in practice, after the previous badge) and **rerolled on every whiteout**, anywhere, until the gym is beaten. The guest is picked evenly among Kanto leaders whose **type differs from the home gym's** (no Blaine at Lavaridge, Sabrina at Mossdeep or Misty at Sootopolis) and who **haven't been beaten yet**: each guest can be beaten once per save. Nothing in the gym hints at it; the leader reveals the guest when talked to.
 * **Format.** Rolled when the player engages, evenly: **tag team** (the guest, then the home leader, back to back with **no heal**; losing either is a whiteout), **doubles** (the guest and the home leader together, as a two-trainer double battle), or **guest only** (the guest stands in for the leader). The format stays **locked** until the player wins or whites out, so backing out and talking again can't fish for another. Mossdeep has no doubles (Tate & Liza already fight a double battle), so it rolls tag team or guest only, 50/50.
 * **Two Pokémon.** Doubles, or a tag team that ends in Tate & Liza's double battle, needs two usable Pokémon when engaging; otherwise the leader says so and the player has to come back (the format stays locked). A double battle reached mid-tag with one Pokémon left still runs.
 * **Guest teams.** Each guest has one party, authored at its Kanto levels with fully evolved Pokémon. At battle time every level is **shifted** by (home leader's highest level − guest's highest level), so the guest's ace matches the home ace and the spread is kept; moves are left as authored (an empty move list uses the learnset at the new level). Authored **EVs scale with the level** (each × new level / authored level); if a stat goes over 252 or the total over 510, all six are scaled down together so their ratio holds.
@@ -712,7 +712,7 @@ Pressing **SELECT** in the overworld opens a small menu (it replaces vanilla's d
 | Gym reward | Choice per gym                  | random held item (shared pool), or Egg: random non-Hoenn, non-legendary, gym type |
 | Tera Orb   | Roxanne, after her gym reward  | always charged; Terastallize once per battle (START); Tera Type on the summary; changed for free at the Move Relearner; any mon relearns Tera Blast |
 | Gimmick ring | Wattson, pick one (permanent) | Mega Ring or Z-Ring; Birch then gives the starter's Mega Stone / type Z-Crystal; Game Corner: stock of 3 unowned Mega Stones (4,000 coins) + 3 Z-Crystals (3,000), restocked per badge / rival / E4 clear |
-| Guest leader | Gyms 4–8, first fight      | 20% per roll (rerolled on whiteout); Kanto guest of another type, once per save; tag team / doubles / guest only, 1/3 each, locked till win or whiteout; ace = home ace, EVs × level; top 3 each in tag / doubles |
+| Guest leader | Gyms 4–8, first fight      | 24% per roll in release builds, 100% in dev (rerolled on whiteout); Kanto guest of another type, once per save; tag team / doubles / guest only, 1/3 each, locked till win or whiteout; ace = home ace, EVs × level; top 3 each in tag / doubles |
 | Lineups    | Gyms 4–8, rivals from Rustboro | 6 mons (gym type), 31 IVs, EVs +80 per gym (Wattson 240 → cap 510), 1 Mega + 1 Tera, Signature Move on every fully evolved member, Smart Trainer AI; rematches (gyms 3–8) 6-mon doubles, +80 EVs per tier, one swap per tier; E4 / Champion +6 Lv |
 | Egg shop   | Prices (Starter / Strong / Powerhouse) | ¥30,000 / ¥60,000 / ¥120,000; one `<REGION> <TIER> EGG` per tier, region and species uniform (species hidden), restocked per badge / rival / E4 clear |
 | Daycare training | ¥200 per level | up to the party's highest level − 5; Rare Candy flow (moves, evolution) |
@@ -747,6 +747,10 @@ The fallback flags mirror the minimum project assumptions needed for code naviga
 * header roots: `include`, project root, and `tools/agbcc/include`
 
 Primary goal: make quoted project includes such as `#include "global.h"` resolve reliably in the editor without changing the actual build pipeline.
+
+### Releasing
+
+`make release` (in WSL) builds `pokeemerald-release.gba` with `RELEASE` defined, which selects the real tuning (e.g. `GUEST_LEADER_CHANCE` 24 instead of the dev value 100). Then `./make_patch.sh <version>` makes `release/fantasy-retold-<version>.bps` (vanilla Emerald → release ROM) with the local RomPatcher.js CLI. The clean ROM and `release/` are gitignored; the patch is uploaded by hand as a GitHub release asset, never the ROM.
 
 ### Upstream base
 
