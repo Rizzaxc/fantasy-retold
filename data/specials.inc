@@ -648,6 +648,9 @@ gSpecials::
 	def_special EggShop_BufferOffer
 	def_special EggShop_CanAfford
 	def_special EggShop_Buy
+	def_special DaycareTraining_BufferOffer
+	def_special DaycareTraining_Charge
+	def_special DaycareTraining_LevelUpMon, waitstate=1
 	def_special SelectMenu_BufferLabels
 	def_special SelectMenu_ToggleRepel
 	def_special SelectMenu_ToggleExpShare

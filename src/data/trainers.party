@@ -4909,10 +4909,10 @@ AI: Smart Trainer
 
 Joltik @ Focus Sash  
 Ability: Compound Eyes  
-EVs: 240 Spe
+EVs: 40 HP / 200 Spe
 Level: 21
 Timid Nature  
-IVs: 0 Atk  
+IVs: 24 HP / 0 Atk / 24 Def / 24 SpD  
 - Thunder Wave  
 - Toxic  
 - Infestation  
@@ -4920,8 +4920,9 @@ IVs: 0 Atk
 
 Raichu @ Raichunite X  
 Ability: Static
-Level: 24
-EVs: 120 Atk / 40 Def / 40 SpD / 40 Spe  
+Level: 23
+EVs: 120 Atk / 40 Def / 40 SpD / 40 Spe
+IVs: 24 HP / 20 Atk / 24 Def / 20 SpA / 24 SpD / 20 Spe
 Jolly Nature  
 - Volt Tackle  
 - Volt Switch  
@@ -4931,9 +4932,9 @@ Jolly Nature
 Rotom-Wash @ Leftovers  
 Ability: Levitate
 Level: 22
-EVs: 120 HP / 120 SpA  
+EVs: 120 HP / 120 SpA
+IVs: 24 HP / 0 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
 Rash Nature  
-IVs: 0 Atk  
 - Hex  
 - Hydro Pump  
 - Discharge  
@@ -4942,9 +4943,9 @@ IVs: 0 Atk
 Flaaffy @ Eviolite  
 Ability: Static
 Level: 22
-EVs: 120 Def / 120 SpA  
+EVs: 120 Def / 120 SpA
+IVs: 31 HP / 0 Atk / 21 Def / 21 SpA / 21 SpD / 21 Spe
 Bold Nature  
-IVs: 0 Atk  
 - Heal Bell  
 - Thunder  
 - Cotton Guard  
@@ -4952,10 +4953,10 @@ IVs: 0 Atk
 
 Vikavolt @ Electric Seed  
 Ability: Levitate
-Level: 24
+Level: 23
 EVs: 120 SpA / 120 Spe  
 Modest Nature  
-IVs: 0 Atk  
+IVs: 0 Atk / 27 SpA / 27 Spe  
 - Air Slash  
 - Bug Buzz  
 - Energy Ball  
@@ -4966,7 +4967,7 @@ Ability: Lightning Rod
 EVs: 240 SpA
 Level: 24
 Modest Nature  
-IVs: 0 Atk  
+IVs: 0 Atk / 27 SpA / 27 Spe  
 - Hyper Voice  
 - Flamethrower  
 - Thunder  

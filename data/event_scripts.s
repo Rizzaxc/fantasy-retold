@@ -1207,6 +1207,7 @@ EventScript_BackupMrBrineyLocation::
 	.include "data/scripts/set_gym_trainers.inc"
 	.include "data/scripts/gym_reward.inc"
 	.include "data/scripts/egg_shop.inc"
+	.include "data/scripts/daycare_training.inc"
 	.include "data/scripts/select_menu.inc"
 	.include "data/scripts/lab_research.inc"
 	.include "data/scripts/gimmick_reward.inc"

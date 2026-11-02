@@ -451,6 +451,8 @@ static void Task_PartyMenuWaitForFade(u8 taskId);
 static void Task_ChooseContestMon(u8 taskId);
 static void CB2_ChooseContestMon(void);
 static void Task_ChoosePartyMon(u8 taskId);
+static void Task_DaycareTrainingOpenPartyMenu(u8 taskId);
+static void Task_DaycareTrainingLevelUp(u8 taskId);
 static void Task_ChooseMonForMoveRelearner(u8);
 static void CB2_ChooseMonForMoveRelearner(void);
 static void Task_BattlePyramidChooseMonHeldItems(u8);
@@ -8390,6 +8392,56 @@ static void Task_ChoosePartyMon(u8 taskId)
         InitPartyMenu(PARTY_MENU_TYPE_CHOOSE_MON, PARTY_LAYOUT_SINGLE, PARTY_ACTION_CHOOSE_AND_CLOSE, FALSE, PARTY_MSG_CHOOSE_MON, Task_HandleChooseMonInput, BufferMonSelection);
         DestroyTask(taskId);
     }
+}
+
+// Fantasy Retold: the daycare man's training (design.md §10). Raises the party mon in VAR_0x8004 to the level in
+// VAR_0x8005 on the party menu through the Rare Candy flow (stats window, new moves, evolution), then continues the
+// script. The script has already charged for it.
+void DaycareTraining_LevelUpMon(void)
+{
+    LockPlayerFieldControls();
+    FadeScreen(FADE_TO_BLACK, 0);
+    CreateTask(Task_DaycareTrainingOpenPartyMenu, 10);
+}
+
+static void Task_DaycareTrainingOpenPartyMenu(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        CleanupOverworldWindowsAndTilemaps();
+        gPartyMenu.slotId = gSpecialVar_0x8004;
+        InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_CHOOSE_MON, TRUE, PARTY_MSG_NONE, Task_DaycareTrainingLevelUp, CB2_ReturnToFieldContinueScriptPlayMapMusic);
+        DestroyTask(taskId);
+    }
+}
+
+static void Task_DaycareTrainingLevelUp(u8 taskId)
+{
+    struct Pokemon *mon = &gParties[B_TRAINER_PLAYER][gPartyMenu.slotId];
+    s16 *stats = sPartyMenuInternal->data;
+    u32 exp;
+
+    if (gPaletteFade.active)
+        return;
+
+    gSpecialVar_ItemId = ITEM_NONE; // so the Rare Candy flow closes the menu instead of reopening the bag
+    sInitialLevel = GetMonData(mon, MON_DATA_LEVEL);
+    sFinalLevel = gSpecialVar_0x8005;
+    exp = gExperienceTables[gSpeciesInfo[GetMonData(mon, MON_DATA_SPECIES)].growthRate][sFinalLevel];
+    BufferMonStatsToTaskData(mon, stats);
+    SetMonData(mon, MON_DATA_EXP, &exp);
+    CalculateMonStats(mon);
+    BufferMonStatsToTaskData(mon, &stats[NUM_STATS]);
+
+    gPartyMenuUseExitCallback = TRUE;
+    UpdateMonDisplayInfoAfterRareCandy(gPartyMenu.slotId, mon);
+    GetMonNickname(mon, gStringVar1);
+    PlayFanfareByFanfareNum(FANFARE_LEVEL_UP);
+    ConvertIntToDecimalStringN(gStringVar2, sFinalLevel, STR_CONV_MODE_LEFT_ALIGN, 3);
+    StringExpandPlaceholders(gStringVar4, gText_PkmnElevatedToLvVar2);
+    DisplayPartyMenuMessage(gStringVar4, TRUE);
+    ScheduleBgCopyTilemapToVram(2);
+    gTasks[taskId].func = Task_DisplayLevelUpStatsPg1;
 }
 
 void ChooseMonForMoveRelearner(void)

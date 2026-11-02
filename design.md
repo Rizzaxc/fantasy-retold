@@ -592,6 +592,15 @@ The Route 117 **Day-Care Lady** also sells Eggs. Talking to her opens `DAY-CARE`
   * *Powerhouse:* the pseudo-legendaries (Dratini, Larvitar, Gible, Deino, Goomy, Jangmo-o, Dreepy, Frigibax; Bagon and Beldum are Hoenn), plus Larvesta, Greavard, White-Striped Basculin, Flittle, Mankey, Finizen and Hisuian Sneasel.
 * **Engine.** `src/egg_shop.c` + `Common_EventScript_EggShop` (`data/scripts/egg_shop.inc`), reached from `Route117_PokemonDayCare_EventScript_DaycareWoman`. Each slot is one var (`VAR_EGG_SHOP_SLOT_1`–`_3`, the old unused 0x40F8–0x40FA): tier in bits 0–3, `enum Region` in bits 4–11, bit 15 = in stock (0 = sold). `VAR_EGG_SHOP_STOCK_KEY` (0x40F7) holds milestones + 1 for the current stock (`GetEggShopMilestones`: badge flags, `HasTrainerBeenFought` on the rival trainer IDs, `GAME_STAT_ENTERED_HOF`). Specials: `EggShop_Restock` (restocks if needed, returns Eggs left), `EggShop_BufferMenu` (rows in `STR_VAR_1`–`3`), `EggShop_BufferOffer` / `EggShop_CanAfford` / `EggShop_Buy` (slot in `VAR_0x8004`; `Buy` rolls the species with `PickEggShopSpecies(tier, region)`). Region: `GetEggShopRegion`. The Hoenn rule is `IsInHoennFamily` (`gym_reward.c`, now shared through `gym_reward.h`). Prices are `sEggShopPrices`; slot *n* is tier *n*.
 
+### Daycare Training
+
+The Route 117 **Day-Care Man** trains party Pokémon for money. Talking to him opens `DAY-CARE` / `TRAINING` (B leaves); `DAY-CARE` is the vanilla flow (Egg pickup, checking on the mons).
+
+* **Price.** **¥200 per level**, paid up front.
+* **Cap.** He only trains up to **the party's highest level − 5** (Eggs don't count). A Pokémon already at or above that is refused, as are Eggs.
+* **Flow.** Pick a party Pokémon; he offers `ONE LEVEL` or `TO LV. n`, where *n* is the highest level the player can afford, up to the cap (the message shows its price). The level up plays out like a **Rare Candy** on the party menu: stats window, level-up moves (with the replace-a-move prompt), then evolution. One Pokémon per conversation: backing out of the party menu or the offer, a refusal, or a finished training ends it.
+* **Engine.** `Common_EventScript_DaycareTraining` (`data/scripts/daycare_training.inc`, texts there too), reached from `Route117_EventScript_DaycareMan`. Specials in `src/daycare_training.c`: `DaycareTraining_BufferOffer` (slot in `VAR_0x8004`; returns `DAYCARE_TRAINING_*` from `constants/daycare.h`, sets `VAR_0x8005` = affordable target, `VAR_0x8006` = level + 1) and `DaycareTraining_Charge` (takes the fee for slot `VAR_0x8004` → level `VAR_0x8005`). The level up is `DaycareTraining_LevelUpMon` in `party_menu.c` (it needs the Rare Candy flow's statics): it opens the party menu on the slot, sets EXP to the target level's threshold, and hands off to `Task_DisplayLevelUpStatsPg1` with `gSpecialVar_ItemId = ITEM_NONE` so the flow closes back to the script. Tunables: `DAYCARE_TRAINING_PRICE`, `DAYCARE_TRAINING_LEVEL_GAP`.
+
 ### Mart TMs
 
 Every Hoenn **town mart** (the clerk in each `*_Mart`: Oldale, Petalburg, Rustboro, Slateport, Mauville, Verdanturf, Fallarbor, Lavaridge, Fortree, Mossdeep, Sootopolis) sells **5 TMs** after its normal stock, at a flat **¥5,000** each.
@@ -706,6 +715,7 @@ Pressing **SELECT** in the overworld opens a small menu (it replaces vanilla's d
 | Guest leader | Gyms 4–8, first fight      | 20% per roll (rerolled on whiteout); Kanto guest of another type, once per save; tag team / doubles / guest only, 1/3 each, locked till win or whiteout; ace = home ace, EVs × level; top 3 each in tag / doubles |
 | Lineups    | Gyms 4–8, rivals from Rustboro | 6 mons (gym type), 31 IVs, EVs +80 per gym (Wattson 240 → cap 510), 1 Mega + 1 Tera, Signature Move on every fully evolved member, Smart Trainer AI; rematches (gyms 3–8) 6-mon doubles, +80 EVs per tier, one swap per tier; E4 / Champion +6 Lv |
 | Egg shop   | Prices (Starter / Strong / Powerhouse) | ¥30,000 / ¥60,000 / ¥120,000; one `<REGION> <TIER> EGG` per tier, region and species uniform (species hidden), restocked per badge / rival / E4 clear |
+| Daycare training | ¥200 per level | up to the party's highest level − 5; Rare Candy flow (moves, evolution) |
 | Mart TMs   | 5 per Hoenn town mart, ¥5,000 | fixed per save (trainer ID); 42-TM pool (no HMs, no gym TMs), no repeats within a mart, first 8 marts disjoint; listed as `TM08 Bulk Up` |
 | Lab trade  | 2 party Pokémon → 1 reward       | Lv5 first-stage, non-Hoenn, non-legendary; line shares a rolled input type; line BST > both inputs; IVs best of 2 per stat; 1 per badge / E4 clear; typed from the 4th; Rare Candy if no reward |
 | Pacing     | Time-to-death (physical)        | frail 5–7 / mid 7–10 / giga 10+ turns                              |

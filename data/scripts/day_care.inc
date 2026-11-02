@@ -1,6 +1,12 @@
 Route117_EventScript_DaycareMan::
 	lock
 	faceplayer
+	@ Fantasy Retold: he also trains POKéMON (design.md §10).
+	message Route117_Text_DayCareOrTraining
+	waitmessage
+	dynmultichoice 19, 6, FALSE, 2, 0, DYN_MULTICHOICE_CB_NONE, gText_EggShopChoiceDayCare, gText_DaycareTrainingChoice
+	goto_if_eq VAR_RESULT, 1, Common_EventScript_DaycareTraining
+	goto_if_ne VAR_RESULT, 0, Common_EventScript_DaycareTrainingLeave
 	special GetDaycareMonNicknames
 	specialvar VAR_RESULT, GetDaycareState
 	goto_if_eq VAR_RESULT, DAYCARE_EGG_WAITING, Route117_EventScript_DaycareEggWaiting
@@ -325,6 +331,10 @@ Route117_Text_YourMonsAreDoingFine:
 Route117_Text_IWillKeepDoYouWantIt:
 	.string "I really will keep it.\n"
 	.string "You do want this, yes?$"
+
+Route117_Text_DayCareOrTraining:
+	.string "Hello there!\n"
+	.string "What can I do for you?$"
 
 Route117_PokemonDayCare_Text_DayCareOrEggShop:
 	.string "Hello, dear.\n"

@@ -19,4 +19,10 @@
 #define DAYCARE_LEVEL_MENU_EXIT 5
 #define DAYCARE_EXITED_LEVEL_MENU 2 // would be redundant with above if GF had used the same value
 
+// Fantasy Retold: DaycareTraining_BufferOffer results (design.md §10)
+#define DAYCARE_TRAINING_OK        0
+#define DAYCARE_TRAINING_EGG       1
+#define DAYCARE_TRAINING_AT_CAP    2
+#define DAYCARE_TRAINING_NO_MONEY  3
+
 #endif //GUARD_DAYCARE_CONSTANTS_H
