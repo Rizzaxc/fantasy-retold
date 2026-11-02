@@ -325,7 +325,6 @@ static void BufferHPStats(void);
 static void PrintHPStats(u8);
 static void BufferNonHPStats(void);
 static void PrintNonHPStats(void);
-static void PrintExpPointsNextLevel(void);
 static void PrintBattleMoves(void);
 static void Task_PrintBattleMoves(u8);
 static void PrintMoveNameAndPP(u8);
@@ -421,7 +420,6 @@ static const u8 sText_ViewEVs[]                             = _("View EV");
 static const u8 sText_ViewStats[]                           = _("View Stats");
 static const u8 sText_ViewIVs_Graded[]                      = _("See Innate");
 static const u8 sText_ViewEVs_Graded[]                      = _("See Effort");
-static const u8 sText_NextLv[]                              = _("Next Lv.");
 static const u8 sText_RentalPkmn[]                          = _("Rental Pokémon");
 static const u8 sText_None[]                                = _("None");
 #else
@@ -437,7 +435,6 @@ static const u8 sText_ViewEVs[]                             = _("VIEW EV");
 static const u8 sText_ViewStats[]                           = _("VIEW STATS");
 static const u8 sText_ViewIVs_Graded[]                      = _("SEE INNATE");
 static const u8 sText_ViewEVs_Graded[]                      = _("SEE EFFORT");
-static const u8 sText_NextLv[]                              = _("NEXT LV.");
 static const u8 sText_RentalPkmn[]                          = _("RENTAL POKéMON");
 static const u8 sText_None[]                                = _("NONE");
 #endif
@@ -3785,7 +3782,6 @@ static void PrintPageNamesAndStats(void)
         PrintTextOnWindow(PSS_LABEL_WINDOW_PROMPT_STATS, sText_ViewStats, stringXPos, 1, 0, 1);
     }
 
-    PrintTextOnWindow(PSS_LABEL_WINDOW_POKEMON_SKILLS_EXP, sText_NextLv, 0, 4, 0, 0);
 }
 
 static void PutPageWindowTilemaps(u8 page)
@@ -4354,7 +4350,6 @@ static void PrintSkillsPageText(void)
     PrintHPStats(SKILL_STATE_STATS);
     BufferNonHPStats();
     PrintNonHPStats();
-    PrintExpPointsNextLevel();
 }
 
 static void Task_PrintSkillsPage(u8 taskId)
@@ -4382,9 +4377,6 @@ static void Task_PrintSkillsPage(u8 taskId)
         PrintNonHPStats();
         break;
     case 7:
-        PrintExpPointsNextLevel();
-        break;
-    case 8:
         DestroyTask(taskId);
         return;
     }
@@ -4593,28 +4585,6 @@ static void PrintNonHPStats(void)
     PrintTextOnWindow(windowId, gStringVar3, 30, 28, 0, 0);
     PrintTextOnWindow(windowId, gStringVar4, 30, 40, 0, 0);
     PrintTextOnWindow(windowId, sStringVar5, 30, 52, 0, 0);
-}
-
-static void PrintExpPointsNextLevel(void)
-{
-    u32 expToNextLevel;
-    struct PokeSummary *sum = &sMonSummaryScreen->summary;
-    u8 windowIdExp = AddWindowFromTemplateList(sPageSkillsTemplate, PSS_DATA_WINDOW_EXP);
-    u8 windowIdNextLvl = AddWindowFromTemplateList(sPageSkillsTemplate, PSS_DATA_WINDOW_EXP_NEXT_LEVEL);
-
-    // print exp
-    ConvertIntToDecimalStringN(gStringVar1, sum->exp, STR_CONV_MODE_RIGHT_ALIGN, 7);
-    PrintTextOnWindow(windowIdExp, gStringVar1, 45, 4, 0, 0);
-
-    // print exp to next level
-    if (sum->level < MAX_LEVEL)
-        expToNextLevel = gExperienceTables[gSpeciesInfo[sum->species].growthRate][sum->level + 1] - sum->exp;
-    else
-        expToNextLevel = 0;
-
-    ConvertIntToDecimalStringN(gStringVar1, expToNextLevel, STR_CONV_MODE_RIGHT_ALIGN, 6);
-
-    PrintTextOnWindow(windowIdNextLvl, gStringVar1, 1, 4, 0, 0);
 }
 
 static void PrintBattleMoves(void)

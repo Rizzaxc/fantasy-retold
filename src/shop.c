@@ -356,8 +356,6 @@ static u8 CreateShopMenu(u8 martType)
 
     LockPlayerFieldControls();
     sMartInfo.martType = martType;
-    sMartInfo.tmStockId = (martType == MART_TYPE_NORMAL) ? sPendingTMStockId : MART_TMS_NONE;
-    sPendingTMStockId = MART_TMS_NONE;
 
     if (martType == MART_TYPE_NORMAL)
     {
@@ -383,6 +381,14 @@ static u8 CreateShopMenu(u8 martType)
     CopyWindowToVram(sMartInfo.windowId, COPYWIN_MAP);
 
     return CreateTask(Task_ShopMenu, 8);
+}
+
+// Only the script entry points take the pending TM stock: CreateShopMenu also reopens the
+// menu after the buy / sell screens, and the stock must survive that.
+static void SetShopTMStock(bool32 canHaveTMs)
+{
+    sMartInfo.tmStockId = canHaveTMs ? sPendingTMStockId : MART_TMS_NONE;
+    sPendingTMStockId = MART_TMS_NONE;
 }
 
 static void SetShopMenuCallback(void (*callback)(void))
@@ -1436,6 +1442,7 @@ static void RecordItemPurchase(u8 taskId)
 
 void CreatePokemartMenu(const u16 *itemsForSale)
 {
+    SetShopTMStock(TRUE);
     CreateShopMenu(MART_TYPE_NORMAL);
     SetShopItemsForSale(itemsForSale);
     ClearItemPurchases();
@@ -1444,6 +1451,7 @@ void CreatePokemartMenu(const u16 *itemsForSale)
 
 void CreateDecorationShop1Menu(const u16 *itemsForSale)
 {
+    SetShopTMStock(FALSE);
     CreateShopMenu(MART_TYPE_DECOR);
     SetShopItemsForSale(itemsForSale);
     SetShopMenuCallback(ScriptContext_Enable);
@@ -1451,6 +1459,7 @@ void CreateDecorationShop1Menu(const u16 *itemsForSale)
 
 void CreateDecorationShop2Menu(const u16 *itemsForSale)
 {
+    SetShopTMStock(FALSE);
     CreateShopMenu(MART_TYPE_DECOR2);
     SetShopItemsForSale(itemsForSale);
     SetShopMenuCallback(ScriptContext_Enable);

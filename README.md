@@ -30,7 +30,7 @@ These are only the big changes. Many smaller/ QOL ones are >!4x resistance/ effe
 
 ## The progress
 
-This post is less of a marketing post and more a **help wanted** one.
+**help wanted**.
 
 I'd like to think all the engine mechanics are done, but more playtest is needed. All the big battles have to be redesigned, but only **up to the 3rd gym** are. If you play please treat post-Wattson as **untested bullshit**.
 
@@ -42,7 +42,7 @@ Contributions/ requests should first communicate through Github Issue, including
 
 ### Milestone
 
-* Story progression: playtest and rebalance gym 4-8, including guest battles, then E4
+* Story progression: playtest and rebalance gym 4-8, including guest leader battles, then E4
 * Gimmick held item acquisition: plan quests, drops, and/ or mechanics to tie with player progression
 * Villain battles: haven't started. they should be hard too
 * Economy balance: egg prices, research rewards, mega vs z move vs tera
