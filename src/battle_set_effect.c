@@ -33,6 +33,15 @@ static void HandleSetEffectNone(struct BattleCalcValues *cv, struct SetEffect *s
     assertf(se->moveEffect != MOVE_EFFECT_FLORAL_HEALING, "no effect assigned to MOVE_EFFECT_FLORAL_HEALING");
 }
 
+// Fantasy Retold: rail min level for a move effect: a status move lands at Lv2 and stacks (Lv1 -> Lv3); a secondary
+// lands at Lv1, or at Lv2 when its chance exceeded 100% and the excess rolled (a floor: a natural Lv3 wins).
+static u8 GetSecondaryRailMinLevel(const struct SetEffect *se)
+{
+    if (se->primary)
+        return 2;
+    return se->lv2Bonus ? (2 | STATUS_RAIL_APPLY_FLOOR) : 1;
+}
+
 static void HandleSetEffectNonVolatile(struct BattleCalcValues *cv, struct SetEffect *se)
 {
     if (IsSafeguardProtected(cv->battlerAtk, se->effectBattler, cv->abilities[cv->battlerAtk]) && !se->primary)
@@ -48,7 +57,7 @@ static void HandleSetEffectNonVolatile(struct BattleCalcValues *cv, struct SetEf
                 CHECK_TRIGGER))
     {
         // Fantasy Retold: a move's primary status lands at rail Lv2, an attacking-move secondary at Lv1.
-        SetNonVolatileStatus(cv->battlerAtk, se->effectBattler, se->moveEffect, se->script, TRIGGER_ON_MOVE, se->primary ? 2 : 1);
+        SetNonVolatileStatus(cv->battlerAtk, se->effectBattler, se->moveEffect, se->script, TRIGGER_ON_MOVE, GetSecondaryRailMinLevel(se));
     }
     else
     {
@@ -73,7 +82,7 @@ static void HandleSetEffectConfusion(struct BattleCalcValues *cv, struct SetEffe
     {
         // Fantasy Retold: Confused (Lv1) -> Stupefied (Lv2) -> Frightened (Lv3); a status move starts at
         // Stupefied, a secondary at Confused. 3 turns, kept when the line advances (design.md §6).
-        u8 level = ApplyStatusRailOrSynchronize(se->effectBattler, RAIL_CONFUSION, se->primary ? 2 : 1);
+        u8 level = ApplyStatusRailOrSynchronize(se->effectBattler, RAIL_CONFUSION, GetSecondaryRailMinLevel(se));
         gBattleStruct->statusRailsAppliedByMove[se->effectBattler] |= STATUS_RAIL_BIT(RAIL_CONFUSION);
         gEffectBattler = se->effectBattler;
         BattleScriptPush(se->script);

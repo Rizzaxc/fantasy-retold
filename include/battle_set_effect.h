@@ -15,6 +15,7 @@ struct SetEffect
     u16 certain:1;
     u16 onSide:1;
     u16 bypassSheerForce:1;
+    u16 lv2Bonus:1; // status chance above 100%: the excess rolled to apply the rail at Lv2 instead of Lv1
 };
 
 void SetMoveEffect(struct BattleCalcValues *cv, struct SetEffect *se);

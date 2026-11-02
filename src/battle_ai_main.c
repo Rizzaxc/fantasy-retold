@@ -592,6 +592,13 @@ static u32 GetPredictedStaminaAttrition(enum BattlerId battlerAtk, enum BattlerI
     return GetAIMoveStaminaAttrition(battlerDef, battlerAtk, threatIndex, AI_GetKnownMoveAtSlot(battlerDef, threatIndex));
 }
 
+// Fantasy Retold: a damaging move into a type immunity still scores above 0 (the -20 penalty leaves ~80), so the
+// Stamina picks, which rank by score alone, must skip it themselves.
+static bool32 AIMoveIsTypeImmune(enum BattlerId battler, enum BattlerId target, u32 moveIndex, enum Move move)
+{
+    return GetMovePower(move) != 0 && moveIndex < AI_MOVE_SLOTS && gAiLogicData->effectiveness[battler][target][moveIndex] == UQ_4_12(0.0);
+}
+
 // The best-scored damaging move slot, or AI_MOVE_SLOTS. Pass AI_MOVE_SLOTS as excludedMoveIndex to exclude none.
 static u32 FindBestAIDamagingMove(enum BattlerId battler, enum BattlerId target, bool32 safeOnly, u32 currentStamina, u32 attrition, u32 excludedMoveIndex)
 {
@@ -603,7 +610,7 @@ static u32 FindBestAIDamagingMove(enum BattlerId battler, enum BattlerId target,
         enum Move move = AI_GetBattlerMoveAtSlot(battler, moveIndex);
         u32 totalCost;
 
-        if (move == MOVE_NONE || moveIndex == excludedMoveIndex || AI_GetMoveSlotPP(battler, moveIndex) == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || !CanTargetBattler(battler, target, move) || GetMovePower(move) == 0)
+        if (move == MOVE_NONE || moveIndex == excludedMoveIndex || AI_GetMoveSlotPP(battler, moveIndex) == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || !CanTargetBattler(battler, target, move) || GetMovePower(move) == 0 || AIMoveIsTypeImmune(battler, target, moveIndex, move))
             continue;
 
         if (safeOnly)
@@ -755,7 +762,7 @@ static u32 AI_FindProgressMoveOverRecuperate(enum BattlerId battlerAtk, enum Bat
     {
         enum Move move = AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex);
 
-        if (move == MOVE_NONE || AI_GetMoveSlotPP(battlerAtk, moveIndex) == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || !CanTargetBattler(battlerAtk, battlerDef, move))
+        if (move == MOVE_NONE || AI_GetMoveSlotPP(battlerAtk, moveIndex) == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || !CanTargetBattler(battlerAtk, battlerDef, move) || AIMoveIsTypeImmune(battlerAtk, battlerDef, moveIndex, move))
             continue;
         if (currentStamina <= GetAIMoveStaminaCost(battlerAtk, move) + attrition)
             continue;
@@ -788,7 +795,7 @@ static u32 AI_FindProgressMoveOverRecuperate(enum BattlerId battlerAtk, enum Bat
 // Recuperate is a wasted turn when, after the refill and the predicted attrition, the AI still can't attack
 // without emptying itself. A small pool (early levels: ~10 Stamina, where a 40 BP hit, the attack cost and the
 // refill are all ~4) otherwise loops Recuperate forever while the target hits it for free.
-static bool32 AIRecuperateIsFutile(enum BattlerId battlerAtk, u32 currentStamina, u32 attrition)
+static bool32 AIRecuperateIsFutile(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 currentStamina, u32 attrition)
 {
     u32 baseStamina = GetBaseStamina(battlerAtk);
     u32 afterRecuperate = min(currentStamina + (baseStamina * RECUPERATE_STAMINA_PERCENT) / 100, baseStamina);
@@ -797,7 +804,7 @@ static bool32 AIRecuperateIsFutile(enum BattlerId battlerAtk, u32 currentStamina
     for (u32 moveIndex = 0; moveIndex < AI_GetMoveSlotCount(battlerAtk); moveIndex++)
     {
         enum Move move = AI_GetBattlerMoveAtSlot(battlerAtk, moveIndex);
-        if (move == MOVE_NONE || AI_GetMoveSlotPP(battlerAtk, moveIndex) == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || GetMovePower(move) == 0)
+        if (move == MOVE_NONE || AI_GetMoveSlotPP(battlerAtk, moveIndex) == 0 || gAiThinkingStruct->score[moveIndex] <= 0 || GetMovePower(move) == 0 || AIMoveIsTypeImmune(battlerAtk, battlerDef, moveIndex, move))
             continue;
         cheapestCost = min(cheapestCost, GetAIMoveStaminaCost(battlerAtk, move));
     }
@@ -834,7 +841,7 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     attrition = GetPredictedStaminaAttrition(battlerAtk, battlerDef, threatIndex);
 
     canRecuperate = AICanUseRecuperate(battlerAtk);
-    recuperateFutile = canRecuperate && AIRecuperateIsFutile(battlerAtk, currentStamina, attrition);
+    recuperateFutile = canRecuperate && AIRecuperateIsFutile(battlerAtk, battlerDef, currentStamina, attrition);
 
     // At 0 Stamina every hit taken auto-crits, and Recuperate loses its priority (it resolves in speed
     // order), so leaving the Exhaustion Zone comes first: refill unless a KO lands before the target acts.

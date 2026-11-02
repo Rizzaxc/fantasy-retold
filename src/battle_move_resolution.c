@@ -2696,6 +2696,8 @@ static enum CancelerResult CancelerPreAttackMoveEffect(struct BattleCalcValues *
                 se.effectBattler = additionalEffect->self ? cv->battlerAtk : cv->battlerDef;
                 se.primary = percentChance == 0;
                 se.certain = percentChance >= 100;
+                se.lv2Bonus = percentChance > 100 && IsStatusRailAdditionalEffect(additionalEffect)
+                           && RandomPercentage(RNG_SECONDARY_EFFECT + gBattleStruct->additionalEffectsCounter, percentChance - 100);
                 se.onSide = additionalEffect->onSide; // TODO
 
                 SetMoveEffect(cv, &se);

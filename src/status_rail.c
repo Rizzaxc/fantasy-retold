@@ -96,7 +96,9 @@ u8 ApplyStatusRail(enum BattlerId battler, enum StatusRail rail, u8 minLevel)
     struct StatusRailEntry *entry = GetRail(battler, rail);
     u8 maxLevel = GetStatusRailMaxLevel(rail);
     u8 oldLevel, newLevel;
+    bool32 floorOnly = (minLevel & STATUS_RAIL_APPLY_FLOOR) != 0;
 
+    minLevel &= ~STATUS_RAIL_APPLY_FLOOR;
     ReconcileStatusRailsFromBridge(battler);
     oldLevel = entry->level;
 
@@ -104,7 +106,9 @@ u8 ApplyStatusRail(enum BattlerId battler, enum StatusRail rail, u8 minLevel)
         minLevel = 1;
 
     newLevel = oldLevel + 1;  // reapplication advances one step...
-    if (newLevel < minLevel)  // ...but a status-move application starts no lower than minLevel.
+    if (oldLevel != 0 && minLevel >= 2 && !floorOnly)
+        newLevel = oldLevel + minLevel; // ...a direct Lv2 application on an existing line stacks (Lv1 -> Lv3)...
+    if (newLevel < minLevel)  // ...and an application starts no lower than minLevel.
         newLevel = minLevel;
     if (rail == RAIL_ELECTRIC && oldLevel == 1 && GetRail(battler, RAIL_SOAK)->level != 0) // Dazed + Soaked skips to Paralyzed
         newLevel = maxLevel;

@@ -22,8 +22,11 @@ u8 GetStatusRailBranch(enum BattlerId battler, enum StatusRail rail);
 void SetStatusRailCounter(enum BattlerId battler, enum StatusRail rail, u8 counter);
 
 // Apply/advance a rail: newLevel = clamp(max(level + 1, minLevel), 1, railMax). minLevel is 2 for a
-// status-move/primary application, 1 for an attacking-move secondary / ability / protect effect.
+// status-move/primary application (see below for stacking), 1 for an attacking-move secondary / ability / protect effect.
 // RAIL_CHILL always starts at Lv1 (its Lv2 forms can't be applied directly). Returns the new level.
+// A direct application (minLevel 2) on a line that is already there stacks: Lv1 + Lv2 -> Lv3. With
+// STATUS_RAIL_APPLY_FLOOR ORed in, minLevel is only a floor (a secondary whose >100% excess rolled): max(level + 1, 2).
+#define STATUS_RAIL_APPLY_FLOOR 0x80
 u8 ApplyStatusRail(enum BattlerId battler, enum StatusRail rail, u8 minLevel);
 // ApplyStatusRail, unless this is a Synchronize passing a status back: then the rail jumps to the
 // synchronizer's level.

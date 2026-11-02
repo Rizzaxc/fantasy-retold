@@ -10100,7 +10100,7 @@ bool32 AreBattlersOfSameGender(enum BattlerId battler1, enum BattlerId battler2)
 
 // Fantasy Retold: a status-rail effect (design.md §6): one of the statuses, or a random pick (Tri Attack, Dire
 // Claw) from a list of nothing but statuses.
-static bool32 IsStatusRailAdditionalEffect(const struct AdditionalEffect *additionalEffect)
+bool32 IsStatusRailAdditionalEffect(const struct AdditionalEffect *additionalEffect)
 {
     u32 i;
 
