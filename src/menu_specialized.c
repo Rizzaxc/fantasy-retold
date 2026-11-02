@@ -778,6 +778,15 @@ static void MoveRelearnerLoadBattleMoveDescription(u32 chosenMove)
         CopyWindowToVram(RELEARNERWIN_DESC_BATTLE, COPYWIN_GFX);
         return;
     }
+    // Fantasy Retold: the Tera Type entries show the type and what it does instead of move data.
+    if (IS_RELEARNER_TERA_ID(chosenMove))
+    {
+        str = gTypesInfo[MoveRelearnerGetTeraEntryType(chosenMove)].name;
+        AddTextPrinterParameterized(RELEARNERWIN_DESC_BATTLE, FONT_NORMAL, str, 4, 25, TEXT_SKIP_DRAW, NULL);
+        u32 teraFontId = GetFontIdToFit(gText_MoveRelearnerTeraTypeDesc, FONT_NARROW, 0, WindowWidthPx(RELEARNERWIN_DESC_BATTLE));
+        AddTextPrinterParameterized(RELEARNERWIN_DESC_BATTLE, teraFontId, gText_MoveRelearnerTeraTypeDesc, 0, 65, 0, NULL);
+        return;
+    }
     str = gTypesInfo[GetMoveType(chosenMove)].name;
     AddTextPrinterParameterized(RELEARNERWIN_DESC_BATTLE, FONT_NORMAL, str, 4, 25, TEXT_SKIP_DRAW, NULL);
 
@@ -831,7 +840,7 @@ static void MoveRelearnerMenuLoadContestMoveDescription(u32 chosenMove)
     x = GetStringRightAlignXOffset(FONT_NORMAL, str, 92);
     AddTextPrinterParameterized(RELEARNERWIN_DESC_CONTEST, FONT_NORMAL, str, x, 41, TEXT_SKIP_DRAW, NULL);
 
-    if (chosenMove == MENU_NOTHING_CHOSEN)
+    if (chosenMove == MENU_NOTHING_CHOSEN || IS_RELEARNER_TERA_ID(chosenMove))
     {
         CopyWindowToVram(RELEARNERWIN_DESC_CONTEST, COPYWIN_GFX);
         return;

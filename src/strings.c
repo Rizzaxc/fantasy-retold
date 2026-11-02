@@ -1064,6 +1064,7 @@ const u8 gText_MoveRelearnerPkmnForgotMoveAndLearnedNew[] = _("{STR_VAR_1} forgo
 const u8 gText_MoveRelearnedPkmnDidNotLearnMove[] = _("{STR_VAR_1} did not learn the\nmove {STR_VAR_2}."); // Unused
 const u8 gText_MoveRelearnerGiveUp[] = _("Give up trying to teach a new\nmove to {STR_VAR_1}?");
 const u8 gText_MoveRelearnerStop[] = _("Stop trying to learn new\nmoves for {STR_VAR_1}?");;
+const u8 gText_MoveRelearnerTeraTypeDesc[] = _("The type it takes on when\nit Terastallizes in battle.\nChanging it is free.");
 const u8 gText_MoveRelearnerWhichMoveToForget[] = _("Which move should be\nforgotten?\p");
 const u8 gText_MoveRelearnerBattleMoves[] = _("BATTLE MOVES");
 const u8 gText_MoveRelearnerContestMovesTitle[] = _("CONTEST MOVES");

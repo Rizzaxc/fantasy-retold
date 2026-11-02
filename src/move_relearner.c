@@ -65,9 +65,12 @@ static EWRAM_DATA struct
 {
     u8 heartSpriteIds[16];
     u16 movesToLearn[MAX_RELEARNER_MOVES];
-    struct ListMenuItem menuItems[MAX_RELEARNER_MOVES + 2]; // Fantasy Retold: + the Signature Move entry
-    bool8 hasSignatureEntry; // Fantasy Retold: menuItems[0] is the Signature Move, to forget (design.md §10)
+    struct ListMenuItem menuItems[MAX_RELEARNER_MOVES + 3]; // Fantasy Retold: + the Tera Type and Signature Move entries
+    bool8 hasSignatureEntry; // Fantasy Retold: menuItems[signatureIndex] is the Signature Move, to forget (design.md §10)
+    u8 signatureIndex;
     u8 signatureEntryName[MOVE_NAME_LENGTH + 8];
+    bool8 teraPicker; // Fantasy Retold: the list shows the Tera Types to pick from (design.md §10, Tera Orb)
+    u8 teraEntryName[MOVE_NAME_LENGTH + 8];
     u8 mainTask;
     u8 numMenuChoices;
     u8 numToShowAtOnce;
@@ -671,6 +674,79 @@ static void Task_MoveRelearner_ForgetSignature_Prompt(u8 taskId)
     gTasks[taskId].func = Task_MoveRelearner_ForgetSignature_Answer;
 }
 
+// Fantasy Retold (design.md §10, Tera Orb): with the Tera Orb, the level-up list starts with "Tera: <type>", which
+// opens a list of the 18 types to pick the Pokémon's new Tera Type from, for free.
+static const u8 sText_TeraEntryPrefix[] = _("Tera: ");
+static const u8 sText_PickTeraType[] = _("Pick a Tera Type for\n{STR_VAR_1}.");
+static const u8 sText_ChangeTeraTypeConfirm[] = _("Change {STR_VAR_1}'s Tera Type\nto {STR_VAR_2}?");
+static const u8 sText_ChangedTeraType[] = _("{STR_VAR_1}'s Tera Type is now\n{STR_VAR_2}!\p");
+
+static bool32 CanChangeTeraType(struct BoxPokemon *boxMon)
+{
+    if (!CheckBagHasItem(ITEM_TERA_ORB, 1))
+        return FALSE;
+    return gSpeciesInfo[GetBoxMonData(boxMon, MON_DATA_SPECIES)].forceTeraType == TYPE_NONE;
+}
+
+// With the Tera Orb, any Pokémon can relearn Tera Blast from its level-up list.
+static bool32 CanRelearnTeraBlast(struct BoxPokemon *boxMon)
+{
+    return CheckBagHasItem(ITEM_TERA_ORB, 1) && !BoxMonKnowsMove(boxMon, MOVE_TERA_BLAST);
+}
+
+enum Type MoveRelearnerGetTeraEntryType(s32 id)
+{
+    if (id == RELEARNER_ID_TERA_ENTRY)
+        return GetBoxMonData(GetSelectedBoxMonFromPcOrParty(), MON_DATA_TERA_TYPE);
+    return id - RELEARNER_ID_TERA_TYPE_BASE;
+}
+
+static void SetTeraPicker(bool32 open)
+{
+    sMoveRelearnerStruct->teraPicker = open;
+    sMoveRelearnerScrollState.listOffset = 0;
+    sMoveRelearnerScrollState.listRow = 0;
+    RedrawMoveList();
+    AddScrollArrows();
+}
+
+static void Task_MoveRelearner_ChangeTeraType_Done(u8 taskId)
+{
+    if (IsTextPrinterActiveOnWindow(RELEARNERWIN_MSG))
+        return;
+    SetTeraPicker(FALSE);
+    gTasks[taskId].func = Task_MoveRelearner_HandleInput;
+}
+
+static void Task_MoveRelearner_ChangeTeraType_Answer(u8 taskId)
+{
+    enum Type type;
+
+    switch (Menu_ProcessInputNoWrapClearOnChoose())
+    {
+    case 0: // Yes
+        type = MoveRelearnerGetTeraEntryType(GetCurrentSelectedMove());
+        SetBoxMonData(GetSelectedBoxMonFromPcOrParty(), MON_DATA_TERA_TYPE, &type);
+        UIPrintMessage(sText_ChangedTeraType);
+        gTasks[taskId].func = Task_MoveRelearner_ChangeTeraType_Done;
+        break;
+    case 1: // No
+    case MENU_B_PRESSED:
+        gTasks[taskId].func = Task_MoveRelearner_HandleInput;
+        ShowTeachMoveText();
+        AddScrollArrows();
+        break;
+    }
+}
+
+static void Task_MoveRelearner_ChangeTeraType_Prompt(u8 taskId)
+{
+    if (IsTextPrinterActiveOnWindow(RELEARNERWIN_MSG))
+        return;
+    MoveRelearnerCreateYesNoMenu();
+    gTasks[taskId].func = Task_MoveRelearner_ChangeTeraType_Answer;
+}
+
 static void Task_MoveRelearner_LearnMove(u8 taskId)
 {
     if (IsTextPrinterActiveOnWindow(RELEARNERWIN_MSG))
@@ -703,7 +779,11 @@ static void Task_MoveRelearner_HandleInput(u8 taskId)
     switch (itemId)
     {
     case LIST_NOTHING_CHOSEN:
-        if (JOY_NEW(SELECT_BUTTON) && gRelearnMode != RELEARN_MODE_SCRIPT)
+        if (JOY_NEW(SELECT_BUTTON) && sMoveRelearnerStruct->teraPicker)
+        {
+            // The picker has no other lists to switch to.
+        }
+        else if (JOY_NEW(SELECT_BUTTON) && gRelearnMode != RELEARN_MODE_SCRIPT)
         {
             if (UpdateMoveRelearnerState())
             {
@@ -747,6 +827,11 @@ static void Task_MoveRelearner_HandleInput(u8 taskId)
     case LIST_CANCEL:
         PlaySE(SE_SELECT);
         RemoveScrollArrows();
+        if (sMoveRelearnerStruct->teraPicker)
+        {
+            SetTeraPicker(FALSE);
+            break;
+        }
         gTasks[taskId].func = Task_MoveRelearner_Giveup_Prompt;
         if (gRelearnMode == RELEARN_MODE_SCRIPT)
             StringExpandPlaceholders(gStringVar4, gText_MoveRelearnerGiveUp);
@@ -757,8 +842,20 @@ static void Task_MoveRelearner_HandleInput(u8 taskId)
     default:
         PlaySE(SE_SELECT);
         RemoveScrollArrows();
+        if (itemId == RELEARNER_ID_TERA_ENTRY)
+        {
+            SetTeraPicker(TRUE);
+            break;
+        }
+        if (IS_RELEARNER_TERA_ID(itemId))
+        {
+            StringCopy(gStringVar2, gTypesInfo[MoveRelearnerGetTeraEntryType(itemId)].name);
+            UIPrintMessage(sText_ChangeTeraTypeConfirm);
+            gTasks[taskId].func = Task_MoveRelearner_ChangeTeraType_Prompt;
+            break;
+        }
         StringCopy(gStringVar2, GetMoveName(itemId));
-        if (sMoveRelearnerStruct->hasSignatureEntry && sMoveRelearnerScrollState.listOffset + sMoveRelearnerScrollState.listRow == 0)
+        if (sMoveRelearnerStruct->hasSignatureEntry && sMoveRelearnerScrollState.listOffset + sMoveRelearnerScrollState.listRow == sMoveRelearnerStruct->signatureIndex)
         {
             UIPrintMessage(sText_ForgetSignatureConfirm);
             gTasks[taskId].func = Task_MoveRelearner_ForgetSignature_Prompt;
@@ -787,7 +884,10 @@ static s32 GetCurrentSelectedMove(void)
 
 static void ShowTeachMoveText(void)
 {
-    StringExpandPlaceholders(gStringVar4, gText_TeachWhichMoveToPkmn);
+    if (sMoveRelearnerStruct->teraPicker)
+        StringExpandPlaceholders(gStringVar4, sText_PickTeraType);
+    else
+        StringExpandPlaceholders(gStringVar4, gText_TeachWhichMoveToPkmn);
     FillWindowPixelBuffer(RELEARNERWIN_MSG, 0x11);
     AddTextPrinterParameterized(RELEARNERWIN_MSG, FONT_NORMAL, gStringVar4, 0, 1, 0, NULL);
 }
@@ -854,22 +954,56 @@ static void CreateLearnableMovesList(void)
     enum Move signature;
 
     struct BoxPokemon *boxmon = GetSelectedBoxMonFromPcOrParty();
+    GetBoxMonData(boxmon, MON_DATA_NICKNAME, gStringVar1);
+
+    // Fantasy Retold: the Tera Type picker lists the 18 types instead of moves.
+    if (sMoveRelearnerStruct->teraPicker)
+    {
+        enum Type current = GetBoxMonData(boxmon, MON_DATA_TERA_TYPE);
+        sMoveRelearnerStruct->hasSignatureEntry = FALSE;
+        sMoveRelearnerStruct->numMenuChoices = 0;
+        for (enum Type type = TYPE_NORMAL; type < NUMBER_OF_MON_TYPES; type++)
+        {
+            if (type == TYPE_MYSTERY || type == TYPE_STELLAR || type == current)
+                continue;
+            sMoveRelearnerStruct->menuItems[sMoveRelearnerStruct->numMenuChoices].name = gTypesInfo[type].name;
+            sMoveRelearnerStruct->menuItems[sMoveRelearnerStruct->numMenuChoices].id = RELEARNER_ID_TERA_TYPE_BASE + type;
+            sMoveRelearnerStruct->numMenuChoices++;
+        }
+        sMoveRelearnerStruct->menuItems[sMoveRelearnerStruct->numMenuChoices].name = gText_Cancel;
+        sMoveRelearnerStruct->menuItems[sMoveRelearnerStruct->numMenuChoices].id = LIST_CANCEL;
+        sMoveRelearnerStruct->numMenuChoices++;
+        sMoveRelearnerStruct->numToShowAtOnce = LoadMoveRelearnerMovesList(sMoveRelearnerStruct->menuItems, sMoveRelearnerStruct->numMenuChoices);
+        return;
+    }
+
+    sMoveRelearnerStruct->numMenuChoices = 0;
     if (gRelearnMode == RELEARN_MODE_SCRIPT || sRelearnTypes[gMoveRelearnerState].isActive())
         sMoveRelearnerStruct->numMenuChoices = sRelearnTypes[gMoveRelearnerState].getMoves(boxmon, sMoveRelearnerStruct->movesToLearn);
 
     if (P_SORT_MOVES)
         SortMovesAlphabetically(sMoveRelearnerStruct->movesToLearn, sMoveRelearnerStruct->numMenuChoices);
 
-    // Fantasy Retold: a Signature Move is listed first on the level-up list, where it can be forgotten.
+    // Fantasy Retold: the level-up list starts with the Tera Type (with the Tera Orb), then a Signature Move, which
+    // can be forgotten there.
+    if (gMoveRelearnerState == MOVE_RELEARNER_LEVEL_UP_MOVES && CanChangeTeraType(boxmon))
+    {
+        StringCopy(sMoveRelearnerStruct->teraEntryName, sText_TeraEntryPrefix);
+        StringAppend(sMoveRelearnerStruct->teraEntryName, gTypesInfo[GetBoxMonData(boxmon, MON_DATA_TERA_TYPE)].name);
+        sMoveRelearnerStruct->menuItems[offset].name = sMoveRelearnerStruct->teraEntryName;
+        sMoveRelearnerStruct->menuItems[offset].id = RELEARNER_ID_TERA_ENTRY;
+        offset++;
+    }
     signature = GetBoxMonData(boxmon, MON_DATA_SIGNATURE_MOVE);
     sMoveRelearnerStruct->hasSignatureEntry = (signature != MOVE_NONE && gMoveRelearnerState == MOVE_RELEARNER_LEVEL_UP_MOVES);
     if (sMoveRelearnerStruct->hasSignatureEntry)
     {
         StringCopy(sMoveRelearnerStruct->signatureEntryName, GetMoveName(signature));
         StringAppend(sMoveRelearnerStruct->signatureEntryName, sText_SignatureEntryTag);
-        sMoveRelearnerStruct->menuItems[0].name = sMoveRelearnerStruct->signatureEntryName;
-        sMoveRelearnerStruct->menuItems[0].id = signature;
-        offset = 1;
+        sMoveRelearnerStruct->signatureIndex = offset;
+        sMoveRelearnerStruct->menuItems[offset].name = sMoveRelearnerStruct->signatureEntryName;
+        sMoveRelearnerStruct->menuItems[offset].id = signature;
+        offset++;
     }
 
     for (i = 0; i < sMoveRelearnerStruct->numMenuChoices; i++)
@@ -878,8 +1012,6 @@ static void CreateLearnableMovesList(void)
         sMoveRelearnerStruct->menuItems[i + offset].id = sMoveRelearnerStruct->movesToLearn[i];
     }
     sMoveRelearnerStruct->numMenuChoices += offset;
-
-    GetBoxMonData(boxmon, MON_DATA_NICKNAME, gStringVar1);
 
     sMoveRelearnerStruct->menuItems[sMoveRelearnerStruct->numMenuChoices].name = gText_Cancel;
     sMoveRelearnerStruct->menuItems[sMoveRelearnerStruct->numMenuChoices].id = LIST_CANCEL;
@@ -892,7 +1024,7 @@ void MoveRelearnerShowHideHearts(s32 move)
     u16 numHearts;
     u16 i;
 
-    if (gTasks[sMoveRelearnerStruct->mainTask].tCategory == BATTLE_INFO || move == LIST_CANCEL)
+    if (gTasks[sMoveRelearnerStruct->mainTask].tCategory == BATTLE_INFO || move == LIST_CANCEL || IS_RELEARNER_TERA_ID(move))
     {
         for (i = 0; i < 16; i++)
             gSprites[sMoveRelearnerStruct->heartSpriteIds[i]].invisible = TRUE;
@@ -931,7 +1063,7 @@ void MoveRelearnerShowHideHearts(s32 move)
 
 void MoveRelearnerShowHideCategoryIcon(s32 moveId)
 {
-    if (gTasks[sMoveRelearnerStruct->mainTask].tCategory == CONTEST_INFO || moveId == LIST_CANCEL)
+    if (gTasks[sMoveRelearnerStruct->mainTask].tCategory == CONTEST_INFO || moveId == LIST_CANCEL || IS_RELEARNER_TERA_ID(moveId))
     {
         if (sMoveRelearnerStruct->categoryIconSpriteId != 0xFF)
             DestroySprite(&gSprites[sMoveRelearnerStruct->categoryIconSpriteId]);
@@ -997,6 +1129,12 @@ static u32 GetRelearnerLevelUpMoves(struct BoxPokemon *mon, u16 *moves)
     enum Species species = GetBoxMonData(mon, MON_DATA_SPECIES);
     u32 level = (P_ENABLE_ALL_LEVEL_UP_MOVES ? MAX_LEVEL : GetLevelFromBoxMonExp(mon));
     u32 numMoves = 0;
+
+    // Fantasy Retold: Tera Blast first, for any Pokémon (design.md §10, Tera Orb). The duplicate check below skips it
+    // if the learnset has it too.
+    if (CanRelearnTeraBlast(mon))
+        moves[numMoves++] = MOVE_TERA_BLAST;
+
     do
     {
         const struct LevelUpMove *learnset = GetSpeciesLevelUpLearnset(species);
@@ -1136,8 +1274,10 @@ static bool32 HasRelearnerLevelUpMoves(struct BoxPokemon *boxMon)
 
     } while (species != SPECIES_NONE);
 
-    // Fantasy Retold: the level-up list also offers to forget a Signature Move.
+    // Fantasy Retold: the level-up list also offers to forget a Signature Move, and to change the Tera Type.
     if (GetBoxMonData(boxMon, MON_DATA_SIGNATURE_MOVE) != MOVE_NONE)
+        return TRUE;
+    if (CanChangeTeraType(boxMon) || CanRelearnTeraBlast(boxMon))
         return TRUE;
 
     return FALSE;

@@ -6,6 +6,11 @@
 // If you plan on adding more TMs, increase this number too.
 #define MAX_RELEARNER_MOVES 60
 
+// Fantasy Retold (design.md §10, Tera Orb): list ids of the Tera Type entries, kept clear of move ids.
+#define RELEARNER_ID_TERA_ENTRY     0x7000                  // "Tera: <type>" on the level-up list, opens the picker
+#define RELEARNER_ID_TERA_TYPE_BASE 0x7100                  // + type, one per type in the picker
+#define IS_RELEARNER_TERA_ID(id)    ((id) >= RELEARNER_ID_TERA_ENTRY && (id) < RELEARNER_ID_TERA_TYPE_BASE + NUMBER_OF_MON_TYPES)
+
 // Move Relearner menu change constants
 enum MoveRelearnerStates
 {

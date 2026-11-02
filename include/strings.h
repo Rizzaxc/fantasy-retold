@@ -561,6 +561,7 @@ extern const u8 gText_MoveRelearnerPkmnForgotMoveAndLearnedNew[];
 extern const u8 gText_TeachWhichMoveToPkmn[];
 extern const u8 gText_MoveRelearnerGiveUp[];
 extern const u8 gText_MoveRelearnerStop[];
+extern const u8 gText_MoveRelearnerTeraTypeDesc[];
 extern const u8 gText_MoveRelearnerTeachMoveConfirm[];
 extern const u8 gText_MoveRelearnerTeachMoveConfirmUseTm[];
 extern const u8 gText_MoveRelearnerBattleMoves[];
