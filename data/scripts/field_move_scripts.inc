@@ -393,6 +393,8 @@ EventScript_CutGrassCommon:
 	setfieldeffectargument 3, VAR_0x8004 @ skip pose if true
 	dofieldeffect FLDEFF_USE_CUT_ON_GRASS
 	waitstate
+	releaseall
+	end
 
 @ Use Cut grass from party menu
 EventScript_UseCutGrass::

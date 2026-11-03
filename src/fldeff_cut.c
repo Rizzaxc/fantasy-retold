@@ -320,7 +320,10 @@ static void StartCutGrassFieldEffect(void)
 {
     FieldEffectActiveListRemove(FLDEFF_USE_CUT_ON_GRASS);
     if (sScheduleOpenDottedHole == TRUE)
+    {
         CutMoveOpenDottedHoleDoor();
+        ScriptContext_Enable(); // Fantasy Retold: let the Cut grass script finish
+    }
     else
         FieldEffectStart(FLDEFF_CUT_GRASS);
 }
@@ -592,11 +595,18 @@ static void CutGrassSpriteCallbackEnd(struct Sprite *sprite)
 
     FieldEffectStop(&gSprites[sCutGrassSpriteArrayPtr[0]], FLDEFF_CUT_GRASS);
     FREE_AND_SET_NULL(sCutGrassSpriteArrayPtr);
-    ScriptUnfreezeObjectEvents();
-    UnlockPlayerFieldControls();
 
+    // Fantasy Retold: resume EventScript_CutGrassCommon (waiting on waitstate) so it reaches releaseall/end.
+    // Unlocking natively left the global script context stuck mid-script, breaking later text, menus and NPCs.
     if (IsMewPlayingHideAndSeek() == TRUE)
+    {
+        ScriptUnfreezeObjectEvents();
         ScriptContext_SetupScript(FarawayIsland_Interior_EventScript_HideMewWhenGrassCut);
+    }
+    else
+    {
+        ScriptContext_Enable();
+    }
 }
 
 void FixLongGrassMetatilesWindowTop(s16 x, s16 y)

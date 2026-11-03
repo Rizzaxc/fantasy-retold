@@ -345,7 +345,7 @@ static void CB2_GiveHoldItem(void);
 static void CB2_WriteMailToGiveMon(void);
 static void Task_SwitchHoldItemsPrompt(u8);
 static void Task_GiveHoldItem(u8);
-static void Task_CantHoldTM(u8);
+static void CB2_ReturnToPartyMenuAfterGiveTM(void);
 static bool32 CanMonHoldTM(struct Pokemon *, enum Item);
 static void DisplayCantHoldTMMessage(struct Pokemon *, enum Item);
 static void Task_SwitchItemsYesNo(u8);
@@ -1178,6 +1178,15 @@ static bool8 DisplayPartyPokemonDataForMoveTutorOrEvolutionItem(u8 slot)
         gSpecialVar_Result = FALSE;
         DisplayPartyPokemonDataToTeachMove(slot, gSpecialVar_0x8005);
     }
+    // Fantasy Retold: giving a TM shows who can hold it, as teaching it would
+    else if ((gPartyMenu.action == PARTY_ACTION_GIVE_ITEM || gPartyMenu.action == PARTY_ACTION_GIVE_TM)
+          && GetItemPocket(gPartyMenu.bagItem) == POCKET_TM_HM)
+    {
+        if (CanMonHoldTM(currentPokemon, gPartyMenu.bagItem))
+            DisplayPartyPokemonDescriptionData(slot, PARTYBOX_DESC_ABLE_2);
+        else
+            DisplayPartyPokemonDescriptionData(slot, PARTYBOX_DESC_NOT_ABLE_2);
+    }
     else
     {
         if (gPartyMenu.action != PARTY_ACTION_USE_ITEM)
@@ -1575,6 +1584,7 @@ static void HandleChooseMonSelection(u8 taskId, s8 *slotPtr)
             break;
         case PARTY_ACTION_GIVE_ITEM:
         case PARTY_ACTION_GIVE_PC_ITEM:
+        case PARTY_ACTION_GIVE_TM:
             if (IsSelectedMonNotEgg((u8 *)slotPtr))
             {
                 PlaySE(SE_SELECT);
@@ -1697,6 +1707,11 @@ static void HandleChooseMonCancel(u8 taskId, s8 *slotPtr)
     case PARTY_ACTION_SEND_MON_TO_BOX:
         PlaySE(SE_SELECT);
         gSelectedMonPartyId = PARTY_SIZE + 1;
+        Task_ClosePartyMenu(taskId);
+        break;
+    case PARTY_ACTION_GIVE_TM: // Fantasy Retold
+        PlaySE(SE_SELECT);
+        sPartyMenuInternal->exitCallback = CB2_ReturnToPartyMenuAfterGiveTM;
         Task_ClosePartyMenu(taskId);
         break;
     default:
@@ -3667,10 +3682,11 @@ static void CB2_GiveHoldItem(void)
     {
         sPartyMenuItemId = GetMonData(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], MON_DATA_HELD_ITEM);
 
-        // Fantasy Retold: a TM it can't learn
-        if (!CanMonHoldTM(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], gSpecialVar_ItemId))
+        // Fantasy Retold: a TM picks its holder like teaching it, with ABLE / NOT ABLE shown
+        if (GetItemPocket(gSpecialVar_ItemId) == POCKET_TM_HM)
         {
-            InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_NONE, Task_CantHoldTM, gPartyMenu.exitCallback);
+            InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, PARTY_ACTION_GIVE_TM, TRUE, PARTY_MSG_GIVE_TO_WHICH_MON, Task_HandleChooseMonInput, gPartyMenu.exitCallback);
+            gPartyMenu.bagItem = gSpecialVar_ItemId;
         }
         // Already holding item
         else if (sPartyMenuItemId != ITEM_NONE)
@@ -3709,13 +3725,10 @@ static void DisplayCantHoldTMMessage(struct Pokemon *mon, enum Item item)
     DisplayPartyMenuMessage(gStringVar4, FALSE);
 }
 
-static void Task_CantHoldTM(u8 taskId)
+// Fantasy Retold: back to the normal party menu once a TM from its Give was given or cancelled
+static void CB2_ReturnToPartyMenuAfterGiveTM(void)
 {
-    if (!gPaletteFade.active)
-    {
-        DisplayCantHoldTMMessage(&gParties[B_TRAINER_PLAYER][gPartyMenu.slotId], gSpecialVar_ItemId);
-        gTasks[taskId].func = Task_ReturnToChooseMonAfterText;
-    }
+    InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, PARTY_ACTION_CHOOSE_MON, TRUE, PARTY_MSG_CHOOSE_MON, Task_HandleChooseMonInput, gPartyMenu.exitCallback);
 }
 
 static void Task_GiveHoldItem(u8 taskId)
@@ -7416,6 +7429,8 @@ static void Task_UpdateHeldItemSpriteAndClosePartyMenu(u8 taskId)
     if (IsPartyMenuTextPrinterActive() != TRUE)
     {
         UpdatePartyMonHeldItemSprite(&gParties[B_TRAINER_PLAYER][slot], &sPartyMenuBoxes[slot]);
+        if (gPartyMenu.action == PARTY_ACTION_GIVE_TM) // Fantasy Retold
+            sPartyMenuInternal->exitCallback = CB2_ReturnToPartyMenuAfterGiveTM;
         Task_ClosePartyMenu(taskId);
     }
 }

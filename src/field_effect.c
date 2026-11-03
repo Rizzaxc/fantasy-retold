@@ -3067,6 +3067,13 @@ static void FieldMoveShowMonOutdoorsEffect_End(struct Task *task)
 {
     IntrCallback callback;
     LoadWordFromTwoHalfwords((u16 *)&task->data[13], (u32 *)&callback);
+    // Fantasy Retold: with the overworld speed-up, RestoreBg and End can run in the same frame, so
+    // VBlankCB_FieldMoveShowMonOutdoors never applies the restored window registers and WINOUT stays
+    // without BG0 (text boxes and menus invisible). Apply them here.
+    SetGpuReg(REG_OFFSET_WIN0H, task->tWinHoriz);
+    SetGpuReg(REG_OFFSET_WIN0V, task->tWinVert);
+    SetGpuReg(REG_OFFSET_WININ, task->tWinIn);
+    SetGpuReg(REG_OFFSET_WINOUT, task->tWinOut);
     SetVBlankCallback(callback);
     InitTextBoxGfxAndPrinters();
     FreeResourcesAndDestroySprite(&gSprites[task->tMonSpriteId], task->tMonSpriteId);
