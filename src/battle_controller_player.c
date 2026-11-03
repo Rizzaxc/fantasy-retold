@@ -139,9 +139,16 @@ static const u8 sText_InnateDisabledColor[] = _("{COLOR 15}{SHADOW 14}");
 
 static bool8 sInnateMenuActive[MAX_BATTLERS_COUNT];
 static u8 sInnateMenuCursor[MAX_BATTLERS_COUNT];
+// The innate menu slot whose move is on the target-select screen; INNATE_SLOT_NONE for a move-slot move.
+static u8 sInnateTargetSlot[MAX_BATTLERS_COUNT];
+#define INNATE_SLOT_NONE 0xFF
 
 static void HandleInputChooseInnate(enum BattlerId battler);
 static void OpenInnateMenu(enum BattlerId battler);
+static enum Move GetChosenMove(enum BattlerId battler);
+static u32 GetChosenMoveSelection(enum BattlerId battler);
+static void ReturnToInnateMenu(enum BattlerId battler);
+static void StartMoveTargetSelection(enum BattlerId battler, enum MoveTarget moveTarget, bool32 hasPP);
 
 static void (*const sPlayerBufferCommands[CONTROLLER_CMDS_COUNT])(enum BattlerId battler) =
 {
@@ -467,7 +474,7 @@ void HandleInputChooseTarget(enum BattlerId battler)
         B_POSITION_OPPONENT_RIGHT,
         B_POSITION_OPPONENT_LEFT,
     };
-    enum Move move = GetMonData(GetBattlerMon(battler), MON_DATA_MOVE1 + gMoveSelectionCursor[battler]);
+    enum Move move = GetChosenMove(battler);
     enum MoveTarget moveTarget = GetBattlerMoveSelectionTargetType(battler, move);
 
     DoBounceEffect(gMultiUsePlayerCursor, BOUNCE_HEALTHBOX, 15, 1);
@@ -486,10 +493,7 @@ void HandleInputChooseTarget(enum BattlerId battler)
     {
         PlaySE(SE_SELECT);
         gSprites[gBattlerSpriteIds[gMultiUsePlayerCursor]].callback = SpriteCB_HideAsMoveTarget;
-        if (gBattleStruct->gimmick.playerSelect)
-            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | RET_GIMMICK | (gMultiUsePlayerCursor << 8));
-        else
-            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | (gMultiUsePlayerCursor << 8));
+        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, GetChosenMoveSelection(battler) | (gMultiUsePlayerCursor << 8));
         EndBounceEffect(gMultiUsePlayerCursor, BOUNCE_HEALTHBOX);
         TryHideLastUsedBall();
         HideGimmickTriggerSprite();
@@ -500,7 +504,11 @@ void HandleInputChooseTarget(enum BattlerId battler)
         PlaySE(SE_SELECT);
         gSprites[gBattlerSpriteIds[gMultiUsePlayerCursor]].callback = SpriteCB_HideAsMoveTarget;
         gBattlerControllerFuncs[battler] = HandleInputChooseMove;
-        if (gBattleStruct->gimmick.playerSelect == 1 && gBattleStruct->gimmick.usableGimmick[battler] == GIMMICK_Z_MOVE)
+        if (sInnateTargetSlot[battler] != INNATE_SLOT_NONE)
+        {
+            ReturnToInnateMenu(battler);
+        }
+        else if (gBattleStruct->gimmick.playerSelect == 1 && gBattleStruct->gimmick.usableGimmick[battler] == GIMMICK_Z_MOVE)
         {
             gBattleStruct->gimmick.playerSelect = 0;
             gBattleStruct->zmove.viewing = TRUE;
@@ -645,10 +653,7 @@ void HandleInputShowEntireFieldTargets(enum BattlerId battler)
     {
         PlaySE(SE_SELECT);
         HideAllTargets();
-        if (gBattleStruct->gimmick.playerSelect)
-            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | RET_GIMMICK | (gMultiUsePlayerCursor << 8));
-        else
-            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | (gMultiUsePlayerCursor << 8));
+        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, GetChosenMoveSelection(battler) | (gMultiUsePlayerCursor << 8));
         HideGimmickTriggerSprite();
         BtlController_Complete(battler);
     }
@@ -657,6 +662,11 @@ void HandleInputShowEntireFieldTargets(enum BattlerId battler)
         PlaySE(SE_SELECT);
         HideAllTargets();
         gBattlerControllerFuncs[battler] = HandleInputChooseMove;
+        if (sInnateTargetSlot[battler] != INNATE_SLOT_NONE)
+        {
+            ReturnToInnateMenu(battler);
+            TryToAddMoveInfoWindow();
+        }
         DoBounceEffect(battler, BOUNCE_HEALTHBOX, 7, 1);
         DoBounceEffect(battler, BOUNCE_MON, 7, 1);
     }
@@ -673,10 +683,7 @@ void HandleInputShowTargets(enum BattlerId battler)
     {
         PlaySE(SE_SELECT);
         HideAllTargets();
-        if (gBattleStruct->gimmick.playerSelect)
-            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | RET_GIMMICK | (gMultiUsePlayerCursor << 8));
-        else
-            BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | (gMultiUsePlayerCursor << 8));
+        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, GetChosenMoveSelection(battler) | (gMultiUsePlayerCursor << 8));
         HideGimmickTriggerSprite();
         TryHideLastUsedBall();
         BtlController_Complete(battler);
@@ -686,6 +693,11 @@ void HandleInputShowTargets(enum BattlerId battler)
         PlaySE(SE_SELECT);
         HideAllTargets();
         gBattlerControllerFuncs[battler] = HandleInputChooseMove;
+        if (sInnateTargetSlot[battler] != INNATE_SLOT_NONE)
+        {
+            ReturnToInnateMenu(battler);
+            TryToAddMoveInfoWindow();
+        }
         DoBounceEffect(battler, BOUNCE_HEALTHBOX, 7, 1);
         DoBounceEffect(battler, BOUNCE_MON, 7, 1);
     }
@@ -953,7 +965,7 @@ static void ShowInnateMenuMessage(enum BattlerId battler, const u8 *text, void (
 }
 
 // Hands the turn to the engine. Dodge / Recuperate are their own actions; the Signature / Itemized Move is a move
-// choice with SIGNATURE_ / ITEMIZED_MOVE_POSITION and its default target (no manual target pick yet in doubles).
+// choice with SIGNATURE_ / ITEMIZED_MOVE_POSITION and goes through the same target pick as a slot move in doubles.
 static void ConfirmInnateMenuEntry(enum BattlerId battler, u32 slot)
 {
     enum InnateMenuEntry entry = GetInnateMenuEntry(battler, slot);
@@ -970,12 +982,44 @@ static void ConfirmInnateMenuEntry(enum BattlerId battler, u32 slot)
     }
     else
     {
-        u32 position = GetInnateEntryMovePosition(entry) | ((entry == INNATE_ENTRY_ITEMIZED) ? gimmickFlag : 0);
-        enum MoveTarget moveTarget = GetBattlerMoveSelectionTargetType(battler, GetInnateEntryMove(battler, entry));
-        enum BattlerId target = GetDefaultSelectionTarget(battler, moveTarget);
-        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, position | (target << 8));
+        sInnateTargetSlot[battler] = slot;
+        StartMoveTargetSelection(battler, GetBattlerMoveSelectionTargetType(battler, GetInnateEntryMove(battler, entry)), TRUE);
+        return;
     }
     BtlController_Complete(battler);
+}
+
+// The move being targeted: the innate menu's Signature / Itemized Move, or the move under the move cursor.
+static enum Move GetChosenMove(enum BattlerId battler)
+{
+    struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
+
+    if (sInnateTargetSlot[battler] != INNATE_SLOT_NONE)
+        return GetInnateEntryMove(battler, GetInnateMenuEntry(battler, sInnateTargetSlot[battler]));
+    return moveInfo->moves[gMoveSelectionCursor[battler]];
+}
+
+// Low byte of the move choice sent to the engine: the move position, plus RET_GIMMICK when the gimmick goes with it.
+static u32 GetChosenMoveSelection(enum BattlerId battler)
+{
+    u32 slot = sInnateTargetSlot[battler];
+
+    if (slot != INNATE_SLOT_NONE)
+    {
+        enum InnateMenuEntry entry = GetInnateMenuEntry(battler, slot);
+        bool32 gimmick = entry == INNATE_ENTRY_ITEMIZED && gBattleStruct->gimmick.playerSelect && InnateEntryAllowsGimmick(battler, slot);
+        return GetInnateEntryMovePosition(entry) | (gimmick ? RET_GIMMICK : 0);
+    }
+    return gMoveSelectionCursor[battler] | (gBattleStruct->gimmick.playerSelect ? RET_GIMMICK : 0);
+}
+
+// B on the target-select screen for a Signature / Itemized Move: back to the innate menu, cursor where it was.
+static void ReturnToInnateMenu(enum BattlerId battler)
+{
+    sInnateTargetSlot[battler] = INNATE_SLOT_NONE;
+    sInnateMenuActive[battler] = TRUE;
+    DisplayInnateMenuEntryInfo(battler);
+    UpdateInnateGimmickTrigger(battler);
 }
 
 static void HandleInputChooseInnate(enum BattlerId battler)
@@ -1042,9 +1086,89 @@ static void HandleInputChooseInnate(enum BattlerId battler)
     }
 }
 
-void HandleInputChooseMove(enum BattlerId battler)
+// Fantasy Retold: split out of HandleInputChooseMove so the innate menu's Signature / Itemized Move gets the same
+// target pick. The move is GetChosenMove; hasPP FALSE skips the pick and lets the engine print the no-PP message.
+static void StartMoveTargetSelection(enum BattlerId battler, enum MoveTarget moveTarget, bool32 hasPP)
 {
     u32 canSelectTarget = 0;
+    bool32 isUserOrAlly = moveTarget == TARGET_USER || moveTarget == TARGET_USER_OR_ALLY || moveTarget == TARGET_USER_AND_ALLY;
+
+    gMultiUsePlayerCursor = GetDefaultSelectionTarget(battler, moveTarget);
+
+    enum BattlerId partner = GetPartnerBattler(battler);
+
+    if (gBattleResources->bufferA[battler][1]) // a double battle
+    {
+        if (!CanSelectBattler(moveTarget))
+            canSelectTarget = 1; // either selected or user
+        if (moveTarget == TARGET_USER_OR_ALLY && IsBattlerAlive(partner))
+            canSelectTarget = 1;
+
+        if (!hasPP)
+        {
+            canSelectTarget = 0;
+        }
+        else if (isUserOrAlly && !IsBattlerAlive(partner))
+        {
+            gMultiUsePlayerCursor = battler;
+            canSelectTarget = 0;
+        }
+
+        if (B_SHOW_TARGETS == TRUE)
+        {
+            // Show all available targets for multi-target moves
+            if (moveTarget == TARGET_ALL_BATTLERS || moveTarget == TARGET_FIELD)
+            {
+                for (enum BattlerId i = 0; i < gBattlersCount; i++)
+                    TryShowAsTarget(i);
+
+                canSelectTarget = 3;
+            }
+            else if (IsSpreadMove(moveTarget) || moveTarget == TARGET_OPPONENTS_FIELD || moveTarget == TARGET_USER_AND_ALLY)
+            {
+                TryShowAsTarget(gMultiUsePlayerCursor);
+                TryShowAsTarget(GetPartnerBattler(gMultiUsePlayerCursor));
+                if (moveTarget == TARGET_FOES_AND_ALLY)
+                    TryShowAsTarget(GetPartnerBattler(battler));
+                canSelectTarget = 2;
+            }
+        }
+    }
+
+    switch (canSelectTarget)
+    {
+    case 0:
+    default:
+        BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, GetChosenMoveSelection(battler) | (gMultiUsePlayerCursor << 8));
+        HideGimmickTriggerSprite();
+        TryHideLastUsedBall();
+        BtlController_Complete(battler);
+        break;
+    case 1:
+        gBattlerControllerFuncs[battler] = HandleInputChooseTarget;
+
+        if (moveTarget == TARGET_USER || moveTarget == TARGET_USER_OR_ALLY)
+            gMultiUsePlayerCursor = battler;
+        else if (!IsBattlerAlive(GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT)))
+            gMultiUsePlayerCursor = GetBattlerAtPosition(B_POSITION_OPPONENT_RIGHT);
+        else
+            gMultiUsePlayerCursor = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
+        if (B_SHOW_EFFECTIVENESS)
+            MoveSelectionDisplayMoveEffectiveness(CheckTypeEffectiveness(battler, gMultiUsePlayerCursor), battler);
+
+        gSprites[gBattlerSpriteIds[gMultiUsePlayerCursor]].callback = SpriteCB_ShowAsMoveTarget;
+        break;
+    case 2:
+        gBattlerControllerFuncs[battler] = HandleInputShowTargets;
+        break;
+    case 3: // Entire field
+        gBattlerControllerFuncs[battler] = HandleInputShowEntireFieldTargets;
+        break;
+    }
+}
+
+void HandleInputChooseMove(enum BattlerId battler)
+{
     struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
 
     // Fantasy Retold: while the innate menu is up it owns the input.
@@ -1065,7 +1189,6 @@ void HandleInputChooseMove(enum BattlerId battler)
         PlaySE(SE_SELECT);
 
         enum MoveTarget moveTarget = GetBattlerMoveSelectionTargetType(battler, moveInfo->moves[gMoveSelectionCursor[battler]]);
-        bool32 isUserOrAlly = moveTarget == TARGET_USER || moveTarget == TARGET_USER_OR_ALLY || moveTarget == TARGET_USER_AND_ALLY;
 
         if (gBattleStruct->zmove.viewing)
         {
@@ -1078,81 +1201,7 @@ void HandleInputChooseMove(enum BattlerId battler)
         if (GetActiveGimmick(battler) == GIMMICK_DYNAMAX || IsGimmickSelected(battler, GIMMICK_DYNAMAX))
             moveTarget = GetMoveTarget(GetMaxMove(battler, moveInfo->moves[gMoveSelectionCursor[battler]]));
 
-        gMultiUsePlayerCursor = GetDefaultSelectionTarget(battler, moveTarget);
-        
-        enum BattlerId partner = GetPartnerBattler(battler);
-
-        if (gBattleResources->bufferA[battler][1]) // a double battle
-        {
-            if (!CanSelectBattler(moveTarget))
-                canSelectTarget = 1; // either selected or user
-            if (moveTarget == TARGET_USER_OR_ALLY && IsBattlerAlive(partner))
-                canSelectTarget = 1;
-
-            if (moveInfo->currentPP[gMoveSelectionCursor[battler]] == 0)
-            {
-                canSelectTarget = 0;
-            }
-            else if (isUserOrAlly && !IsBattlerAlive(partner))
-            {
-                gMultiUsePlayerCursor = battler;
-                canSelectTarget = 0;
-            }
-
-            if (B_SHOW_TARGETS == TRUE)
-            {
-                // Show all available targets for multi-target moves
-                if (moveTarget == TARGET_ALL_BATTLERS || moveTarget == TARGET_FIELD)
-                {
-                    for (enum BattlerId i = 0; i < gBattlersCount; i++)
-                        TryShowAsTarget(i);
-
-                    canSelectTarget = 3;
-                }
-                else if (IsSpreadMove(moveTarget) || moveTarget == TARGET_OPPONENTS_FIELD || moveTarget == TARGET_USER_AND_ALLY)
-                {
-                    TryShowAsTarget(gMultiUsePlayerCursor);
-                    TryShowAsTarget(GetPartnerBattler(gMultiUsePlayerCursor));
-                    if (moveTarget == TARGET_FOES_AND_ALLY)
-                        TryShowAsTarget(GetPartnerBattler(battler));
-                    canSelectTarget = 2;
-                }
-            }
-        }
-
-        switch (canSelectTarget)
-        {
-        case 0:
-        default:
-            if (gBattleStruct->gimmick.playerSelect)
-                BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | RET_GIMMICK | (gMultiUsePlayerCursor << 8));
-            else
-                BtlController_EmitTwoReturnValues(battler, B_COMM_TO_ENGINE, B_ACTION_EXEC_SCRIPT, gMoveSelectionCursor[battler] | (gMultiUsePlayerCursor << 8));
-            HideGimmickTriggerSprite();
-            TryHideLastUsedBall();
-            BtlController_Complete(battler);
-            break;
-        case 1:
-            gBattlerControllerFuncs[battler] = HandleInputChooseTarget;
-
-            if (moveTarget == TARGET_USER || moveTarget == TARGET_USER_OR_ALLY)
-                gMultiUsePlayerCursor = battler;
-            else if (!IsBattlerAlive(GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT)))
-                gMultiUsePlayerCursor = GetBattlerAtPosition(B_POSITION_OPPONENT_RIGHT);
-            else
-                gMultiUsePlayerCursor = GetBattlerAtPosition(B_POSITION_OPPONENT_LEFT);
-            if (B_SHOW_EFFECTIVENESS)
-                MoveSelectionDisplayMoveEffectiveness(CheckTypeEffectiveness(battler, gMultiUsePlayerCursor), battler);
-
-            gSprites[gBattlerSpriteIds[gMultiUsePlayerCursor]].callback = SpriteCB_ShowAsMoveTarget;
-            break;
-        case 2:
-            gBattlerControllerFuncs[battler] = HandleInputShowTargets;
-            break;
-        case 3: // Entire field
-            gBattlerControllerFuncs[battler] = HandleInputShowEntireFieldTargets;
-            break;
-        }
+        StartMoveTargetSelection(battler, moveTarget, moveInfo->currentPP[gMoveSelectionCursor[battler]] != 0);
     }
     else if ((JOY_NEW(B_BUTTON) || gPlayerDpadHoldFrames > 59)  && !gBattleStruct->descriptionSubmenu)
     {
@@ -2484,6 +2533,7 @@ void PlayerHandleChooseMove(enum BattlerId battler)
     {
         struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
 
+        sInnateTargetSlot[battler] = INNATE_SLOT_NONE;
         InitMoveSelectionsVarsAndStrings(battler);
         gBattleStruct->gimmick.playerSelect = FALSE;
         TryToAddMoveInfoWindow();
@@ -2757,7 +2807,7 @@ static u32 CheckTypeEffectiveness(enum BattlerId battlerAtk, enum BattlerId batt
     struct DamageContext ctx = {0};
     ctx.battlerAtk = battlerAtk;
     ctx.battlerDef = battlerDef;
-    ctx.move = moveInfo->moves[gMoveSelectionCursor[battlerAtk]];
+    ctx.move = GetChosenMove(battlerAtk);
     ctx.moveType = CheckDynamicMoveType(GetBattlerMon(battlerAtk), ctx.move, battlerAtk, MON_IN_BATTLE);
     ctx.updateFlags = FALSE;
     ctx.weather = GetWeather();
