@@ -58,6 +58,7 @@
 #include "data.h"
 #include "config_changes.h"
 #include "move.h"
+#include "trainer_util.h"
 #include "constants/abilities.h"
 #include "constants/battle_anim.h"
 #include "constants/battle_move_effects.h"
@@ -4173,7 +4174,9 @@ static u32 GetTrainerMoneyToGive(u16 trainerId)
         const struct TrainerMon *party = GetTrainerPartyFromId(trainerId);
         if (party == NULL)
             return 20;
-        lastMonLevel = GuestLeader_GetPrizeLevel(trainerId, party[GetTrainerPartySizeFromId(trainerId) - 1].lvl);
+        lastMonLevel = party[GetTrainerPartySizeFromId(trainerId) - 1].lvl;
+        lastMonLevel = ShiftTrainerMonLevel(lastMonLevel, GetGauntletLevelShift(trainerId));
+        lastMonLevel = GuestLeader_GetPrizeLevel(trainerId, lastMonLevel);
         trainerMoney = gTrainerClasses[GetTrainerClassFromId(trainerId)].money ?: 5;
 
         if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)

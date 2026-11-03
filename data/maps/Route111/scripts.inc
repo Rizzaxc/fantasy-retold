@@ -256,9 +256,17 @@ Route111_EventScript_Victor::
 	lock
 	faceplayer
 	setflag FLAG_LANDMARK_WINSTRATE_FAMILY
+	setvar VAR_0x8009, GAUNTLET_WINSTRATE
+	specialvar VAR_RESULT, Gauntlet_HasRequiredBadge
+	goto_if_eq VAR_RESULT, FALSE, Route111_EventScript_WinstratesNeedBadge
 	msgbox Route111_Text_BattleOurFamily, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, YES, Route111_EventScript_BattleWinstrates
 	msgbox Route111_Text_IsThatSo, MSGBOX_DEFAULT
+	release
+	end
+
+Route111_EventScript_WinstratesNeedBadge::
+	msgbox Route111_Text_ComeBackWithMoreBadges, MSGBOX_DEFAULT
 	release
 	end
 
@@ -563,18 +571,25 @@ Route111_EventScript_TrainerHillSign::
 	end
 
 Route111_Text_BattleOurFamily:
-	.string "Hello! I take it you're a traveler.\p"
+	.string "You look like a fine trainer...\p"
 	.string "We're the WINSTRATES, and we don't\n"
-	.string "go easy on anyone.\p"
-	.string "All four of us, one after another,\n"
-	.string "with no healing in between.\p"
+	.string "remember the last time a fine trainer\p"
+	.string "survive our gauntlet.\p"
+	.string "I doubt you'd even get past me,\n"
+	.string "but you're welcome to try.\p"
 	.string "Your POKéMON won't learn a thing\n"
-	.string "from it, but beat us all and we'll\l"
-	.string "make it worth your while.\p"
-	.string "So? Will you take on our family?$"
+	.string "from us, but prove yourself and\l"
+	.string "you won't leave empty-handed.\p"
+	.string "So? Do you have what it takes?$"
+
+Route111_Text_ComeBackWithMoreBadges:
+	.string "You look like a fine trainer...\p"
+	.string "But hey! You haven't even won against\n"
+	.string "that oaf Wattson yet!.\p"
+	.string "Haha. Get off my lawn!\n"
 
 Route111_Text_IsThatSo:
-	.string "Is that so?\n"
+	.string "No shame to know your place.\n"
 	.string "Drop in, if you change your mind!$"
 
 Route111_Text_VictorIntro:

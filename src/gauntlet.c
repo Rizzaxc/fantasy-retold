@@ -14,6 +14,8 @@
 
 // Fantasy Retold: trainer gauntlets (design.md §2, Gauntlets). Each gauntlet is a run of trainer battles the
 // map script fights back to back (no heal); any battle against one of its trainers sets every EXP award to `exp`.
+// Its trainers' levels are authored for `baseBadges` badges; each badge beyond that adds `levelsPerBadge` to every
+// mon's level, with the authored EVs scaled to match (GenerateMonFromTrainerMon) and the moves kept as authored.
 // Clearing it pays a one-time reward: one item per slot, then money. A slot is a list of groups; the roll picks a
 // group evenly, then an item in it evenly, so a fixed item is a slot with one group of one item.
 // Scripts pass the gauntlet id (GAUNTLET_*) in VAR_0x8009.
@@ -34,6 +36,9 @@ struct Gauntlet
 {
     const u16 *trainers; // battle order; the last one clears the gauntlet
     u8 trainerCount;
+    u8 requiredBadge;    // badge number (1-8) needed to start it, 0 = none
+    u8 baseBadges;       // badge count its authored levels are tuned for
+    u8 levelsPerBadge;   // levels added to every mon per badge over baseBadges
     u16 exp;             // every EXP award in its battles
     const struct GauntletRewardSlot *rewardSlots;
     u8 rewardSlotCount;  // <= GAUNTLET_MAX_REWARD_ITEMS
@@ -73,6 +78,9 @@ static const struct Gauntlet sGauntlets[GAUNTLET_COUNT] =
     {
         .trainers = sWinstrateTrainers,
         .trainerCount = ARRAY_COUNT(sWinstrateTrainers),
+        .requiredBadge = 3,
+        .baseBadges = 3,
+        .levelsPerBadge = 5,
         .exp = 1,
         .rewardSlots = sWinstrateReward,
         .rewardSlotCount = ARRAY_COUNT(sWinstrateReward),
@@ -127,6 +135,43 @@ bool32 GetGauntletExpOverride(s32 *expAmount)
 
     *expAmount = sGauntlets[gauntlet].exp;
     return TRUE;
+}
+
+static u32 CountBadges(void)
+{
+    u32 i, count = 0;
+
+    for (i = 0; i < NUM_BADGES; i++)
+    {
+        if (FlagGet(FLAG_BADGE01_GET + i))
+            count++;
+    }
+    return count;
+}
+
+// Levels added to the trainer's party: levelsPerBadge for each badge over the gauntlet's baseBadges, 0 for a trainer
+// outside every gauntlet. Read when the party is built (CreateNPCTrainerParty) and for the prize money.
+s32 GetGauntletLevelShift(u16 trainerId)
+{
+    u32 gauntlet = GetGauntletForTrainer(trainerId);
+    u32 badges;
+
+    if (gauntlet == GAUNTLET_NONE)
+        return 0;
+    badges = CountBadges();
+    if (badges <= sGauntlets[gauntlet].baseBadges)
+        return 0;
+    return (badges - sGauntlets[gauntlet].baseBadges) * sGauntlets[gauntlet].levelsPerBadge;
+}
+
+// VAR_RESULT: whether the player has the badge the gauntlet asks for before it can be started.
+bool32 Gauntlet_HasRequiredBadge(void)
+{
+    const struct Gauntlet *gauntlet = GetScriptGauntlet();
+
+    if (gauntlet == NULL || gauntlet->requiredBadge == 0)
+        return TRUE;
+    return FlagGet(FLAG_BADGE01_GET + gauntlet->requiredBadge - 1);
 }
 
 // VAR_RESULT: whether the gauntlet's reward was already claimed.

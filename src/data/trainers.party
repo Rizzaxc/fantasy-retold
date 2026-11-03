@@ -5726,7 +5726,6 @@ IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 - Focus Energy
 - Arm Thrust
 
-/* TODO (Fantasy Retold): Winstrate gauntlet teambuilding, see design.md §2, Gauntlets. */
 === TRAINER_VICTOR ===
 Name: VICTOR
 Class: Winstrate
@@ -5734,15 +5733,41 @@ Pic: Pokefan M
 Gender: Male
 Music: Twins
 Double Battle: No
-AI: Check Bad Move
+AI: Smart Trainer
 
-Taillow @ Oran Berry
-Level: 16
-IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
+Manectric @ Magnet
+Ability: Lightning Rod
+Level: 25
+EVs: 140 SpA / 140 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Volt Switch
+- Flamethrower
+- Thunder Wave
+- Snarl
 
-Zigzagoon @ Oran Berry
-Level: 16
-IVs: 3 HP / 3 Atk / 3 Def / 3 SpA / 3 SpD / 3 Spe
+Crobat @ Flyinium Z
+Ability: Infiltrator
+Level: 25
+EVs: 140 Atk / 140 Spe
+Jolly Nature
+Signature Move: Cross Poison
+- Brave Bird
+- U-turn
+- Super Fang
+- Roost
+
+Arcanine @ Leftovers
+Ability: Intimidate
+Level: 26
+EVs: 140 HP / 140 Def
+Impish Nature
+Signature Move: Flare Blitz
+- Will-O-Wisp
+- Extreme Speed
+- Morning Sun
+- Roar
 
 === TRAINER_MIGUEL_1 ===
 Name: MIGUEL
@@ -5866,7 +5891,6 @@ Delcatty @ Sitrus Berry
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-/* TODO (Fantasy Retold): Winstrate gauntlet teambuilding, see design.md §2, Gauntlets. */
 === TRAINER_VICTORIA ===
 Name: VICTORIA
 Class: Winstrate
@@ -5874,11 +5898,42 @@ Pic: Pokefan F
 Gender: Female
 Music: Twins
 Double Battle: No
-AI: Check Bad Move / Try To Faint
+AI: Smart Trainer
 
-Roselia @ Oran Berry
-Level: 17
-IVs: 6 HP / 6 Atk / 6 Def / 6 SpA / 6 SpD / 6 Spe
+Roserade @ Black Sludge
+Ability: Natural Cure
+Level: 26
+Tera Type: Steel
+EVs: 140 SpA / 140 Spe
+Calm Nature
+IVs: 0 Atk
+Signature Move: Sludge Bomb
+- Giga Drain
+- Shadow Ball
+- Toxic
+- Synthesis
+
+Quagsire @ Leftovers
+Ability: Unaware
+Level: 24
+EVs: 120 HP / 120 Def
+Relaxed Nature
+Signature Move: Earthquake
+- Liquidation
+- Recover
+- Toxic
+- Yawn
+
+Houndoom @ Black Glasses
+Ability: Flash Fire
+Level: 27
+EVs: 140 SpA / 140 Spe
+Hasty Nature
+Signature Move: Dark Pulse
+- Flamethrower
+- Sludge Bomb
+- Sucker Punch
+- Nasty Plot
 
 === TRAINER_VANESSA ===
 Name: VANESSA
@@ -6080,7 +6135,6 @@ IVs: 29 HP / 29 Atk / 29 Def / 29 SpA / 29 SpD / 29 Spe
 - Sand Attack
 - Dig
 
-/* TODO (Fantasy Retold): Winstrate gauntlet teambuilding, see design.md §2, Gauntlets. */
 === TRAINER_VICKY ===
 Name: VICKY
 Class: Winstrate
@@ -6088,15 +6142,40 @@ Pic: Expert F
 Gender: Female
 Music: Intense
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Meditite
-Level: 18
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-- High Jump Kick
-- Meditate
-- Confusion
-- Detect
+Mawile @ Sitrus Berry
+Ability: Intimidate
+Level: 26
+EVs: 120 HP / 120 Atk
+Adamant Nature
+Signature Move: Iron Head
+- Play Rough
+- Sucker Punch
+- Fire Fang
+- Swords Dance
+
+Hariyama @ Leftovers
+Ability: Thick Fat
+Level: 29
+EVs: 140 HP / 140 Atk
+Impish Nature
+Signature Move: Close Combat
+- Fake Out
+- Bullet Punch
+- Knock Off
+- Whirlwind
+
+Gallade @ Galladite
+Ability: Sharpness
+Level: 30
+EVs: 140 HP / 140 Atk
+Impish Nature
+Signature Move: Sacred Sword
+- Psycho Cut
+- Night Slash
+- Leaf Blade
+- Bulk Up
 
 === TRAINER_SHELBY_1 ===
 Name: SHELBY
@@ -12078,7 +12157,6 @@ Marill
 Level: 9
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
-/* TODO (Fantasy Retold): Winstrate gauntlet teambuilding, see design.md §2, Gauntlets. */
 === TRAINER_VIVI ===
 Name: VIVI
 Class: Winstrate
@@ -12086,19 +12164,44 @@ Pic: Lass
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Marill
-Level: 15
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Ninetales @ Heat Rock
+Ability: Drought
+Level: 27
+Tera Type: Grass
+EVs: 28 HP / 252 SpA
+Quiet Nature
+IVs: 0 Atk / 0 Spe
+Signature Move: Fire Blast
+- Solar Beam
+- Extrasensory
+- Will-O-Wisp
+- Nasty Plot
 
-Shroomish
-Level: 15
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Vileplume @ Black Sludge
+Ability: Chlorophyll
+Level: 27
+EVs: 140 HP / 140 SpA
+Sassy Nature
+IVs: 0 Atk
+Signature Move: Giga Drain
+- Sludge Bomb
+- Moonblast
+- Weather Ball
+- Strength Sap
 
-Numel
-Level: 15
-IVs: 12 HP / 12 Atk / 12 Def / 12 SpA / 12 SpD / 12 Spe
+Lanturn @ Leftovers
+Ability: Volt Absorb
+Level: 28
+EVs: 140 HP / 140 SpA
+Calm Nature
+IVs: 0 Atk
+Signature Move: Scald
+- Thunderbolt
+- Ice Beam
+- Thunder Wave
+- Volt Switch
 
 === TRAINER_HALEY_2 ===
 Name: HALEY

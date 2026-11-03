@@ -234,41 +234,6 @@ static s32 GetLevelShift(u16 trainerId)
     return (s32)GetPartyMaxLevel(GetHomeLeader(gym)->trainerId) - (s32)GetPartyMaxLevel(trainerId);
 }
 
-static u32 ShiftLevel(u32 level, s32 shift)
-{
-    s32 newLevel = (s32)level + shift;
-
-    if (newLevel < 1)
-        return 1;
-    if (newLevel > MAX_LEVEL)
-        return MAX_LEVEL;
-    return newLevel;
-}
-
-// EVs follow the level (ev * newLevel / authoredLevel). If a stat goes over the per-stat cap or the total over the
-// overall cap, all six are scaled down together so the ratio between them holds.
-static void ScaleEvs(const u8 *evs, u32 oldLevel, u32 newLevel, u8 *out)
-{
-    u32 i, scaled[NUM_STATS], sum = 0, max = 0, num = 1, den = 1;
-
-    for (i = 0; i < NUM_STATS; i++)
-    {
-        scaled[i] = evs[i] * newLevel / (oldLevel ?: 1);
-        sum += scaled[i];
-        if (scaled[i] > max)
-            max = scaled[i];
-    }
-    if (max > MAX_PER_STAT_EVS || sum > MAX_TOTAL_EVS)
-    {
-        if (MAX_PER_STAT_EVS * sum <= MAX_TOTAL_EVS * max)
-            num = MAX_PER_STAT_EVS, den = max;
-        else
-            num = MAX_TOTAL_EVS, den = sum;
-    }
-    for (i = 0; i < NUM_STATS; i++)
-        out[i] = scaled[i] * num / den;
-}
-
 static bool32 HasGimmick(const struct TrainerMon *mon)
 {
     enum HoldEffect holdEffect = GetItemHoldEffect(mon->heldItem);
@@ -388,10 +353,10 @@ bool32 GuestLeader_TryCreateParty(struct Pokemon *party, u16 trainerId)
     for (i = 0; i < partySize; i++)
     {
         scaled[i] = trainer->party[i];
-        scaled[i].lvl = ShiftLevel(trainer->party[i].lvl, shift);
+        scaled[i].lvl = ShiftTrainerMonLevel(trainer->party[i].lvl, shift);
         if (isGuest && trainer->party[i].ev != NULL)
         {
-            ScaleEvs(trainer->party[i].ev, trainer->party[i].lvl, scaled[i].lvl, evs[i]);
+            ScaleTrainerMonEvs(trainer->party[i].ev, trainer->party[i].lvl, scaled[i].lvl, evs[i]);
             scaled[i].ev = evs[i];
         }
     }
@@ -419,7 +384,7 @@ bool32 GuestLeader_TryCreateParty(struct Pokemon *party, u16 trainerId)
 // Prize money is based on the last authored mon's level; a guest pays at its shifted level.
 u32 GuestLeader_GetPrizeLevel(u16 trainerId, u32 level)
 {
-    return ShiftLevel(level, GetLevelShift(trainerId));
+    return ShiftTrainerMonLevel(level, GetLevelShift(trainerId));
 }
 
 // Every whiteout rerolls the pending gym's guest (and unlocks its format) until that gym is beaten.

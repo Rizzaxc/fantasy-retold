@@ -24,6 +24,7 @@
 #include "fldeff.h"
 #include "fldeff_misc.h"
 #include "follower_npc.h"
+#include "gauntlet.h"
 #include "guest_leader.h"
 #include "gym_leader_rematch.h"
 #include "item.h"
@@ -2182,7 +2183,8 @@ void SetMultiTrainerBattle(struct ScriptContext *ctx)
     gPartnerTrainerId = TRAINER_PARTNER(ScriptReadHalfword(ctx));
 };
 
-void CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer *trainer)
+// Fantasy Retold: levelShift is added to every mon's level (gauntlets, design.md §2).
+static void CreateNPCTrainerPartyFromTrainerShifted(struct Pokemon *party, const struct Trainer *trainer, s32 levelShift)
 {
     s32 i;
     u8 monsCount;
@@ -2199,6 +2201,7 @@ void CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Traine
     u32 monIndices[monsCount];
     struct TrainerGenerator *trainerGen = AllocZeroed(sizeof(struct TrainerGenerator));
     MakeTrainerGenerator(trainerGen, trainer);
+    trainerGen->levelShift = levelShift;
     DoTrainerPartyPool(trainer, monIndices, monsCount, gBattleTypeFlags);
 
     for (i = 0; i < monsCount; i++)
@@ -2209,14 +2212,22 @@ void CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Traine
     Free(trainerGen);
 }
 
+void CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer *trainer)
+{
+    CreateNPCTrainerPartyFromTrainerShifted(party, trainer, 0);
+}
+
 static void CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum)
 {
+    s32 levelShift;
+
     if (GuestLeader_TryCreateParty(party, trainerNum))
         return;
 
+    levelShift = GetGauntletLevelShift(trainerNum);
     if (!GetTrainerStructFromId(trainerNum)->overrideTrainer)
     {
-        CreateNPCTrainerPartyFromTrainer(party, GetTrainerStructFromId(trainerNum));
+        CreateNPCTrainerPartyFromTrainerShifted(party, GetTrainerStructFromId(trainerNum), levelShift);
         return;
     }
 
@@ -2229,7 +2240,7 @@ static void CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum)
     tempTrainer.poolSize = origTrainer->poolSize;
     if (tempTrainer.partySize == 0)
         tempTrainer.partySize = origTrainer->partySize;
-    CreateNPCTrainerPartyFromTrainer(party, (const struct Trainer *)(&tempTrainer));
+    CreateNPCTrainerPartyFromTrainerShifted(party, (const struct Trainer *)(&tempTrainer), levelShift);
 }
 
 void CreateTrainerPartyForPlayer(void)

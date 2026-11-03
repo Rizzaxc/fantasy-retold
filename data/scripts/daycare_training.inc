@@ -123,6 +123,7 @@ Common_EventScript_HyperTrainingChooseMon::
 	goto_if_eq VAR_RESULT, HYPER_TRAINING_EGG, Common_EventScript_HyperTrainingEgg
 	goto_if_eq VAR_RESULT, HYPER_TRAINING_ALL_MAXED, Common_EventScript_HyperTrainingAllMaxed
 Common_EventScript_HyperTrainingChooseStat::
+	bufferpartymonnick STR_VAR_1, VAR_0x8004
 	message gText_HyperTrainingWhichStat
 	waitmessage
 	setvar VAR_0x8005, 0
@@ -138,11 +139,14 @@ Common_EventScript_HyperTrainingPushStat::
 	specialvar VAR_RESULT, HyperTraining_CanTrainStat
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_HyperTrainingStatMaxed
 	showmoneybox 0, 0
+	@ The money box prints through STR_VAR_1, so re-buffer the nickname for the prompt.
+	bufferpartymonnick STR_VAR_1, VAR_0x8004
 	msgbox gText_HyperTrainingConfirm, MSGBOX_YESNO
 	goto_if_ne VAR_RESULT, YES, Common_EventScript_HyperTrainingDeclined
 	specialvar VAR_RESULT, HyperTraining_Train
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_HyperTrainingDeclined
 	updatemoneybox
+	bufferpartymonnick STR_VAR_1, VAR_0x8004
 	playse SE_SHOP
 	msgbox gText_HyperTrainingDone, MSGBOX_DEFAULT
 	hidemoneybox
@@ -262,11 +266,13 @@ Common_EventScript_SignatureTrainingPushMove::
 	copyvar VAR_0x8005, VAR_RESULT
 	special SignatureTraining_BufferMove
 	showmoneybox 0, 0
+	bufferpartymonnick STR_VAR_1, VAR_0x8004
 	msgbox gText_SignatureTrainingConfirm, MSGBOX_YESNO
 	goto_if_ne VAR_RESULT, YES, Common_EventScript_SignatureTrainingDeclined
 	specialvar VAR_RESULT, SignatureTraining_Commit
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_SignatureTrainingDeclined
 	updatemoneybox
+	bufferpartymonnick STR_VAR_1, VAR_0x8004
 	playse SE_SHOP
 	msgbox gText_SignatureTrainingDone, MSGBOX_DEFAULT
 	hidemoneybox

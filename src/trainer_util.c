@@ -111,6 +111,7 @@ void MakeTrainerGenerator(struct TrainerGenerator *trainerGen, const struct Trai
     trainerGen->trainerClass = trainer->trainerClass;
     trainerGen->otID = OTID_STRUCT_RANDOM_NO_SHINY;
     trainerGen->localRngState = GeneratePartySeed(trainer);
+    trainerGen->levelShift = 0;
 }
 
 void MakePartnerGenerator(struct TrainerGenerator *trainerGen, const struct Trainer *partner)
@@ -125,11 +126,64 @@ void MakePartnerGenerator(struct TrainerGenerator *trainerGen, const struct Trai
     otID = Crc32B((const u8 *)partner, sizeof(struct Trainer));
     trainerGen->otID = OTID_STRUCT_PRESET(otID);
     trainerGen->localRngState = LocalRandomSeed(otID);
+    trainerGen->levelShift = 0;
+}
+
+// Fantasy Retold: level shifts for guest leaders and gauntlets (design.md §2), clamped to 1..MAX_LEVEL.
+u32 ShiftTrainerMonLevel(u32 level, s32 shift)
+{
+    s32 newLevel = (s32)level + shift;
+
+    if (newLevel < 1)
+        return 1;
+    if (newLevel > MAX_LEVEL)
+        return MAX_LEVEL;
+    return newLevel;
+}
+
+// EVs follow the level (ev * newLevel / authoredLevel). If a stat goes over the per-stat cap or the total over the
+// overall cap, all six are scaled down together so the ratio between them holds.
+void ScaleTrainerMonEvs(const u8 *evs, u32 oldLevel, u32 newLevel, u8 *out)
+{
+    u32 i, scaled[NUM_STATS], sum = 0, max = 0, num = 1, den = 1;
+
+    for (i = 0; i < NUM_STATS; i++)
+    {
+        scaled[i] = evs[i] * newLevel / (oldLevel ?: 1);
+        sum += scaled[i];
+        if (scaled[i] > max)
+            max = scaled[i];
+    }
+    if (max > MAX_PER_STAT_EVS || sum > MAX_TOTAL_EVS)
+    {
+        if (MAX_PER_STAT_EVS * sum <= MAX_TOTAL_EVS * max)
+            num = MAX_PER_STAT_EVS, den = max;
+        else
+            num = MAX_TOTAL_EVS, den = sum;
+    }
+    for (i = 0; i < NUM_STATS; i++)
+        out[i] = scaled[i] * num / den;
 }
 
 void GenerateMonFromTrainerMon(struct Pokemon *mon, const struct TrainerMon *trainerMon, struct TrainerGenerator *trainer)
 {
     u32 data;
+    struct TrainerMon shifted;
+    u8 shiftedEvs[NUM_STATS];
+
+    // Fantasy Retold: the generator's level shift (gauntlets, design.md §2); moves stay as authored.
+    if (trainer->levelShift != 0)
+    {
+        shifted = *trainerMon;
+        shifted.lvl = ShiftTrainerMonLevel(trainerMon->lvl, trainer->levelShift);
+        if (trainerMon->ev != NULL)
+        {
+            ScaleTrainerMonEvs(trainerMon->ev, trainerMon->lvl, shifted.lvl, shiftedEvs);
+            shifted.ev = shiftedEvs;
+        }
+        trainerMon = &shifted;
+    }
+
     u32 personality = (LocalRandom32(&trainer->localRngState) & 0xFFFFDF00) + 0x1000;
     u32 genderValue = LocalRandom32(&trainer->localRngState);
     if (trainerMon->gender == TRAINER_MON_RANDOM_GENDER)

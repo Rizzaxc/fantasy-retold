@@ -7,7 +7,7 @@ struct TrainerGenerator
     u8 smartTera:1;
     u8 isFrontier:1;
     u8 trainerClass;
-    u8 padding;
+    s8 levelShift; // Fantasy Retold: added to every mon's level, EVs scaled to match (gauntlets, design.md §2)
     u8 name[TRAINER_NAME_LENGTH + 1];
     struct OriginalTrainerId otID;
     rng_value_t localRngState;
@@ -20,5 +20,7 @@ void ModifyPersonalityForNature(u32 *personality, s32 newNature);
 bool32 SetCorrectAbilityNum(struct Pokemon *mon, enum Species species, enum Ability ability);
 void MakeTrainerGenerator(struct TrainerGenerator *trainerGen, const struct Trainer *trainer);
 void MakePartnerGenerator(struct TrainerGenerator *trainerGen, const struct Trainer *partner);
+u32 ShiftTrainerMonLevel(u32 level, s32 shift);
+void ScaleTrainerMonEvs(const u8 *evs, u32 oldLevel, u32 newLevel, u8 *out);
 
 #endif // GUARD_TRAINER_UTIL_H

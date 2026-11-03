@@ -116,4 +116,12 @@ Use this list to filter plans. Where the right column applies, drop the plan, un
 | Mega Evolution with the stone; Smart Tera | |
 | Explosion with `/ Will Suicide` | |
 
+## 9. Lessons from past builds
+
+* **Plan against the real threats of the slot.** At a given badge the player's likely aces are few and knowable (badge 3, Lv ~26: Azumarill, Kadabra, Breloom, the stage-2 Hoenn starters; niche: Pelipper + Ludicolo rain). Build a threat matrix (each AI mon vs each threat: win / lose / even) and make every AI mon win 3+ and lose 1–2; every threat should meet 2+ checks.
+* **Small rosters get traded, not switched against.** With 2–3 mons per battle the player keeps their ace in and trades. Hazards are nearly worthless there; frail attackers lose 1-for-1. Bulky checks that win their 1v1 are what hold.
+* **Back-to-back battles reset Stamina, Trauma and berries.** Only HP, PP and Lv2+ status carry, so lasting damage means Burn ×2 / Toxic / Shocked on the ace, not chip.
+* **Filler mons** (lower level, previous gym's EV budget) cover type gaps against later threats without changing the early matchups.
+* **Check abilities in `species_info`**: e.g. Manectric's Intimidate is Mega-only. Weather setters' order on entry is by Speed (the slower one's weather stays), so a weather override wants a slow setter.
+
 **Simple gaps** (keep, propose a fix) are single-condition score tweaks of the kind already in `battle_ai_fr_tactics.c`: "prefer X when the target has rail Y", "switch out when Z", "value move M while field state F holds". Anything that needs look-ahead over several turns, or the partner's choice, is not simple.
