@@ -128,8 +128,8 @@ BattleScript_FRRecuperate::
 	datahpupdate BS_ATTACKER, ASSURANCE_IGNORE
 	finishaction
 
-@ Itemized Move: the held TM was lost (Knock Off, Trick, ...) after the move was chosen; the turn is lost (design.md §10).
-@ After the battle: a party Pokémon used a move enough times to master it (design.md §10, Signature Moves).
+@ Itemized Move: the held TM was lost (Knock Off, Trick, ...) after the move was chosen; the turn is lost (combat.md §10).
+@ After the battle: a party Pokémon used a move enough times to master it (design.md §2, Signature Moves).
 BattleScript_FRMoveMastered::
 	printstring STRINGID_FRMOVEMASTERED
 	waitmessage B_WAIT_TIME_LONG
@@ -147,7 +147,7 @@ BattleScript_FRItemizedMoveLost::
 	waitmessage B_WAIT_TIME_LONG
 	finishaction
 
-@ Poisoned: Recuperate restores Stamina but no HP (design.md §6).
+@ Poisoned: Recuperate restores Stamina but no HP (combat.md §6).
 BattleScript_FRRecuperatePoisoned::
 	printstring STRINGID_FRRECUPERATING
 	waitmessage B_WAIT_TIME_SHORT
@@ -4271,7 +4271,7 @@ BattleScript_BattlerFrostbiteHealed::
 	updatestatusicon BS_SCRIPTING
 	return
 
-@ Fantasy Retold: status rails (design.md §6). The message is gBattleScripting.savedStringId (printstring 0).
+@ Fantasy Retold: status rails (combat.md §6). The message is gBattleScripting.savedStringId (printstring 0).
 @ A rail level with no vanilla script (Dazed, Shocked, Drowsy, Nightmare, Chilled, extra Burn stacks, ...).
 BattleScript_FRRailEffectApplied::
 	printstring 0

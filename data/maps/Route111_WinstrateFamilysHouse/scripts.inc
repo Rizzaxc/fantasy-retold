@@ -13,18 +13,29 @@ Route111_WinstrateFamilysHouse_EventScript_Victoria::
 	lock
 	faceplayer
 	setvar VAR_0x8008, LOCALID_WINSTRATE_HOUSE_VICTORIA
-	goto_if_set FLAG_RECEIVED_MACHO_BRACE, Route111_WinstrateFamilysHouse_EventScript_ReceivedMachoBrace
-	msgbox Route111_WinstrateFamilysHouse_Text_LikeYouToHaveMachoBrace, MSGBOX_DEFAULT
-	giveitem ITEM_MACHO_BRACE
-	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_ShowBagIsFull
-	setflag FLAG_RECEIVED_MACHO_BRACE
+	goto_if_set FLAG_GAUNTLET_REWARD_1, Route111_WinstrateFamilysHouse_EventScript_ReceivedReward
+	goto_if_defeated TRAINER_VICKY, Route111_WinstrateFamilysHouse_EventScript_VictoriaGiveReward
+	msgbox Route111_WinstrateFamilysHouse_Text_TakeOnOurFamily, MSGBOX_DEFAULT
 	goto Route111_WinstrateFamilysHouse_EventScript_FaceOriginalDirection
 	end
 
-Route111_WinstrateFamilysHouse_EventScript_ReceivedMachoBrace::
+Route111_WinstrateFamilysHouse_EventScript_VictoriaGiveReward::
+	msgbox Route111_WinstrateFamilysHouse_Text_HereIsYourReward, MSGBOX_DEFAULT
+	call Route111_WinstrateFamilysHouse_EventScript_GiveReward
+	goto Route111_WinstrateFamilysHouse_EventScript_FaceOriginalDirection
+	end
+
+Route111_WinstrateFamilysHouse_EventScript_ReceivedReward::
 	msgbox Route111_WinstrateFamilysHouse_Text_PassionateAboutBattles, MSGBOX_DEFAULT
 	goto Route111_WinstrateFamilysHouse_EventScript_FaceOriginalDirection
 	end
+
+@ Fantasy Retold: the gauntlet's prize (design.md §2, Gauntlets). Called by Vicky after the last battle,
+@ and by Victoria in the house if the bag was full then.
+Route111_WinstrateFamilysHouse_EventScript_GiveReward::
+	setvar VAR_0x8009, GAUNTLET_WINSTRATE
+	call Common_EventScript_GauntletReward
+	return
 
 Route111_WinstrateFamilysHouse_EventScript_Vivi::
 	lock
@@ -64,13 +75,14 @@ Route111_WinstrateFamilysHouse_Text_MySonIsStrongerThanYou:
 	.string "He even took the POKéMON LEAGUE\n"
 	.string "challenge, I'll have you know.$"
 
-Route111_WinstrateFamilysHouse_Text_LikeYouToHaveMachoBrace:
-	.string "We use this MACHO BRACE to more\n"
-	.string "effectively strengthen our POKéMON\l"
-	.string "in training.\p"
-	.string "Since you've beaten all of us here,\n"
-	.string "I don't know if you need it, but we\l"
-	.string "would like you to have our MACHO BRACE.$"
+Route111_WinstrateFamilysHouse_Text_TakeOnOurFamily:
+	.string "My husband is waiting out front.\p"
+	.string "Take on all four of us in a row, and\n"
+	.string "we'll have something nice for you.$"
+
+Route111_WinstrateFamilysHouse_Text_HereIsYourReward:
+	.string "You beat all four of us in a row!\n"
+	.string "Here, this is what you earned.$"
 
 Route111_WinstrateFamilysHouse_Text_PassionateAboutBattles:
 	.string "When it comes to POKéMON battles,\n"

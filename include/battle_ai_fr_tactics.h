@@ -1,7 +1,7 @@
 #ifndef GUARD_BATTLE_AI_FR_TACTICS_H
 #define GUARD_BATTLE_AI_FR_TACTICS_H
 
-// Fantasy Retold: AI_FLAG_FR_TACTICS (Smart trainers, design.md §10). Additive move scoring on top of the
+// Fantasy Retold: AI_FLAG_FR_TACTICS (Smart trainers, combat.md §11). Additive move scoring on top of the
 // upstream AI: it never takes score off a move that KOs, and its bonus is capped below a KO's, so lethal, type
 // chart, hazard and damage logic still decide first.
 

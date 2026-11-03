@@ -15,7 +15,7 @@
 #include "constants/battle_move_effects.h"
 #include "constants/hold_effects.h"
 
-// Fantasy Retold: AI_FLAG_FR_TACTICS (design.md §10). Everything here is a score adjustment for one move against
+// Fantasy Retold: AI_FLAG_FR_TACTICS (combat.md §11). Everything here is a score adjustment for one move against
 // one target, added after the upstream scoring:
 //  - it never lowers a move that KOs the target, and its total is capped at FR_TACTICS_MAX_BONUS, below a KO's
 //    weight (FAST_KILL / SLOW_KILL + BEST_DAMAGE_MOVE), so lethals, the type chart (already in the damage numbers),
@@ -126,7 +126,7 @@ static bool32 CanProgressRail(enum BattlerId battlerAtk, enum BattlerId battlerD
     }
 }
 
-// The level the line reaches if this move lands (design.md §6): status moves land at Lv2 (Chill at Chilled), hits
+// The level the line reaches if this move lands (combat.md §6): status moves land at Lv2 (Chill at Chilled), hits
 // add one, and Dazed + Soaked skips straight to Paralyzed.
 static u32 GetNextRailLevel(enum BattlerId battlerDef, enum StatusRail rail, bool32 isStatusMove)
 {

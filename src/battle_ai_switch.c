@@ -1010,7 +1010,7 @@ static bool32 ShouldSwitchIfIntimidateBenefit(struct SwitchAiContext *switchCont
     return hasValidTarget;
 }
 
-// Fantasy Retold: a Stupefied / Frightened battler in doubles may turn a single-target hit on its own ally (design.md
+// Fantasy Retold: a Stupefied / Frightened battler in doubles may turn a single-target hit on its own ally (combat.md
 // §6). Half the time, take it out while such a hit could KO that ally and the line has 2+ turns left. The line is
 // Lv2+, so it keeps (and doesn't count down) on the bench: this only shields the ally for now.
 #define FR_SWITCH_STUPEFIED_CHANCE 50
@@ -1033,7 +1033,7 @@ static bool32 ShouldSwitchStupefiedFromAlly(enum BattlerId battler)
     return FALSE;
 }
 
-// Fantasy Retold: the nature innates that reward pivoting (design.md §5), for AI_FLAG_FR_TACTICS, with the same
+// Fantasy Retold: the nature innates that reward pivoting (combat.md §5), for AI_FLAG_FR_TACTICS, with the same
 // switch chances as the matching abilities. Innates aren't abilities, so Gastro Acid / Neutralizing Gas don't stop
 // them. Never while the AI has a KO on its target this turn. Also a Stupefied battler next to a frail ally.
 static bool32 ShouldSwitchForNatureInnate(struct SwitchAiContext *switchContext)

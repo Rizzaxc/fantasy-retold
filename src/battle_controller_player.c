@@ -116,7 +116,7 @@ static const u8 sText_InnateChoiceLocked[] = _(
     "Dodge and Recuperate!\p"
 );
 
-// Fantasy Retold: innate command menu (design.md §3). L (R in L=A mode) swaps the four move slots for
+// Fantasy Retold: innate command menu (combat.md §3). L (R in L=A mode) swaps the four move slots for
 // Dodge / Recuperate / the Signature Move / the Itemized Move; L or B swaps back. Dodge and Recuperate always
 // take slots 0 and 1; the two moves fill slots 2 and 3 in that order, only when the mon has them.
 enum InnateMenuEntry
@@ -761,14 +761,14 @@ static void WaitForDodgeSelectionMessage(enum BattlerId battler)
     }
 }
 
-// Fantasy Retold: the Signature Move lives outside the four move slots (design.md §10); MOVE_NONE if the mon
+// Fantasy Retold: the Signature Move lives outside the four move slots (combat.md §10); MOVE_NONE if the mon
 // hasn't earned one.
 static enum Move GetInnateSignatureMove(enum BattlerId battler)
 {
     return GetSignatureMove(GetBattlerMon(battler));
 }
 
-// Fantasy Retold: the held TM's move (design.md §10); MOVE_NONE if the mon holds no TM it can learn.
+// Fantasy Retold: the held TM's move (combat.md §10); MOVE_NONE if the mon holds no TM it can learn.
 static enum Move GetInnateItemizedMove(enum BattlerId battler)
 {
     return GetBattlerItemizedMove(battler);
@@ -894,7 +894,7 @@ static void DisplayInnateMenuEntryInfo(enum BattlerId battler)
 }
 
 // A transformation gimmick (Mega, Ultra Burst, Dynamax, Tera) can go with Dodge / Recuperate / the Itemized Move;
-// nothing goes with the Signature Move (design.md §3).
+// nothing goes with the Signature Move (combat.md §3).
 static bool32 InnateEntryAllowsGimmick(enum BattlerId battler, u32 slot)
 {
     return GetInnateMenuEntry(battler, slot) != INNATE_ENTRY_SIGNATURE && CanUseGimmickWithInnateCommand(battler);

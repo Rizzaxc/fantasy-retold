@@ -51,7 +51,7 @@ bool32 IsGimmickSelected(enum BattlerId battler, enum Gimmick gimmick)
 }
 
 // Fantasy Retold: the transformation gimmicks (Mega, Ultra Burst, Dynamax, Tera) can be paired with Dodge or
-// Recuperate (design.md §3). Z-Moves need a move, and no gimmick pairs with the Signature Move.
+// Recuperate (combat.md §3). Z-Moves need a move, and no gimmick pairs with the Signature Move.
 bool32 CanUseGimmickWithInnateCommand(enum BattlerId battler)
 {
     enum Gimmick gimmick = gBattleStruct->gimmick.usableGimmick[battler];

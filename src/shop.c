@@ -623,7 +623,7 @@ static void BuyMenuSetListEntry(struct ListMenuItem *menuItem, enum Item item, u
     {
         u8 *end = CopyItemName(item, name);
 
-        // Fantasy Retold: TMs are listed as "TM08 Bulk Up" (design.md §10, Mart TMs)
+        // Fantasy Retold: TMs are listed as "TM08 Bulk Up" (design.md §2, Mart TMs)
         if (GetItemPocket(item) == POCKET_TM_HM)
         {
             end = StringCopy(end, gText_Space);
@@ -698,7 +698,7 @@ static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y)
     }
 }
 
-// Fantasy Retold: town mart TMs (design.md §10, Mart TMs). The gym leaders' TMs stay gym-only.
+// Fantasy Retold: town mart TMs (design.md §2, Mart TMs). The gym leaders' TMs stay gym-only.
 static const enum Item sMartTMExcluded[] =
 {
     ITEM_TM_ROCK_TOMB,   // Roxanne

@@ -33,7 +33,7 @@ bool32 ShouldUseItem(enum BattlerId battler)
     if (IsAiVsAiBattle())
         return FALSE;
 
-    // Fantasy Retold: Smart trainers carry no bag items (design.md §10).
+    // Fantasy Retold: Smart trainers carry no bag items (combat.md §9).
     if (gAiThinkingStruct->aiFlags[battler] & AI_FLAG_FR_TACTICS)
         return FALSE;
 

@@ -6,7 +6,7 @@
 #include "string_util.h"
 #include "constants/flags.h"
 
-// Fantasy Retold: the Select-button menu (design.md §10). The menu itself is Common_EventScript_SelectMenu
+// Fantasy Retold: the Select-button menu (design.md §2). The menu itself is Common_EventScript_SelectMenu
 // (data/scripts/select_menu.inc); these are its specials.
 
 static const u8 sText_RepelOff[] = _("REPEL: OFF");

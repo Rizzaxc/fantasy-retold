@@ -13,7 +13,7 @@
 #include "constants/hold_effects.h"
 #include "constants/items.h"
 
-// Fantasy Retold: Mega Ring / Z-Ring and their items (design.md §10). Wattson lets the player pick one ring; Birch
+// Fantasy Retold: Mega Ring / Z-Ring and their items (design.md §2). Wattson lets the player pick one ring; Birch
 // then calls them to the lab for the starter's Mega Stone or matching Z-Crystal. The Mauville Game Corner stocks
 // three Mega Stones and three Z-Crystals the player doesn't have, restocked like the egg shop.
 

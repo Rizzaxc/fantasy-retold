@@ -1093,7 +1093,7 @@ struct Bag
     struct ItemSlot berries[BAG_BERRIES_COUNT];
 };
 
-// Fantasy Retold (design.md §10): one Pokémon's move use counts, keyed by its personality and by move ID (never by
+// Fantasy Retold (design.md §2): one Pokémon's move use counts, keyed by its personality and by move ID (never by
 // party or move slot). counts[i] bits 0-6 = uses of moves[i] (saturating), bit 7 = its mastery was announced.
 struct MoveUseRecord
 {

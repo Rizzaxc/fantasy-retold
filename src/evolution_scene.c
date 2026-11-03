@@ -651,7 +651,7 @@ enum {
     MVSTATE_RETRY_AFTER_HM,
 };
 
-// Fantasy Retold: states for the switch in EVOSTATE_COMMIT_SIGNATURE (design.md §10, Signature Moves)
+// Fantasy Retold: states for the switch in EVOSTATE_COMMIT_SIGNATURE (design.md §2, Signature Moves)
 enum {
     SIGSTATE_INTRO_MSG,
     SIGSTATE_FADE_OUT,
@@ -667,7 +667,7 @@ enum {
 // Task data from CycleEvolutionMonSprite
 #define tEvoStopped data[8]
 
-// Fantasy Retold (design.md §10, Signature Moves): the Pokémon just reached its final stage with at least one mastered
+// Fantasy Retold (design.md §2, Signature Moves): the Pokémon just reached its final stage with at least one mastered
 // move. The player picks one in the move selection screen (only mastered moves can be picked) and confirms it, or backs
 // out and commits none.
 static void HandleCommitSignatureMove(u8 taskId, struct Pokemon *mon)

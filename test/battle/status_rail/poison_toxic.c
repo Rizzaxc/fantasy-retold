@@ -1,7 +1,7 @@
 #include "global.h"
 #include "test/battle.h"
 
-// Fantasy Retold: Poison -> Toxic status rail (design.md §6). The rail in PartyState is authoritative;
+// Fantasy Retold: Poison -> Toxic status rail (combat.md §6). The rail in PartyState is authoritative;
 // the legacy status1 bits are a read-mirror (regular poison -> "poison" icon; Toxic -> "badPoison" icon).
 // - Attacking-move secondary  => Level 1 (regular Poison, healable 1/8 chip)
 // - Status move               => Level 2 (Toxic, escalating + unhealable / logged as Trauma)

@@ -250,7 +250,7 @@ struct SimulatedDamage
 };
 
 // Fantasy Retold: AI move slots. 0-3 are the move slots; SIGNATURE_MOVE_POSITION (4) and ITEMIZED_MOVE_POSITION (5)
-// are the Signature and Itemized Move (design.md §10), scored only with AI_FLAG_FR_TACTICS (AI_GetMoveSlotCount).
+// are the Signature and Itemized Move (combat.md §11), scored only with AI_FLAG_FR_TACTICS (AI_GetMoveSlotCount).
 // Slot 4 equals MAX_MON_MOVES, the AI's usual "no move" index, so code that walks all slots uses AI_MOVE_SLOTS
 // as its "none" value instead.
 #define AI_MOVE_SLOTS (MAX_MON_MOVES + 2)
@@ -575,7 +575,7 @@ struct BattlerState
     u16 originalBattlerPartyId : 4;
     u16 isFirstTurn : 2;          // Starts at 2 on switch in and counts down during end turn
     u16 dodgeConsecutiveUses : 5; // Fantasy Retold: prior consecutive Dodge turns; drives the +20 escalation on the next Dodge.
-    u16 stupefiedRedirect : 1;    // Fantasy Retold: this move turns on the user's ally (Stupefied, design.md §6)
+    u16 stupefiedRedirect : 1;    // Fantasy Retold: this move turns on the user's ally (Stupefied, combat.md §6)
     u16 padding : 2;
     // End of Word
 };
@@ -593,7 +593,7 @@ struct BattlerState
 // Fantasy Retold: EXP is doubled when the earner is within this many levels of the fainted mon, halved otherwise.
 #define EXP_LEVEL_BAND 4
 
-// Fantasy Retold: per-rail status state (design.md §6). See enum StatusRail in constants/battle.h.
+// Fantasy Retold: per-rail status state (combat.md §6). See enum StatusRail in constants/battle.h.
 struct StatusRailEntry
 {
     u8 level;   // 0 = none; 1..3 (rail-specific max). For RAIL_BURN this is the stack count.
@@ -620,9 +620,9 @@ struct PartyState
     enum Item usedHeldItem;
     u16 storedStamina;                              // Fantasy Retold: CurrentSta banked at switch-out (+ rest bonus), restored on the mon's next switch-in. Read only when sentOut is set.
     u16 trauma;                                     // Fantasy Retold: permanent Trauma. Reduces effective max HP; persists across switches for the whole battle.
-    struct StatusRailEntry rails[NUM_STATUS_RAILS]; // Fantasy Retold: multi-stage status rails (design.md §6). Lv1 cleared on switch-out; Lv2+ persists.
+    struct StatusRailEntry rails[NUM_STATUS_RAILS]; // Fantasy Retold: multi-stage status rails (combat.md §6). Lv1 cleared on switch-out; Lv2+ persists.
     u16 itemizedMove;                               // Fantasy Retold: the held-TM move itemizedMovePP belongs to; a different TM starts at full PP.
-    u8 itemizedMovePP;                              // Fantasy Retold: PP left on the Itemized Move this battle (design.md §10).
+    u8 itemizedMovePP;                              // Fantasy Retold: PP left on the Itemized Move this battle (combat.md §10).
 };
 
 struct EventStates
@@ -829,7 +829,7 @@ struct AiBattleData
 {
     s32 finalScore[MAX_BATTLERS_COUNT][MAX_BATTLERS_COUNT][AI_MOVE_SLOTS]; // AI, target, moves to make debugging easier
     u8 playerStallMons[PARTY_SIZE];
-    // Fantasy Retold: how this player answers a likely Dodge spot (AI_FLAG_FR_TACTICS, design.md §10), per battler.
+    // Fantasy Retold: how this player answers a likely Dodge spot (AI_FLAG_FR_TACTICS, combat.md §11), per battler.
     u8 dodgeSpots[MAX_BATTLERS_COUNT];     // turns the AI judged a Dodge likely
     u8 dodgesInSpots[MAX_BATTLERS_COUNT];  // of those, turns the battler did Dodge
     u8 dodgeSpotPending;                   // bit per battler: this turn was judged a Dodge spot, not yet counted
@@ -1275,7 +1275,7 @@ static inline bool32 IsSpreadMove(enum MoveTarget moveTarget)
 }
 
 // Fantasy Retold: the Signature Move and the Itemized Move (a held TM's move) live outside the four move slots
-// (design.md §10). They are chosen with these extra move positions and are never stored in gBattleMons[].moves /
+// (combat.md §10). They are chosen with these extra move positions and are never stored in gBattleMons[].moves /
 // .pp, so anything that indexes those arrays by a chosen/current move position must check
 // `position < MAX_MON_MOVES` first. Their PP is read / taken with Get / DeductBattlerExtraMovePP: the Signature
 // Move's lives on the party mon (persists), the Itemized Move's in PartyState (per battle).

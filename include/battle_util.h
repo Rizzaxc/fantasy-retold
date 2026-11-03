@@ -58,7 +58,7 @@ bool32 BattlerIsDodging(enum BattlerId battler);
 bool32 IsMoveFullyDodged(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move);
 bool32 IsMoveHalvedByDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef);
 // Fantasy Retold: how far an attack gets through a Dodge, by the attacker's held Choice item and whether it is its
-// Signature Move (design.md §3 / §9 / §10). Weakest to strongest.
+// Signature Move (combat.md §3 / §9 / §10). Weakest to strongest.
 enum DodgeBypass
 {
     DODGE_BYPASS_NONE,           // normal Dodge outcomes

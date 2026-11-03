@@ -191,7 +191,7 @@ enum BattleSide
 #define STATUS1_DAMAGING         (STATUS1_PSN_ANY | STATUS1_BURN | STATUS1_FROSTBITE)
 
 // Fantasy Retold: party-only bits keeping the Lv2+ rail state that no vanilla bit above can hold across a battle
-// (design.md §6): a 2-bit level per line. They are written after battle, read when a mon is first sent out, and
+// (combat.md §6): a 2-bit level per line. They are written after battle, read when a mon is first sent out, and
 // stripped from the battle copy of status1; no vanilla code reads them.
 #define STATUS1_SAVED_ELECTRIC   (3 << 16) // Shocked (Paralyzed also has STATUS1_PARALYSIS)
 #define STATUS1_SAVED_SLEEP      (3 << 18) // Nightmare (Asleep also has the sleep turns)
@@ -199,7 +199,7 @@ enum BattleSide
 #define STATUS1_SAVED_BURN       (3 << 22) // Burn stacks (the stack count past Lv1)
 #define STATUS1_SAVED_ANY        (STATUS1_SAVED_ELECTRIC | STATUS1_SAVED_SLEEP | STATUS1_SAVED_CONFUSION | STATUS1_SAVED_BURN)
 
-// Fantasy Retold: multi-stage status "rails" (design.md §6). A condition advances Lv1 -> Lv2 (-> Lv3)
+// Fantasy Retold: multi-stage status "rails" (combat.md §6). A condition advances Lv1 -> Lv2 (-> Lv3)
 // when reapplied. Level 1 is volatile (clears on switch-out); Level 2+ persists across switches for the
 // whole engagement. Rail state (level + a per-rail counter) lives in struct PartyState and is the source
 // of truth for mechanics; the legacy STATUS1_* bits above are kept only as a read-mirror so existing
@@ -220,7 +220,7 @@ enum StatusRail
 #define CHILL_BRANCH_FROZEN      0
 #define CHILL_BRANCH_FROSTBITTEN 1
 
-// Fantasy Retold: status rail tuning (design.md §6 / §11). Durations are end-of-turn ticks.
+// Fantasy Retold: status rail tuning (combat.md §6 / §11). Durations are end-of-turn ticks.
 #define STATUS_RAIL_SLOW_PERCENT         75  // Speed x0.75 each for the Chill line and Drowsy (they stack)
 #define SOAK_SPEED_PERCENT               85  // Speed x0.85 while Soaked
 #define STATUS_RAIL_STAMINA_SURCHARGE    5   // +5 Stamina on every move / Dodge for the Chill line and Drowsy (each)
@@ -243,7 +243,7 @@ enum StatusRail
 #define POISON_HEAL_BLOCK_DIVISOR        16  // a poisoned mon can't receive heals of maxHP/16 or less (or Recuperate's)
 
 // Toxic (RAIL_POISON at Lv2) escalation cap: the per-turn unhealable (Trauma-logged) tick is
-// maxHP/16 * counter, with counter clamped here to prevent runaway lethality (design.md §6/§11).
+// maxHP/16 * counter, with counter clamped here to prevent runaway lethality (combat.md §6/§11).
 #define TOXIC_TRAUMA_MAX_TURNS 8
 
 #define PERMANENT_VOLATILE 16 // Indicates permanency for battler volatiles

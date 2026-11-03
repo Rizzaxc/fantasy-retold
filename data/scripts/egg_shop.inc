@@ -1,4 +1,4 @@
-@ Fantasy Retold: the daycare lady's egg shop (design.md §10).
+@ Fantasy Retold: the daycare lady's egg shop (design.md §2).
 @ Three Eggs sold as "<REGION> <TIER> EGG"; the species is rolled on purchase and hidden until it hatches.
 @ Restocked after every badge, rival battle and Elite Four clear.
 @ Reached from Route117_PokemonDayCare_EventScript_DaycareWoman, which has already locked the player.

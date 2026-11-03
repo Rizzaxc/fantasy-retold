@@ -51,8 +51,8 @@
 
 #else
 
-#define FLAG_INFINITE_REPEL  0x20 // Fantasy Retold: Select-menu Repel toggle (design.md §10)
-#define FLAG_GYM_REWARD_1    0x21 // Fantasy Retold: gym leader reward claimed, gyms 1-8 (design.md §10)
+#define FLAG_INFINITE_REPEL  0x20 // Fantasy Retold: Select-menu Repel toggle (design.md §2)
+#define FLAG_GYM_REWARD_1    0x21 // Fantasy Retold: gym leader reward claimed, gyms 1-8 (design.md §2)
 #define FLAG_GYM_REWARD_2    0x22
 #define FLAG_GYM_REWARD_3    0x23
 #define FLAG_GYM_REWARD_4    0x24
@@ -60,7 +60,7 @@
 #define FLAG_GYM_REWARD_6    0x26
 #define FLAG_GYM_REWARD_7    0x27
 #define FLAG_GYM_REWARD_8    0x28
-#define FLAG_EXP_SHARE       0x29 // Fantasy Retold: Select-menu Exp. Share toggle (design.md §10)
+#define FLAG_EXP_SHARE       0x29 // Fantasy Retold: Select-menu Exp. Share toggle (design.md §2)
 #define FLAG_GUEST_BEATEN_BROCK    0x2A // Fantasy Retold: guest gym leader beaten (once per save)
 #define FLAG_GUEST_BEATEN_MISTY    0x2B
 #define FLAG_GUEST_BEATEN_LT_SURGE    0x2C
@@ -69,14 +69,14 @@
 #define FLAG_GUEST_BEATEN_SABRINA    0x2F
 #define FLAG_GUEST_BEATEN_BLAINE    0x30
 #define FLAG_GUEST_BEATEN_GIOVANNI    0x31
-#define FLAG_UNUSED_0x032    0x32 // Unused Flag
-#define FLAG_UNUSED_0x033    0x33 // Unused Flag
-#define FLAG_UNUSED_0x034    0x34 // Unused Flag
-#define FLAG_UNUSED_0x035    0x35 // Unused Flag
-#define FLAG_UNUSED_0x036    0x36 // Unused Flag
-#define FLAG_UNUSED_0x037    0x37 // Unused Flag
-#define FLAG_UNUSED_0x038    0x38 // Unused Flag
-#define FLAG_UNUSED_0x039    0x39 // Unused Flag
+#define FLAG_GAUNTLET_REWARD_1    0x32 // Fantasy Retold: gauntlet reward claimed, FLAG_GAUNTLET_REWARD_1 + GAUNTLET_* (design.md §2, Gauntlets)
+#define FLAG_GAUNTLET_REWARD_2    0x33
+#define FLAG_GAUNTLET_REWARD_3    0x34
+#define FLAG_GAUNTLET_REWARD_4    0x35
+#define FLAG_GAUNTLET_REWARD_5    0x36
+#define FLAG_GAUNTLET_REWARD_6    0x37
+#define FLAG_GAUNTLET_REWARD_7    0x38
+#define FLAG_GAUNTLET_REWARD_8    0x39
 #define FLAG_UNUSED_0x03A    0x3A // Unused Flag
 #define FLAG_UNUSED_0x03B    0x3B // Unused Flag
 #define FLAG_UNUSED_0x03C    0x3C // Unused Flag

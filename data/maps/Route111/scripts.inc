@@ -320,6 +320,7 @@ Route111_EventScript_BattleWinstrates::
 	msgbox Route111_Text_VickyIntro, MSGBOX_DEFAULT
 	trainerbattle_no_intro TRAINER_VICKY, Route111_Text_VickyDefeat
 	msgbox Route111_Text_VickyPostBattle, MSGBOX_DEFAULT
+	call Route111_WinstrateFamilysHouse_EventScript_GiveReward
 	closemessage
 	applymovement LOCALID_ROUTE111_VICKY, Common_Movement_WalkInPlaceFasterUp
 	waitmovement 0
@@ -563,9 +564,14 @@ Route111_EventScript_TrainerHillSign::
 
 Route111_Text_BattleOurFamily:
 	.string "Hello! I take it you're a traveler.\p"
-	.string "How's this? What do you say to taking\n"
-	.string "on our family of four in a series of\l"
-	.string "POKéMON battles?$"
+	.string "We're the WINSTRATES, and we don't\n"
+	.string "go easy on anyone.\p"
+	.string "All four of us, one after another,\n"
+	.string "with no healing in between.\p"
+	.string "Your POKéMON won't learn a thing\n"
+	.string "from it, but beat us all and we'll\l"
+	.string "make it worth your while.\p"
+	.string "So? Will you take on our family?$"
 
 Route111_Text_IsThatSo:
 	.string "Is that so?\n"
@@ -619,8 +625,8 @@ Route111_Text_VickyDefeat:
 	.string "My granddaughter was right…$"
 
 Route111_Text_VickyPostBattle:
-	.string "If you're not in any hurry,\n"
-	.string "visit with us awhile.$"
+	.string "All four of us, one after another…\n"
+	.string "You've earned this, young one.$"
 
 Route111_Text_ToughToKeepWinningUpTheRanks:
 	.string "If you don't raise your POKéMON some\n"

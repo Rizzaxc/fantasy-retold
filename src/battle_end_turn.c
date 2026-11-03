@@ -544,7 +544,7 @@ static bool32 HandleEndTurnPoison(enum BattlerId battler)
     if (!IsBattlerPresent(battler))
         return FALSE;
 
-    // Fantasy Retold: Poison -> Toxic rail (design.md §6). Keep the rail in sync with anything that
+    // Fantasy Retold: Poison -> Toxic rail (combat.md §6). Keep the rail in sync with anything that
     // wrote status1 directly (Toxic Orb/Spikes, Synchronize, cures, a mon entering already poisoned),
     // then drive the tick off the rail level.
     ReconcileStatusRailsFromBridge(battler);
@@ -556,9 +556,9 @@ static bool32 HandleEndTurnPoison(enum BattlerId battler)
     if (poisonLevel >= 2)
     {
         // Toxic (Lv2): escalating, and the damage is unhealable — it is logged as Trauma so a wall
-        // cannot Recuperate it back (Toxic is the hard-counter to pure stall, design.md §4/§6).
+        // cannot Recuperate it back (Toxic is the hard-counter to pure stall, combat.md §4/§6).
         u8 counter = GetStatusRailCounter(battler, RAIL_POISON);
-        if (counter < TOXIC_TRAUMA_MAX_TURNS) // cap the escalation (design.md §6/§11)
+        if (counter < TOXIC_TRAUMA_MAX_TURNS) // cap the escalation (combat.md §6/§11)
             SetStatusRailCounter(battler, RAIL_POISON, ++counter);
         SyncStatusRailBridge(battler); // keep the legacy toxic-counter mirror in step
 
@@ -626,7 +626,7 @@ static bool32 HandleEndTurnBurn(enum BattlerId battler)
      && !IsAbilityAndRecord(battler, ability, ABILITY_MAGIC_GUARD))
     {
         s32 burnDamage = GetNonDynamaxMaxHP(battler) / ((GetConfig(B_BURN_DAMAGE) >= GEN_7 || GetConfig(B_BURN_DAMAGE) == GEN_1) ? 16 : 8);
-        // Fantasy Retold: Burn stacks (design.md §6) — one tick per stack.
+        // Fantasy Retold: Burn stacks (combat.md §6) — one tick per stack.
         ReconcileStatusRailsFromBridge(battler);
         burnDamage *= max(GetStatusRailLevel(battler, RAIL_BURN), 1);
         if (ability == ABILITY_HEATPROOF)
@@ -653,7 +653,7 @@ static bool32 HandleEndTurnFrostbite(enum BattlerId battler)
      && IsBattlerPresent(battler)
      && !IsAbilityAndRecord(battler, GetBattlerAbility(battler), ABILITY_MAGIC_GUARD))
     {
-        // Fantasy Retold: Frostbitten ticks straight into the Trauma pool (design.md §6).
+        // Fantasy Retold: Frostbitten ticks straight into the Trauma pool (combat.md §6).
         u32 tick = max(GetNonDynamaxMaxHP(battler) / FROSTBITE_TRAUMA_DIVISOR, 1);
         SetPassiveDamageAmount(battler, tick);
         LogBattlerTrauma(battler, tick);
@@ -670,7 +670,7 @@ static bool32 HandleEndTurnNightmare(enum BattlerId battler)
 
     gBattleStruct->eventState.endTurnBattler++;
 
-    // Fantasy Retold: Nightmare, the top of the Sleep line (design.md §6), drains health as Trauma.
+    // Fantasy Retold: Nightmare, the top of the Sleep line (combat.md §6), drains health as Trauma.
     if (GetStatusRailLevel(battler, RAIL_SLEEP) >= 3
      && IsBattlerPresent(battler)
      && !IsAbilityAndRecord(battler, GetBattlerAbility(battler), ABILITY_MAGIC_GUARD))
@@ -701,7 +701,7 @@ static bool32 HandleEndTurnNightmare(enum BattlerId battler)
     return effect;
 }
 
-// Fantasy Retold: status rail timers (design.md §6). SOAK / CHILL / SLEEP / CONFUSION count down once a turn;
+// Fantasy Retold: status rail timers (combat.md §6). SOAK / CHILL / SLEEP / CONFUSION count down once a turn;
 // each one that runs out is announced in turn. railsEndedMask holds the ones still to print, with
 // RAILS_TICK_DONE marking that this battler has already been ticked.
 #define RAILS_TICK_DONE (1u << 7)

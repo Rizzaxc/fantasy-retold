@@ -677,7 +677,7 @@ void StartRegiBattle(void)
     TryUpdateGymLeaderRematchFromWild();
 }
 
-// Fantasy Retold: Toxic is a persistent Lv2 status (design.md §6) and stays Toxic after battle, so vanilla's
+// Fantasy Retold: Toxic is a persistent Lv2 status (combat.md §6) and stays Toxic after battle, so vanilla's
 // Gen 5+ reversal to plain Poison is off.
 static void DowngradeBadPoison(void)
 {

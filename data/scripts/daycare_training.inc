@@ -1,4 +1,4 @@
-@ Fantasy Retold: the daycare man's training (design.md §10).
+@ Fantasy Retold: the daycare man's training (design.md §2).
 @ He raises a party POKéMON for ¥200 a level, up to 5 levels below the party's highest level.
 @ One POKéMON per conversation: backing out, a refusal or a finished training ends it.
 @ Reached from Route117_EventScript_DaycareMan, which has already locked the player.
@@ -102,7 +102,7 @@ gText_DaycareTrainingAtCap::
 gText_DaycareTrainingComeAgain::
 	.string "Come back any time.$"
 
-@ Fantasy Retold: the daycare man's Hyper Training (design.md §10).
+@ Fantasy Retold: the daycare man's Hyper Training (design.md §2).
 @ For ¥1,000 and a BOTTLE CAP he maxes one stat's IV of a party POKéMON (its hyper-trained flag), at any level.
 @ He keeps going while the player has both: after each stat it's back to the stat list for the same POKéMON;
 @ B there goes back to the party, and B on the party leaves.
@@ -230,7 +230,7 @@ gText_HyperTrainingNoMoney::
 	.string "You don't have enough money,\n"
 	.string "I'm afraid.$"
 
-@ Fantasy Retold: the daycare man's Signature Training (design.md §10).
+@ Fantasy Retold: the daycare man's Signature Training (design.md §2).
 @ For ¥5,000 he makes a mastered move a fully evolved POKéMON still knows its Signature Move, as on evolving
 @ into its final stage. One POKéMON per conversation; B on the move list goes back to the party.
 Common_EventScript_SignatureTraining::

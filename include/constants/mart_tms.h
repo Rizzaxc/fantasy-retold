@@ -1,7 +1,7 @@
 #ifndef GUARD_CONSTANTS_MART_TMS_H
 #define GUARD_CONSTANTS_MART_TMS_H
 
-// Fantasy Retold: every Hoenn town mart also sells 5 TMs, fixed per save (design.md §10, Mart TMs).
+// Fantasy Retold: every Hoenn town mart also sells 5 TMs, fixed per save (design.md §2, Mart TMs).
 
 // VAR_0x8004 for special PokeMart_SetTMStock, in story order (earlier marts get disjoint TMs)
 #define MART_TMS_NONE       0

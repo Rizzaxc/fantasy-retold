@@ -642,7 +642,7 @@ static enum ItemEffect TryBlackSludgeDamage(enum BattlerId battler, enum HoldEff
     return effect;
 }
 
-// Fantasy Retold: cleansing berries work on the status rails (design.md §6). They ignore Lv1, clear Lv2 and
+// Fantasy Retold: cleansing berries work on the status rails (combat.md §6). They ignore Lv1, clear Lv2 and
 // drop Lv3 to a Lv1 that survives switch-out.
 static enum ItemEffect TryCureParalysis(enum BattlerId battler)
 {

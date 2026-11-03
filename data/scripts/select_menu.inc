@@ -1,4 +1,4 @@
-@ Fantasy Retold: the Select-button menu (design.md §10). Toggles the infinite Repel and the Exp. Share, and runs the
+@ Fantasy Retold: the Select-button menu (design.md §2). Toggles the infinite Repel and the Exp. Share, and runs the
 @ registered key item (what Select did in vanilla); with the PokéNav, it also calls Birch's Aide for his research trade.
 @ Labels are buffered into STR_VAR_1/2 by SelectMenu_BufferLabels.
 @ A toggle reopens the menu with its row still selected.

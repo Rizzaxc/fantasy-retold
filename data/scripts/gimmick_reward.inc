@@ -1,4 +1,4 @@
-@ Fantasy Retold: Mega Ring / Z-Ring, Birch's starter gift and the Tera Orb (design.md §10).
+@ Fantasy Retold: Mega Ring / Z-Ring, Birch's starter gift and the Tera Orb (design.md §2).
 
 @ Called by Wattson after his gym reward. The player keeps one ring for good; B puts the choice off and he
 @ offers it again when talked to.

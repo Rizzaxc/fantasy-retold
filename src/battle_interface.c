@@ -528,7 +528,7 @@ static const struct SpriteTemplate sStatusSummaryBallsSpriteTemplates[2] =
 static const u8 sEmptyWhiteText_GrayHighlight[] = __("{COLOR WHITE}{BACKGROUND DARK_GRAY}{ACCENT DARK_GRAY}              ");
 static const u8 sEmptyWhiteText_TransparentHighlight[] = __("{COLOR WHITE}{BACKGROUND TRANSPARENT}{ACCENT TRANSPARENT}              ");
 
-// Fantasy Retold: the status lines of design.md §6, in the order their cells fill the status column.
+// Fantasy Retold: the status lines of combat.md §6, in the order their cells fill the status column.
 enum HealthboxStatusLine
 {
     HB_STATUS_SOAK,
@@ -730,7 +730,7 @@ static s32 GetHealthboxPlateTop(struct Sprite *healthbox)
 
 // Fills `stages` with the current stage (0 = none) of every status line and returns them packed 2 bits
 // per line, so the status column can tell when it needs a redraw. Every line reads its status rail
-// (design.md §6). This runs every frame, so it only reads: a status that vanilla code wrote straight to
+// (combat.md §6). This runs every frame, so it only reads: a status that vanilla code wrote straight to
 // status1 / confusionTimer and that no rail has picked up yet shows at the stage that bit stands for.
 static u32 GetHealthboxStatusStages(enum BattlerId battler, u8 stages[HB_STATUS_COUNT])
 {

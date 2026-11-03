@@ -3,7 +3,7 @@
 #include "status_rail.h"
 
 // Fantasy Retold: Water damage alone doesn't ease a Burn; only a Soak proc does, taking one stack off
-// (design.md §6). Ice still takes a stack off on every hit.
+// (combat.md §6). Ice still takes a stack off on every hit.
 
 ASSUMPTIONS
 {

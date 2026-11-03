@@ -1,4 +1,4 @@
-@ Fantasy Retold: Birch's Aide research trade (design.md §10).
+@ Fantasy Retold: Birch's Aide research trade (design.md §2).
 @ The player hands over two party Pokémon and gets back one stronger, non-Hoenn Lv5 Pokémon.
 @ One request after the Route 103 rival, then one more after every badge or Elite Four clear.
 @ Reached from LittlerootTown_ProfessorBirchsLab_EventScript_Aide, which has already locked the player, or by

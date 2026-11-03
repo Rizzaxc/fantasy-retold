@@ -8,7 +8,7 @@
 #define SIGNATURE_MOVE_PP 8 // persists between battles; restored by healing like the slot moves' PP
 #define ITEMIZED_MOVE_PP  4 // per battle; full again at the start of every battle
 
-// Fantasy Retold (design.md §10): a move used SIGNATURE_MOVE_USE_THRESHOLD times is mastered (counted per Pokémon
+// Fantasy Retold (design.md §2): a move used SIGNATURE_MOVE_USE_THRESHOLD times is mastered (counted per Pokémon
 // and per move ID, never per slot). On evolving into its final stage the player may commit a mastered move as its
 // Signature Move, which then lives OUTSIDE the four move slots (its slot is freed) and is used from the innate menu.
 bool32 IsFullyEvolved(enum Species species);
@@ -25,7 +25,7 @@ void FixUpSignatureMove(struct Pokemon *mon);
 void FixUpSignatureMovesForParty(void);
 bool32 IsSignatureMove(struct Pokemon *mon, enum Move move);
 
-// Fantasy Retold (design.md §10): a held TM the species can learn gives it that move outside the four slots
+// Fantasy Retold (design.md §2): a held TM the species can learn gives it that move outside the four slots
 // (the L menu). MOVE_NONE if the item isn't a TM / HM or the species can't learn it.
 enum Move GetItemizedMove(enum Species species, enum Item item);
 

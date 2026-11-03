@@ -9,7 +9,7 @@
 #include "constants/battle_script_commands.h"
 #include "constants/battle_string_ids.h"
 
-// Fantasy Retold: multi-stage status "rails" (design.md §6). This module owns all rail state, the two-way
+// Fantasy Retold: multi-stage status "rails" (combat.md §6). This module owns all rail state, the two-way
 // bridge to the legacy status1 bits / confusionTimer, and the numbers behind each line's effects.
 
 static struct StatusRailEntry *GetRail(enum BattlerId battler, enum StatusRail rail)

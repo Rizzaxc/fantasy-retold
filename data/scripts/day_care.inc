@@ -1,7 +1,7 @@
 Route117_EventScript_DaycareMan::
 	lock
 	faceplayer
-	@ Fantasy Retold: he also trains POKéMON, and does Hyper and Signature Training (design.md §10).
+	@ Fantasy Retold: he also trains POKéMON, and does Hyper and Signature Training (design.md §2).
 	message Route117_Text_DayCareOrTraining
 	waitmessage
 	dynmultichoice 19, 4, FALSE, 4, 0, DYN_MULTICHOICE_CB_NONE, gText_EggShopChoiceDayCare, gText_DaycareTrainingChoice, gText_HyperTrainingChoice, gText_SignatureTrainingChoice
@@ -79,7 +79,7 @@ Route117_EventScript_CheckOnTwoMons::
 Route117_PokemonDayCare_EventScript_DaycareWoman::
 	lock
 	faceplayer
-	@ Fantasy Retold: she also runs the egg shop (design.md §10).
+	@ Fantasy Retold: she also runs the egg shop (design.md §2).
 	message Route117_PokemonDayCare_Text_DayCareOrEggShop
 	waitmessage
 	dynmultichoice 19, 6, FALSE, 2, 0, DYN_MULTICHOICE_CB_NONE, gText_EggShopChoiceDayCare, gText_EggShopChoiceEggShop

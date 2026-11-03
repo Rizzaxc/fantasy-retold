@@ -1,4 +1,4 @@
-@ Fantasy Retold: gym leader reward (design.md §10).
+@ Fantasy Retold: gym leader reward (design.md §2).
 @ Call with VAR_0x8008 = gym number (1-8). Offers one of three rewards, rolled once and shown up front:
 @ a held item, a stat item, or an Egg of the gym's type. Backing out (B) leaves it unclaimed; the leader
 @ offers the same three again when talked to.

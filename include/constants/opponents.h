@@ -859,7 +859,7 @@
 #define TRAINER_LEAF                        852
 #define TRAINER_BRENDAN_PLACEHOLDER         853
 #define TRAINER_MAY_PLACEHOLDER             854
-// Fantasy Retold: guest gym leaders (design.md §10)
+// Fantasy Retold: guest gym leaders (design.md §2)
 #define TRAINER_GUEST_BROCK                        855
 #define TRAINER_GUEST_MISTY                        856
 #define TRAINER_GUEST_LT_SURGE                     857

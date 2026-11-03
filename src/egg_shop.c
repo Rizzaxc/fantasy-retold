@@ -16,7 +16,7 @@
 #include "constants/regions.h"
 #include "constants/species.h"
 
-// Fantasy Retold: the daycare lady's egg shop (design.md §10). One Egg per tier, sold as "<REGION> <TIER> EGG"; the species
+// Fantasy Retold: the daycare lady's egg shop (design.md §2). One Egg per tier, sold as "<REGION> <TIER> EGG"; the species
 // is rolled when bought (hidden until it hatches) from that tier's non-Hoenn species of that region. Restocked after
 // every badge, rival battle and Elite Four clear. Priced as a money sink. Scripts pass the slot (0-2) in VAR_0x8004.
 

@@ -2980,7 +2980,7 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
         gBattleStruct->moveUsedLastTurn[battler] = MOVE_NONE;
         gBattleStruct->moveUsedThisTurn[battler] = MOVE_NONE;
 
-        // Fantasy Retold: status rails (design.md §6). The rail in PartyState is authoritative and persists
+        // Fantasy Retold: status rails (combat.md §6). The rail in PartyState is authoritative and persists
         // across switches (Lv2+; Lv1 was dropped on switch-out). On a mon's first send-out (storedStamina
         // still 0) seed the rail from its incoming status1 so an overworld-inflicted status carries in; on
         // any later send-out the rail overwrites the status1 mirror so the persisted level is restored.
@@ -3059,7 +3059,7 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
     gBattleMons[battler].volatiles.truantSwitchInHack = volatilesCopy->truantSwitchInHack;
 
     // Fantasy Retold: the volatiles were just reset; put back the persisted Confusion line (Lv2+) and the
-    // rest of the rail mirror for the incoming mon (design.md §6). A Baton Pass brings the passer's line.
+    // rest of the rail mirror for the incoming mon (combat.md §6). A Baton Pass brings the passer's line.
     if (effect == EFFECT_BATON_PASS && gBattleStruct->batonPassConfusionLevel != 0)
     {
         SyncStatusRailBridge(battler); // replace the vanilla confusion copy before RaiseStatusRailTo reconciles
@@ -4280,7 +4280,7 @@ static void HandleTurnActionSelectionState(void)
                 case B_ACTION_RECUPERATE: // Fantasy Retold: R innate command.
                     if (gChosenActionByBattler[battler] == B_ACTION_RECUPERATE)
                         gBattleStruct->battlerState[battler].dodgeConsecutiveUses = 0;
-                    // A transformation gimmick can ride along (design.md §3); it activates before moves as usual.
+                    // A transformation gimmick can ride along (combat.md §3); it activates before moves as usual.
                     if ((gBattleResources->bufferB[battler][2] & RET_GIMMICK) && CanUseGimmickWithInnateCommand(battler))
                         gBattleStruct->gimmick.toActivate |= 1u << battler;
                     gBattleCommunication[battler]++;
@@ -4509,10 +4509,10 @@ u32 GetDodgeCost(enum BattlerId battler)
          + GetStatusRailStaminaSurcharge(battler);
 }
 
-// Fantasy Retold: Stamina action cost of a move (design.md §2): BP/10 + 2% BaseSta body tax, or a flat 10 for
-// a status move, plus the Chilled / Drowsy surcharge (design.md §6).
+// Fantasy Retold: Stamina action cost of a move (combat.md §2): BP/10 + 2% BaseSta body tax, or a flat 10 for
+// a status move, plus the Chilled / Drowsy surcharge (combat.md §6).
 // Fantasy Retold: a status move that raises the user's Speed (Dragon Dance, Agility, Shell Smash, ...), which costs no
-// Stamina (design.md §7).
+// Stamina (combat.md §7).
 static bool32 IsSpeedBoostingSetupMove(enum Move move)
 {
     for (u32 i = 0; i < GetMoveAdditionalEffectCount(move); i++)
@@ -4594,7 +4594,7 @@ u32 GetBattlerTotalSpeedStat(enum BattlerId battler, enum Ability ability, enum 
     if (gBattleMons[battler].status1 & STATUS1_PARALYSIS && ability != ABILITY_QUICK_FEET)
         speed /= PARALYSIS_SPEED_DIVISOR;
 
-    // Fantasy Retold: Soaked / Chilled / Drowsy (design.md §6)
+    // Fantasy Retold: Soaked / Chilled / Drowsy (combat.md §6)
     speed = speed * GetStatusRailSpeedPercent(battler) / 100;
 
     if (gSideStatuses[GetBattlerSide(battler)] & SIDE_STATUS_SWAMP)
@@ -5421,7 +5421,7 @@ static void HandleEndTurn_MonFled(void)
     gBattleMainFunc = HandleEndTurn_FinishBattle;
 }
 
-// Fantasy Retold: before the battle closes, announce each move a party Pokémon mastered (design.md §10), one message
+// Fantasy Retold: before the battle closes, announce each move a party Pokémon mastered (design.md §2), one message
 // per move; returns TRUE while a message is being shown. Skipped after a loss: the moves stay unannounced until the
 // next battle.
 static bool32 TryAnnounceMasteredMove(void)
@@ -5536,7 +5536,7 @@ static void HandleEndTurn_FinishBattle(void)
                 CalculateMonStats(&gParties[B_TRAINER_PLAYER][i]);
 
             // Fantasy Retold: Lv1 status lines are volatile, so the battle ending drops them; Lv2+ stays on the
-            // party (design.md §6).
+            // party (combat.md §6).
             if (gBattleStruct->partyState[B_TRAINER_PLAYER][i].sentOut
              && GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_HP) != 0)
             {

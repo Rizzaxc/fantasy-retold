@@ -16,7 +16,7 @@
 #include "constants/opponents.h"
 #include "constants/pokemon.h"
 
-// Fantasy Retold: guest gym leaders (design.md §10). From the 4th gym on, the first fight with a leader may host a
+// Fantasy Retold: guest gym leaders (design.md §2). From the 4th gym on, the first fight with a leader may host a
 // guest leader from another region (Kanto for now). The guest is rolled per gym (20%) and rerolled on every whiteout
 // until that gym is beaten; the format (tag team / doubles / guest only) is rolled when the player engages and stays
 // locked until a win or a whiteout. Guest parties are authored at their home-region levels and shifted at battle time

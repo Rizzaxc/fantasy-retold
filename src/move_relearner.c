@@ -66,10 +66,10 @@ static EWRAM_DATA struct
     u8 heartSpriteIds[16];
     u16 movesToLearn[MAX_RELEARNER_MOVES];
     struct ListMenuItem menuItems[MAX_RELEARNER_MOVES + 3]; // Fantasy Retold: + the Tera Type and Signature Move entries
-    bool8 hasSignatureEntry; // Fantasy Retold: menuItems[signatureIndex] is the Signature Move, to forget (design.md §10)
+    bool8 hasSignatureEntry; // Fantasy Retold: menuItems[signatureIndex] is the Signature Move, to forget (design.md §2)
     u8 signatureIndex;
     u8 signatureEntryName[MOVE_NAME_LENGTH + 8];
-    bool8 teraPicker; // Fantasy Retold: the list shows the Tera Types to pick from (design.md §10, Tera Orb)
+    bool8 teraPicker; // Fantasy Retold: the list shows the Tera Types to pick from (design.md §2, Tera Orb)
     u8 teraEntryName[MOVE_NAME_LENGTH + 8];
     u8 mainTask;
     u8 numMenuChoices;
@@ -631,7 +631,7 @@ static void Task_MoveRelearner_Giveup_Prompt(u8 taskId)
 
 
 
-// Fantasy Retold (design.md §10): forgetting the Signature Move. It isn't put back in a slot, and the Pokémon's move
+// Fantasy Retold (design.md §2): forgetting the Signature Move. It isn't put back in a slot, and the Pokémon's move
 // uses count again from 0.
 static const u8 sText_SignatureEntryTag[] = _(" (Sig.)");
 static const u8 sText_ForgetSignatureConfirm[] = _("Make {STR_VAR_1} forget its\nSignature Move, {STR_VAR_2}?");
@@ -674,7 +674,7 @@ static void Task_MoveRelearner_ForgetSignature_Prompt(u8 taskId)
     gTasks[taskId].func = Task_MoveRelearner_ForgetSignature_Answer;
 }
 
-// Fantasy Retold (design.md §10, Tera Orb): with the Tera Orb, the level-up list starts with "Tera: <type>", which
+// Fantasy Retold (design.md §2, Tera Orb): with the Tera Orb, the level-up list starts with "Tera: <type>", which
 // opens a list of the 18 types to pick the Pokémon's new Tera Type from, for free.
 static const u8 sText_TeraEntryPrefix[] = _("Tera: ");
 static const u8 sText_PickTeraType[] = _("Pick a Tera Type for\n{STR_VAR_1}.");
@@ -1130,7 +1130,7 @@ static u32 GetRelearnerLevelUpMoves(struct BoxPokemon *mon, u16 *moves)
     u32 level = (P_ENABLE_ALL_LEVEL_UP_MOVES ? MAX_LEVEL : GetLevelFromBoxMonExp(mon));
     u32 numMoves = 0;
 
-    // Fantasy Retold: Tera Blast first, for any Pokémon (design.md §10, Tera Orb). The duplicate check below skips it
+    // Fantasy Retold: Tera Blast first, for any Pokémon (design.md §2, Tera Orb). The duplicate check below skips it
     // if the learnset has it too.
     if (CanRelearnTeraBlast(mon))
         moves[numMoves++] = MOVE_TERA_BLAST;

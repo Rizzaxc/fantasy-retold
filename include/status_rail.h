@@ -1,7 +1,7 @@
 #ifndef GUARD_STATUS_RAIL_H
 #define GUARD_STATUS_RAIL_H
 
-// Fantasy Retold: multi-stage status "rails" (design.md §6). See enum StatusRail (constants/battle.h)
+// Fantasy Retold: multi-stage status "rails" (combat.md §6). See enum StatusRail (constants/battle.h)
 // and struct StatusRailEntry (battle.h). Rail state lives in struct PartyState and is the source of
 // truth for rail mechanics (level, per-rail counter, Lv1-volatile / Lv2+-persistent lifetime). The
 // legacy STATUS1_* bits (and volatiles.confusionTimer) are kept as a mirror (SyncStatusRailBridge) so

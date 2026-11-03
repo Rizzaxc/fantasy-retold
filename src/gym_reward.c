@@ -12,7 +12,7 @@
 #include "constants/pokemon.h"
 #include "constants/species.h"
 
-// Fantasy Retold: gym leader reward (design.md §10). After a badge the leader offers one of three rolled rewards:
+// Fantasy Retold: gym leader reward (design.md §2). After a badge the leader offers one of three rolled rewards:
 // a competitive held item, a stat item (Bottle Cap / Ability Capsule / Ability Patch / mint), or an Egg of a
 // non-Hoenn, non-legendary species sharing the gym's type whose line reaches GYM_REWARD_EGG_MIN_BST.
 // The offer is rolled once and kept in VAR_GYM_REWARD_* until claimed. Scripts pass the gym number (1-8) in VAR_0x8008.
@@ -53,7 +53,7 @@ static const enum Item sGymRewardItems[] =
     ITEM_DAMP_ROCK, ITEM_HEAT_ROCK, ITEM_SMOOTH_ROCK, ITEM_ICY_ROCK,
 };
 
-// Mints by the innate their nature grants (design.md §5). Serious stands in for the neutral natures.
+// Mints by the innate their nature grants (combat.md §5). Serious stands in for the neutral natures.
 static const enum Item sMintsStandardOffense[] = { ITEM_ADAMANT_MINT, ITEM_MODEST_MINT, ITEM_JOLLY_MINT, ITEM_TIMID_MINT };
 static const enum Item sMintsSuperLuck[] =
 {

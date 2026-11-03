@@ -3375,7 +3375,7 @@ void SetFinalChosenTarget(enum BattlerId battler, bool32 checkPartner)
 
     enum BattlerId chosenTarget = gAiBattleData->chosenTarget[battler];
     u32 chosenMoveIndex = gAiBattleData->chosenMoveIndex[battler];
-    // Fantasy Retold: the AI's slots 4 and 5 are the Signature / Itemized Move positions (design.md §10).
+    // Fantasy Retold: the AI's slots 4 and 5 are the Signature / Itemized Move positions (combat.md §11).
     u32 chosenMove = (chosenMoveIndex < MAX_MON_MOVES) ? moveInfo->moves[chosenMoveIndex] : GetBattlerMoveAtPosition(battler, chosenMoveIndex);
     enum MoveTarget targetType = GetBattlerMoveSelectionTargetType(battler, chosenMove);
 

@@ -10,7 +10,7 @@
 #include "constants/daycare.h"
 #include "constants/items.h"
 
-// Fantasy Retold: the daycare man's training (design.md §10). He raises a party mon for a flat fee per level, up to
+// Fantasy Retold: the daycare man's training (design.md §2). He raises a party mon for a flat fee per level, up to
 // DAYCARE_TRAINING_LEVEL_GAP below the party's highest level. Scripts pass the party slot in VAR_0x8004; the level up
 // itself is DaycareTraining_LevelUpMon (party_menu.c), which reuses the Rare Candy flow.
 
@@ -82,7 +82,7 @@ bool16 DaycareTraining_Charge(void)
     return TRUE;
 }
 
-// Hyper Training (design.md §10): for HYPER_TRAINING_PRICE and a Bottle Cap, the daycare man sets one stat's
+// Hyper Training (design.md §2): for HYPER_TRAINING_PRICE and a Bottle Cap, the daycare man sets one stat's
 // hyper-trained flag, which the stat calc reads as a perfect IV. No level requirement. Scripts pass the party slot in
 // VAR_0x8004 and the stat (STAT_*) in VAR_0x8005.
 
@@ -166,7 +166,7 @@ bool16 HyperTraining_Train(void)
     return TRUE;
 }
 
-// Signature Training (design.md §10): for SIGNATURE_TRAINING_PRICE the daycare man commits a mastered move as the
+// Signature Training (design.md §2): for SIGNATURE_TRAINING_PRICE the daycare man commits a mastered move as the
 // Signature Move, under the same rule as on evolving into the final stage (CanCommitSignatureMove). It's the way to
 // earn one for a Pokémon that mastered the move after its final evolution, never evolves, refused, or forgot one.
 // Scripts pass the party slot in VAR_0x8004 and the row (index among the mastered moves) in VAR_0x8005.

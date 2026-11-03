@@ -45,7 +45,7 @@
 #define AI_FLAG_ITEM_OMNISCIENCE AI_FLAG(35)           // AI knows the player's item
 #define AI_FLAG_MOVE_OMNISCIENCE AI_FLAG(36)           // AI knows the player's moves
 #define AI_FLAG_STAMINA_MANAGEMENT AI_FLAG(37)         // AI weighs Stamina costs, attrition, Recuperate, and Dodge
-#define AI_FLAG_FR_TACTICS AI_FLAG(38)                 // Fantasy Retold: Signature / Itemized Moves, reading the player's Dodge, status rails and combos, innates and held items; never uses bag items (design.md §10)
+#define AI_FLAG_FR_TACTICS AI_FLAG(38)                 // Fantasy Retold: Signature / Itemized Moves, reading the player's Dodge, status rails and combos, innates and held items; never uses bag items (combat.md §11)
 
 // The following options are enough to have a basic/smart trainer. Any other addtion could make the trainer worse/better depending on the flag
 #define AI_FLAG_BASIC_TRAINER (AI_FLAG_CHECK_BAD_MOVE | AI_FLAG_TRY_TO_FAINT | AI_FLAG_CHECK_VIABILITY | AI_FLAG_STAMINA_MANAGEMENT)

@@ -1,7 +1,7 @@
 #ifndef GUARD_CONSTANTS_LAB_RESEARCH_H
 #define GUARD_CONSTANTS_LAB_RESEARCH_H
 
-// Fantasy Retold: Birch's Aide research trade (design.md §10).
+// Fantasy Retold: Birch's Aide research trade (design.md §2).
 
 // LabResearch_GetState
 #define LAB_RESEARCH_CLOSED      0 // no request until the next badge / Elite Four clear

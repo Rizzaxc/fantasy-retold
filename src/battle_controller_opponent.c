@@ -437,7 +437,7 @@ static void OpponentHandleChooseMove(enum BattlerId battler)
             u8 chosenAction = gAiBattleData->chosenAction[battler];
             if (chosenAction == B_ACTION_DODGE || chosenAction == B_ACTION_RECUPERATE)
             {
-                // A transformation gimmick can ride along with Dodge / Recuperate (design.md §3).
+                // A transformation gimmick can ride along with Dodge / Recuperate (combat.md §3).
                 u32 gimmickFlag = 0;
                 if ((gAiBattleData->aiUsingGimmick & (1u << battler)) && CanUseGimmickWithInnateCommand(battler))
                     gimmickFlag = RET_GIMMICK;

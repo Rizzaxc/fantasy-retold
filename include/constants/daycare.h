@@ -19,20 +19,20 @@
 #define DAYCARE_LEVEL_MENU_EXIT 5
 #define DAYCARE_EXITED_LEVEL_MENU 2 // would be redundant with above if GF had used the same value
 
-// Fantasy Retold: DaycareTraining_BufferOffer results (design.md §10)
+// Fantasy Retold: DaycareTraining_BufferOffer results (design.md §2)
 #define DAYCARE_TRAINING_OK        0
 #define DAYCARE_TRAINING_EGG       1
 #define DAYCARE_TRAINING_AT_CAP    2
 #define DAYCARE_TRAINING_NO_MONEY  3
 
-// Fantasy Retold: Hyper Training by the daycare man (design.md §10)
+// Fantasy Retold: Hyper Training by the daycare man (design.md §2)
 #define HYPER_TRAINING_PRICE      1000
 #define HYPER_TRAINING_OK         0
 #define HYPER_TRAINING_EGG        1
 #define HYPER_TRAINING_ALL_MAXED  2
 #define HYPER_TRAINING_STAT_ROWS  6 // NUM_STATS, which scripts can't read (an enum); also the Cancel row's id
 
-// Fantasy Retold: Signature Training by the daycare man (design.md §10)
+// Fantasy Retold: Signature Training by the daycare man (design.md §2)
 #define SIGNATURE_TRAINING_PRICE          5000
 #define SIGNATURE_TRAINING_OK             0
 #define SIGNATURE_TRAINING_EGG            1

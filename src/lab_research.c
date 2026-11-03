@@ -17,7 +17,7 @@
 #include "constants/pokemon.h"
 #include "constants/species.h"
 
-// Fantasy Retold: Birch's Aide research trade (design.md §10). The player hands over two party Pokémon and gets
+// Fantasy Retold: Birch's Aide research trade (design.md §2). The player hands over two party Pokémon and gets
 // back one Lv5 first-stage, non-Hoenn, non-legendary species whose line shares one of their types and whose final
 // evolution has a higher BST than both of theirs. One request after the Route 103 rival, then one more after every
 // badge or Elite Four clear (missed ones don't stack). From the 4th request on, one of the two must have a rolled type.

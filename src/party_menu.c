@@ -3708,7 +3708,7 @@ static void CB2_GiveHoldItem(void)
     }
 }
 
-// Fantasy Retold: a held TM gives its move as the Itemized Move (design.md §10), so only a mon that can learn the
+// Fantasy Retold: a held TM gives its move as the Itemized Move (design.md §2), so only a mon that can learn the
 // move may hold it. Any other item is unaffected.
 static bool32 CanMonHoldTM(struct Pokemon *mon, enum Item item)
 {
@@ -5388,7 +5388,7 @@ void ItemUseCB_AbilityPatch(u8 taskId, TaskFunc task)
 
 void Task_Mint(u8 taskId)
 {
-    // Fantasy Retold: mints change the true nature, innate included (design.md §5).
+    // Fantasy Retold: mints change the true nature, innate included (combat.md §5).
     static const u8 sText_askText[] = _("It will change {STR_VAR_1}'s nature.\nAre you sure you want to use it?");
     static const u8 sText_doneText[] = _("{STR_VAR_1}'s nature became\n{STR_VAR_2}!{PAUSE_UNTIL_PRESS}");
     s16 *data = gTasks[taskId].data;
@@ -5454,7 +5454,7 @@ void Task_Mint(u8 taskId)
             tState++;
         break;
     case 5:
-        SetMonNature(&gParties[B_TRAINER_PLAYER][tMonId], tNewNature); // Fantasy Retold: the true nature (design.md §5)
+        SetMonNature(&gParties[B_TRAINER_PLAYER][tMonId], tNewNature); // Fantasy Retold: the true nature (combat.md §5)
         RemoveBagItem(gSpecialVar_ItemId, 1);
         gTasks[taskId].func = Task_ClosePartyMenu;
         break;
@@ -8413,7 +8413,7 @@ static void Task_ChoosePartyMon(u8 taskId)
     }
 }
 
-// Fantasy Retold: the daycare man's training (design.md §10). Raises the party mon in VAR_0x8004 to the level in
+// Fantasy Retold: the daycare man's training (design.md §2). Raises the party mon in VAR_0x8004 to the level in
 // VAR_0x8005 on the party menu through the Rare Candy flow (stats window, new moves, evolution), then continues the
 // script. The script has already charged for it.
 void DaycareTraining_LevelUpMon(void)

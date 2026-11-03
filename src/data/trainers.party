@@ -5726,6 +5726,7 @@ IVs: 4 HP / 4 Atk / 4 Def / 4 SpA / 4 SpD / 4 Spe
 - Focus Energy
 - Arm Thrust
 
+/* TODO (Fantasy Retold): Winstrate gauntlet teambuilding, see design.md §2, Gauntlets. */
 === TRAINER_VICTOR ===
 Name: VICTOR
 Class: Winstrate
@@ -5865,6 +5866,7 @@ Delcatty @ Sitrus Berry
 Level: 38
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+/* TODO (Fantasy Retold): Winstrate gauntlet teambuilding, see design.md §2, Gauntlets. */
 === TRAINER_VICTORIA ===
 Name: VICTORIA
 Class: Winstrate
@@ -6078,6 +6080,7 @@ IVs: 29 HP / 29 Atk / 29 Def / 29 SpA / 29 SpD / 29 Spe
 - Sand Attack
 - Dig
 
+/* TODO (Fantasy Retold): Winstrate gauntlet teambuilding, see design.md §2, Gauntlets. */
 === TRAINER_VICKY ===
 Name: VICKY
 Class: Winstrate
@@ -12075,6 +12078,7 @@ Marill
 Level: 9
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 
+/* TODO (Fantasy Retold): Winstrate gauntlet teambuilding, see design.md §2, Gauntlets. */
 === TRAINER_VIVI ===
 Name: VIVI
 Class: Winstrate

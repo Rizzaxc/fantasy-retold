@@ -38,6 +38,7 @@
 #include "m4a.h"
 #include "mail.h"
 #include "event_data.h"
+#include "gauntlet.h"
 #include "guest_leader.h"
 #include "pokemon_storage_system.h"
 #include "task.h"
@@ -1212,7 +1213,7 @@ static void Cmd_healthbarupdate(void)
     if (gBattleControllerExecFlags)
         return;
 
-    // Fantasy Retold: the Poison line blocks heals of maxHP/16 or less (design.md §6).
+    // Fantasy Retold: the Poison line blocks heals of maxHP/16 or less (combat.md §6).
     if (gBattleStruct->passiveHpUpdate[battler] < 0
      && IsHealBlockedByStatusRails(battler, -gBattleStruct->passiveHpUpdate[battler]))
     {
@@ -1711,7 +1712,7 @@ static enum StatusRail GetStatusRailFromMoveEffect(enum MoveEffect effect)
 }
 
 // Fantasy Retold: Synchronize passes back every status line (no exceptions), at the level the synchronizer
-// now has (design.md §6).
+// now has (combat.md §6).
 void TrySynchronizeActivation(enum BattlerId battlerAtk, enum BattlerId effectBattler, enum MoveEffect effect)
 {
     enum StatusRail rail = GetStatusRailFromMoveEffect(effect);
@@ -1753,7 +1754,7 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
 
     BattleScriptPush(battleScript);
 
-    // Fantasy Retold: every non-volatile status runs on its rail (design.md §6); the rail level decides the
+    // Fantasy Retold: every non-volatile status runs on its rail (combat.md §6); the rail level decides the
     // message. Levels with a vanilla equivalent keep its script, the others print through
     // BattleScript_FRRailEffectApplied with gBattleScripting.savedStringId.
     switch (effect)
@@ -1781,7 +1782,7 @@ void SetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId effectBattle
         break;
     case MOVE_EFFECT_POISON:
     case MOVE_EFFECT_TOXIC:
-        // Fantasy Retold: Poison -> Toxic rail (design.md §6). A status-move/primary application
+        // Fantasy Retold: Poison -> Toxic rail (combat.md §6). A status-move/primary application
         // (railMinLevel == 2) lands at Lv2 (Toxic); an attacking-move secondary / ability / protect
         // effect (railMinLevel == 1) lands at Lv1 (regular Poison) and advances to Lv2 on reapplication.
         // ApplyStatusRail mirrors the result back into status1 (the legacy bits used by UI/AI).
@@ -6596,7 +6597,7 @@ static void Cmd_healpartystatus(void)
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_BELL;
         else
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_SOOTHING_AROMA;
-        CureAllStatusRails(gBattlerAttacker, FALSE); // Fantasy Retold: Lv3 drops to Lv1, the rest clear (design.md §6)
+        CureAllStatusRails(gBattlerAttacker, FALSE); // Fantasy Retold: Lv3 drops to Lv1, the rest clear (combat.md §6)
         gBattleMons[gBattlerAttacker].volatiles.nightmare = FALSE;
     }
     else
@@ -7065,7 +7066,7 @@ static void Cmd_setforcedtarget(void)
     gBattlescriptCurrInstr = cmd->nextInstr;
 }
 
-// Fantasy Retold: Refresh wipes its lines outright, at every level (design.md §6).
+// Fantasy Retold: Refresh wipes its lines outright, at every level (combat.md §6).
 #define REFRESH_RAILS (STATUS_RAIL_BIT(RAIL_POISON) | STATUS_RAIL_BIT(RAIL_BURN) | STATUS_RAIL_BIT(RAIL_ELECTRIC) | STATUS_RAIL_BIT(RAIL_CHILL))
 
 static void Cmd_curestatuswithmove(void)
@@ -9419,7 +9420,7 @@ void ApplyExperienceMultipliers(s32 *expAmount, u8 expGetterMonId, u8 faintedBat
         *expAmount = value + 1;
     }
 
-    // Fantasy Retold: reward fighting at your level (design.md §10, Level-Band EXP), in wild and trainer battles.
+    // Fantasy Retold: reward fighting at your level (design.md §2, Level-Band EXP), in wild and trainer battles.
     {
         s32 levelDiff = (s32)GetMonData(&gParties[B_TRAINER_PLAYER][expGetterMonId], MON_DATA_LEVEL) - gBattleMons[faintedBattler].level;
 
@@ -9428,6 +9429,9 @@ void ApplyExperienceMultipliers(s32 *expAmount, u8 expGetterMonId, u8 faintedBat
         else if (*expAmount > 1)
             *expAmount /= 2;
     }
+
+    // Fantasy Retold: gauntlets pay in items, not EXP (design.md §2, Gauntlets).
+    GetGauntletExpOverride(expAmount);
 }
 
 void BS_ItemRestoreHP(void)
@@ -9532,7 +9536,7 @@ void BS_ItemCureStatus(void)
             gBattleMons[targetBattler].volatiles.nightmare = FALSE;
     }
 
-    // Fantasy Retold: a full cure leaves a Lv1 behind for each Lv3 line (design.md §6). On the field
+    // Fantasy Retold: a full cure leaves a Lv1 behind for each Lv3 line (combat.md §6). On the field
     // ItemHealMonVolatile already cured the rails; put back the mirror HealStatusConditions just cleared.
     if (GetItemEffect(gLastUsedItem)[3] & ITEM3_STATUS_ALL)
     {
@@ -11399,7 +11403,7 @@ void BS_JumpIfTargetAlly(void)
 }
 
 // Fantasy Retold: Psycho Shift moves the user's first status line the target can take, at the same level; the
-// user is then cured of that line (BS_FRPsychoShiftCureUser). design.md §6.
+// user is then cured of that line (BS_FRPsychoShiftCureUser). combat.md §6.
 void BS_TryPsychoShift(void)
 {
     NATIVE_ARGS(const u8 *failInstr, const u8 *sleepClauseFailInstr);
@@ -11489,7 +11493,7 @@ void BS_CureStatus(void)
     NATIVE_ARGS(u8 battler);
     enum BattlerId battler = GetBattlerForBattleScript(cmd->battler);
 
-    // Fantasy Retold: every non-volatile line, Lv3 -> volatile Lv1 (design.md §6).
+    // Fantasy Retold: every non-volatile line, Lv3 -> volatile Lv1 (combat.md §6).
     ReconcileStatusRailsFromBridge(battler);
     if (gBattleMons[battler].status1 & STATUS1_SLEEP)
         TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);

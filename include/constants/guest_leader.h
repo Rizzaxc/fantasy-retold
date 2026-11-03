@@ -1,7 +1,7 @@
 #ifndef GUARD_CONSTANTS_GUEST_LEADER_H
 #define GUARD_CONSTANTS_GUEST_LEADER_H
 
-// Fantasy Retold: guest gym leaders (design.md §10).
+// Fantasy Retold: guest gym leaders (design.md §2).
 
 #define GUEST_LEADER_FIRST_GYM 4  // gyms 4-8 can host a guest
 #ifdef RELEASE

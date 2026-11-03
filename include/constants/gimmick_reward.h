@@ -1,7 +1,7 @@
 #ifndef GUARD_CONSTANTS_GIMMICK_REWARD_H
 #define GUARD_CONSTANTS_GIMMICK_REWARD_H
 
-// Fantasy Retold: Mega Ring / Z-Ring from Wattson, Birch's starter gift, Game Corner prizes (design.md §10).
+// Fantasy Retold: Mega Ring / Z-Ring from Wattson, Birch's starter gift, Game Corner prizes (design.md §2).
 
 // VAR_BIRCH_GIMMICK_STATE
 #define BIRCH_GIMMICK_NONE      0 // no ring yet

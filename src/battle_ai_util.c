@@ -180,7 +180,7 @@ enum Move GetAIChosenMove(enum BattlerId battlerId)
     return AI_GetBattlerMoveAtSlot(battlerId, gAiBattleData->chosenMoveIndex[battlerId]);
 }
 
-// Fantasy Retold: AI move slots (AI_MOVE_SLOTS, design.md §10). With AI_FLAG_FR_TACTICS a battler is scored on
+// Fantasy Retold: AI move slots (AI_MOVE_SLOTS, combat.md §11). With AI_FLAG_FR_TACTICS a battler is scored on
 // its Signature Move (slot 4) and Itemized Move (slot 5) too.
 u32 AI_GetMoveSlotCount(enum BattlerId battler)
 {
@@ -3750,7 +3750,7 @@ bool32 AI_CanParalyze(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum
 
 bool32 AI_CanBeConfused(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum Move move, enum Ability abilityDef)
 {
-    // Fantasy Retold: confusion is a rail (design.md §6); only a Frightened target is "already confused".
+    // Fantasy Retold: confusion is a rail (combat.md §6); only a Frightened target is "already confused".
     if ((gBattleMons[battlerDef].volatiles.confusionTimer > 0 && GetStatusRailLevel(battlerDef, RAIL_CONFUSION) >= GetStatusRailMaxLevel(RAIL_CONFUSION))
      || (abilityDef == ABILITY_OWN_TEMPO && !DoesBattlerIgnoreAbilityChecks(battlerAtk, gAiLogicData->abilities[battlerAtk], move))
      || IsMistyTerrainAffected(battlerDef, abilityDef, gAiLogicData->holdEffects[battlerDef], gFieldTimers.terrain)

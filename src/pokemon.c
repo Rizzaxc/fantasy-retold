@@ -5394,7 +5394,7 @@ void BoxMonRestorePP(struct BoxPokemon *boxMon)
             SetBoxMonData(boxMon, MON_DATA_PP1 + i, &pp);
         }
     }
-    SetBoxMonData(boxMon, MON_DATA_SIGNATURE_PP, &signaturePP); // Fantasy Retold (design.md §10)
+    SetBoxMonData(boxMon, MON_DATA_SIGNATURE_PP, &signaturePP); // Fantasy Retold (combat.md §10)
 }
 
 void SetMonPreventsSwitchingString(void)
@@ -6564,7 +6564,7 @@ void UpdateMonPersonality(struct BoxPokemon *boxMon, u32 personality)
     SetBoxMonData(boxMon, MON_DATA_TERA_TYPE, &teraType);
 }
 
-// Fantasy Retold: mints change the true nature, so the nature's innate follows (design.md §5). Only the personality's
+// Fantasy Retold: mints change the true nature, so the nature's innate follows (combat.md §5). Only the personality's
 // upper 24 bits change (256 * k shifts the nature by 6k mod 25, which reaches all of them), so gender is kept;
 // UpdateMonPersonality keeps shininess and the Tera Type. The hidden nature is reset to the new one.
 void SetMonNature(struct Pokemon *mon, u32 nature)

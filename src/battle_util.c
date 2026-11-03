@@ -533,7 +533,7 @@ void HandleAction_UseMove(void)
         gCurrentMove = gChosenMove = GetBattlerMoveAtPosition(gBattlerAttacker, gCurrMovePos);
     }
 
-    // Fantasy Retold: the held TM was lost between choosing the Itemized Move and acting (design.md §10).
+    // Fantasy Retold: the held TM was lost between choosing the Itemized Move and acting (combat.md §10).
     if (gCurrentMove == MOVE_NONE && gCurrMovePos == ITEMIZED_MOVE_POSITION)
     {
         gBattlescriptCurrInstr = BattleScript_FRItemizedMoveLost;
@@ -629,7 +629,7 @@ void HandleAction_Switch(void)
     gActionSelectionCursor[gBattlerAttacker] = 0;
     gMoveSelectionCursor[gBattlerAttacker] = 0;
 
-    // Fantasy Retold: a Frightened mon on the bench may refuse to come out; the switch is lost (design.md §6).
+    // Fantasy Retold: a Frightened mon on the bench may refuse to come out; the switch is lost (combat.md §6).
     if (gBattleStruct->partyState[GetBattlerTrainer(gBattlerAttacker)][gBattleStruct->monToSwitchIntoId[gBattlerAttacker]].rails[RAIL_CONFUSION].level >= 3
      && RandomPercentage(RNG_FRIGHTENED, FRIGHTENED_FLEE_CHANCE))
     {
@@ -912,7 +912,7 @@ static bool32 IsRepeatedMove(enum BattlerId battlerAtk)
     return move != MOVE_NONE && move == gBattleStruct->moveUsedLastTurn[battlerAtk];
 }
 
-// How far `battlerAtk`'s move at `movePosition` gets through a Dodge (design.md §3 / §9 / §10). A Choice item
+// How far `battlerAtk`'s move at `movePosition` gets through a Dodge (combat.md §3 / §9 / §10). A Choice item
 // is read through GetBattlerHoldEffect, so Klutz / Embargo / Magic Room switch it off.
 enum DodgeBypass GetDodgeBypass(enum BattlerId battlerAtk, u32 movePosition)
 {
@@ -934,7 +934,7 @@ static u32 GetDodgeAttackerMovePosition(enum BattlerId battlerAtk)
     return (battlerAtk == gBattlerAttacker) ? gCurrMovePos : gBattleStruct->chosenMovePositions[battlerAtk];
 }
 
-// Choice items take Dodge and Recuperate away (the Signature / Itemized Move stay usable, design.md §9).
+// Choice items take Dodge and Recuperate away (the Signature / Itemized Move stay usable, combat.md §9).
 bool32 IsInnateCommandBlockedByChoice(enum BattlerId battler)
 {
     return IsHoldEffectChoice(GetBattlerHoldEffect(battler));
@@ -1059,11 +1059,11 @@ void HandleAction_Recuperate(void)
     healAmount = (GetNonDynamaxMaxHP(battler) * RECUPERATE_HP_HEAL_PERCENT / 100) * r / 100;
     if (healAmount == 0)
         healAmount = 1;
-    bool32 poisoned = (GetStatusRailLevel(battler, RAIL_POISON) != 0); // Fantasy Retold: the Poison line blocks it (design.md §6)
+    bool32 poisoned = (GetStatusRailLevel(battler, RAIL_POISON) != 0); // Fantasy Retold: the Poison line blocks it (combat.md §6)
     if (!poisoned)
         SetHealAmount(battler, healAmount);
 
-    // Fantasy Retold: purge 1 random Level 1 status condition (design.md §6). Level 2+ is immune — that
+    // Fantasy Retold: purge 1 random Level 1 status condition (combat.md §6). Level 2+ is immune — that
     // is how persistent conditions and Toxic beat a Recuperate-stalling wall. Propagate the cleared
     // status1 mirror to the controller so the status icon updates.
     if (PurgeRandomLevel1StatusRail(battler))
@@ -1637,7 +1637,7 @@ enum Move GetBattlerSignatureMove(enum BattlerId battler)
     return GetSignatureMove(GetBattlerMon(battler));
 }
 
-// Fantasy Retold: the move of the battler's held TM, or MOVE_NONE (design.md §10). Read live, so losing the TM
+// Fantasy Retold: the move of the battler's held TM, or MOVE_NONE (combat.md §10). Read live, so losing the TM
 // (Knock Off, Trick, ...) takes the move away.
 enum Move GetBattlerItemizedMove(enum BattlerId battler)
 {
@@ -1981,7 +1981,7 @@ u32 CheckMoveLimitations(enum BattlerId battler, u8 unusableMoves, u32 check)
 }
 
 // Fantasy Retold: the same limits for the Signature / Itemized Move, as bits SIGNATURE_ / ITEMIZED_MOVE_POSITION
-// (the AI's move slots 4 and 5, design.md §10).
+// (the AI's move slots 4 and 5, combat.md §11).
 u32 CheckExtraMoveLimitations(enum BattlerId battler, u32 check)
 {
     u32 unusableMoves = 0;
@@ -3936,7 +3936,7 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
                     effect++;
                 }
                 break;
-            // Fantasy Retold: these see every status line and cure like CureStatusRails (Lv3 -> Lv1, design.md §6).
+            // Fantasy Retold: these see every status line and cure like CureStatusRails (Lv3 -> Lv1, combat.md §6).
             case ABILITY_HYDRATION:
                 if (IsBattlerWeatherAffected(GetBattlerHoldEffect(battler), GetWeather(), B_WEATHER_RAIN)
                  && HasAnyStatusRail(battler, STATUS_RAILS_NON_VOLATILE))
@@ -5574,7 +5574,7 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
     case MOVE_EFFECT_POISON:
     case MOVE_EFFECT_TOXIC:
         // Fantasy Retold: regular Poison (rail Lv1) can still be advanced to Toxic (Lv2) by reapplication
-        // (design.md §6); only an already-Toxic target (rail at max) reports "already poisoned".
+        // (combat.md §6); only an already-Toxic target (rail at max) reports "already poisoned".
         if (gBattleMons[battlerDef].status1 & STATUS1_TOXIC_POISON)
         {
             battleScript = BattleScript_AlreadyPoisoned;
@@ -5616,7 +5616,7 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
         }
         break;
     case MOVE_EFFECT_BURN:
-        // Fantasy Retold: Burn stacks to 3 (design.md §6), and can't take hold on a Soaked or chilled target.
+        // Fantasy Retold: Burn stacks to 3 (combat.md §6), and can't take hold on a Soaked or chilled target.
         if (GetStatusRailLevel(battlerDef, RAIL_BURN) >= GetStatusRailMaxLevel(RAIL_BURN))
         {
             battleScript = BattleScript_AlreadyBurned;
@@ -5680,7 +5680,7 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
     case MOVE_EFFECT_FREEZE:
     case MOVE_EFFECT_FROSTBITE:
         // Fantasy Retold: Chilled can still advance to Frozen / Frostbitten; Burn and the Chill line exclude
-        // each other (design.md §6).
+        // each other (combat.md §6).
         if (GetStatusRailLevel(battlerDef, RAIL_CHILL) >= GetStatusRailMaxLevel(RAIL_CHILL))
         {
             if (option == RUN_SCRIPT)
@@ -5743,7 +5743,7 @@ bool32 CanSetNonVolatileStatus(enum BattlerId battlerAtk, enum BattlerId battler
         battleScript = BattleScript_SafeguardProtected;
     }
     // Fantasy Retold: no "already has a status" check — each line runs on its own rail and several can be
-    // active at once (design.md §6). The per-line "already at max" checks are above.
+    // active at once (combat.md §6). The per-line "already at max" checks are above.
 
     if (IsNonVolatileStatusBlocked(battlerDef, abilityDef, abilityAffected, battleScript, option))
         return FALSE;
@@ -6564,7 +6564,7 @@ static inline u32 CalcMoveBasePower(struct DamageContext *ctx)
         break;
     case EFFECT_DOUBLE_POWER_ON_ARG_STATUS:
         // Comatose targets treated as if asleep
-        // Fantasy Retold: Lv2+ of the matching line counts (any line or Soaked for Hex-like moves, design.md §6)
+        // Fantasy Retold: Lv2+ of the matching line counts (any line or Soaked for Hex-like moves, combat.md §6)
         if ((HasStatusRailConditionForStatus1(battlerDef, GetMoveEffectArg_Status(move))
           || (ctx->abilities[ctx->battlerDef] == ABILITY_COMATOSE && (GetMoveEffectArg_Status(move) & STATUS1_SLEEP)))
          && !((GetMoveAdditionalEffectById(move, 0)->moveEffect == MOVE_EFFECT_REMOVE_STATUS) && DoesSubstituteBlockMove(battlerAtk, battlerDef, move)))
@@ -7659,7 +7659,7 @@ static inline uq4_12_t GetBurnOrFrostBiteModifier(struct DamageContext *ctx)
 {
     enum BattleMoveEffects moveEffect = GetMoveEffect(ctx->move);
 
-    // Fantasy Retold: Burn weakens physical damage per stack (design.md §6); Frostbitten no longer weakens
+    // Fantasy Retold: Burn weakens physical damage per stack (combat.md §6); Frostbitten no longer weakens
     // special damage (it ticks into Trauma instead).
     if (gBattleMons[ctx->battlerAtk].status1 & STATUS1_BURN
         && IsBattleMovePhysical(ctx->move)
@@ -8019,7 +8019,7 @@ s32 ApplyModifiersAfterDmgRoll(struct DamageContext *ctx, s32 dmg)
     // Fantasy Retold: Halved Damage Profile — all move damage outputs exactly 50% of vanilla.
     DAMAGE_APPLY_MODIFIER(UQ_4_12(0.5));
 
-    // Fantasy Retold: Soaked / Shocked defender (design.md §6).
+    // Fantasy Retold: Soaked / Shocked defender (combat.md §6).
     DAMAGE_APPLY_MODIFIER(GetStatusRailIncomingDamageModifier(ctx->battlerDef, ctx->moveType));
 
     // Fantasy Retold: Dodge (L command) — if the target is dodging and the attacker is FASTER (acts
@@ -9748,7 +9748,7 @@ void SetItemsToRestoreAfterBattle(enum BattleTrainer trainer, u32 partySlot)
 }
 
 // Fantasy Retold: competitive berries (any with a battle hold effect) are restored after battle like other
-// held items (design.md §9). Gen 9 keeps every berry eaten.
+// held items (combat.md §9). Gen 9 keeps every berry eaten.
 static bool32 IsItemRestoredAfterBattle(enum Item item)
 {
     return GetItemPocket(item) != POCKET_BERRIES || GetItemHoldEffect(item) != HOLD_EFFECT_NONE;
@@ -10098,7 +10098,7 @@ bool32 AreBattlersOfSameGender(enum BattlerId battler1, enum BattlerId battler2)
     return (gender1 != MON_GENDERLESS && gender2 != MON_GENDERLESS && gender1 == gender2);
 }
 
-// Fantasy Retold: a status-rail effect (design.md §6): one of the statuses, or a random pick (Tri Attack, Dire
+// Fantasy Retold: a status-rail effect (combat.md §6): one of the statuses, or a random pick (Tri Attack, Dire
 // Claw) from a list of nothing but statuses.
 bool32 IsStatusRailAdditionalEffect(const struct AdditionalEffect *additionalEffect)
 {
@@ -10145,7 +10145,7 @@ u32 CalcSecondaryEffectChance(enum BattlerId battler, enum Ability battlerAbilit
 }
 
 // Fantasy Retold: Serene Grace and Rainbow each give a status effect one more roll instead of a higher chance;
-// it only fails if every roll fails (design.md §6).
+// it only fails if every roll fails (combat.md §6).
 bool32 RollSecondaryEffect(enum BattlerId battler, enum Ability battlerAbility, const struct AdditionalEffect *additionalEffect, u32 percentChance, u32 rngTag)
 {
     u32 rolls = 1;
@@ -10786,7 +10786,7 @@ bool32 ItemHealMonVolatile(enum BattlerId battler, enum Item itemId)
     {
         statusChanged = (gBattleMons[battler].volatiles.infatuation || gBattleMons[battler].volatiles.confusionTimer > 0);
         gBattleMons[battler].volatiles.infatuation = 0;
-        CureAllStatusRails(battler, FALSE); // Fantasy Retold: Lv3 drops to Lv1, the rest clear (design.md §6)
+        CureAllStatusRails(battler, FALSE); // Fantasy Retold: Lv3 drops to Lv1, the rest clear (combat.md §6)
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_CONFUSION;
     }
     else if (effect[0] & ITEM0_INFATUATION)
@@ -11077,7 +11077,7 @@ u32 GetTotalAccuracy(struct BattleCalcValues *cv, u32 weather)
     if (gBattleStruct->battlerState[battlerAtk].usedMicleBerry)
         calc = (calc * 120) / 100;  // 20% acc boost
 
-    // Fantasy Retold: the Electric line misses more and is hit more (design.md §6)
+    // Fantasy Retold: the Electric line misses more and is hit more (combat.md §6)
     calc = (calc * GetStatusRailAccuracyPercent(battlerAtk)) / 100;
     calc = (calc * GetStatusRailIncomingAccuracyPercent(battlerDef)) / 100;
 
@@ -11410,7 +11410,7 @@ bool32 IsBattlerInvalidForSpreadMove(enum BattlerId battlerAtk, enum BattlerId b
 
 bool32 IsAllowedToUseBag(void)
 {
-    // Fantasy Retold: no bag items in any trainer battle (design.md §9); wild battles follow B_VAR_NO_BAG_USE.
+    // Fantasy Retold: no bag items in any trainer battle (combat.md §9); wild battles follow B_VAR_NO_BAG_USE.
     // Battle tests are trainer battles, so the upstream item tests keep the bag.
     if ((gBattleTypeFlags & BATTLE_TYPE_TRAINER) && !gTestRunnerEnabled)
         return FALSE;

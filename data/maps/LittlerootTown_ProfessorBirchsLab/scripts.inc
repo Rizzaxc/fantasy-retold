@@ -542,7 +542,7 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GivePokedex::
 	releaseall
 	end
 
-@ Fantasy Retold: the Aide introduces his research trade (design.md §10). Player at (6,5), Aide at (9,8).
+@ Fantasy Retold: the Aide introduces his research trade (design.md §2). Player at (6,5), Aide at (9,8).
 LittlerootTown_ProfessorBirchsLab_EventScript_AideExplainResearch::
 	applymovement LOCALID_BIRCHS_LAB_AIDE, LittlerootTown_ProfessorBirchsLab_Movement_AideApproachPlayer
 	waitmovement 0

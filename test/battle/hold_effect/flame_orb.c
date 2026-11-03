@@ -2,7 +2,7 @@
 #include "test/battle.h"
 
 // Fantasy Retold: Flame Orb lands Burn x2 (Lv2) through the status rail, once, without touching the
-// holder's other lines (design.md §6).
+// holder's other lines (combat.md §6).
 
 ASSUMPTIONS
 {

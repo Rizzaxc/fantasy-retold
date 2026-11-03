@@ -563,7 +563,7 @@ static u32 GetAIStaminaThreatMoveIndex(enum BattlerId battlerAtk, enum BattlerId
     return bestMoveIndex;
 }
 
-// The physical Stamina attrition (design.md §2) that `move` (in moveIndex of `attacker`) deals to `target`.
+// The physical Stamina attrition (combat.md §2) that `move` (in moveIndex of `attacker`) deals to `target`.
 static u32 GetAIMoveStaminaAttrition(enum BattlerId attacker, enum BattlerId target, u32 moveIndex, enum Move move)
 {
     u32 attrition;
@@ -636,7 +636,7 @@ static bool32 AICanUseRecuperate(enum BattlerId battler)
     u32 currentSta = gBattleStruct->battlerState[battler].currentStamina;
 
     return baseSta != 0 && currentSta * 100 <= baseSta * RECUPERATE_STAMINA_PERCENT
-        && !IsInnateCommandBlockedByChoice(battler); // design.md §9
+        && !IsInnateCommandBlockedByChoice(battler); // combat.md §9
 }
 
 static bool32 AIIsTankierThanTarget(enum BattlerId battler, enum BattlerId target)
@@ -649,7 +649,7 @@ static bool32 AIIsFrailComparedToTarget(enum BattlerId battler, enum BattlerId t
     return gBattleMons[battler].maxHP < gBattleMons[target].maxHP && GetBaseStamina(battler) < GetBaseStamina(target);
 }
 
-// Dodge (design.md §3): a full miss if the dodger acts first, otherwise half damage. Never chains Dodges (the consecutive-use tax makes the second one a waste).
+// Dodge (combat.md §3): a full miss if the dodger acts first, otherwise half damage. Never chains Dodges (the consecutive-use tax makes the second one a waste).
 static bool32 AIShouldDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef, u32 threatIndex, u32 currentStamina, u32 attrition)
 {
     enum Move threatMove;
@@ -658,7 +658,7 @@ static bool32 AIShouldDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef
 
     if (threatIndex >= AI_MOVE_SLOTS || gBattleStruct->battlerState[battlerAtk].dodgeConsecutiveUses != 0)
         return FALSE;
-    if (IsInnateCommandBlockedByChoice(battlerAtk)) // design.md §9
+    if (IsInnateCommandBlockedByChoice(battlerAtk)) // combat.md §9
         return FALSE;
     if (currentStamina < GetDodgeCost(battlerAtk))
         return FALSE;
@@ -693,7 +693,7 @@ static bool32 AIShouldDodge(enum BattlerId battlerAtk, enum BattlerId battlerDef
     return FALSE;
 }
 
-// A status that can still land or climb its rail (design.md §6); a line already at its top level can't.
+// A status that can still land or climb its rail (combat.md §6); a line already at its top level can't.
 static bool32 AICanProgressStatus(enum BattlerId battlerAtk, enum BattlerId battlerDef, enum MoveEffect effect)
 {
     enum Ability abilityAtk = gAiLogicData->abilities[battlerAtk];
@@ -925,7 +925,7 @@ static void AI_ChooseStaminaAction(struct ChosenAction *chosen, enum BattlerId b
     }
 
     // At the threshold, anything but a frail battler refills when the target can't KO it this turn.
-    // A tankier battler refills regardless: Recuperate is its wincon (design.md §3).
+    // A tankier battler refills regardless: Recuperate is its wincon (combat.md §3).
     if (canRecuperate && (AIIsTankierThanTarget(battlerAtk, battlerDef)
                        || (!AIIsFrailComparedToTarget(battlerAtk, battlerDef) && !CanTargetFaintAi(battlerDef, battlerAtk))))
     {
@@ -1092,7 +1092,7 @@ u32 BattleAI_ChooseMoveIndex(enum BattlerId battler)
 
     if (chosen.action != B_ACTION_USE_MOVE)
     {
-        // Fantasy Retold: a transformation gimmick still goes with Dodge / Recuperate (design.md §3).
+        // Fantasy Retold: a transformation gimmick still goes with Dodge / Recuperate (combat.md §3).
         bool32 isInnate = chosen.action == B_ACTION_DODGE || chosen.action == B_ACTION_RECUPERATE;
         if (!isInnate || !CanUseGimmickWithInnateCommand(battler))
             SetAIUsingGimmick(battler, NO_GIMMICK);

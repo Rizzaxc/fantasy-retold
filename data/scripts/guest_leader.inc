@@ -1,4 +1,4 @@
-@ Fantasy Retold: guest gym leaders (design.md §10).
+@ Fantasy Retold: guest gym leaders (design.md §2).
 @ Call at the start of a gym 4-8 leader's first fight with VAR_0x8008 = gym number. Returns GUEST_LEADER_RESULT_* in
 @ VAR_RESULT: NONE (no guest: run the vanilla battle), WON (run the gym's badge script) or BLOCKED (not enough
 @ Pokémon for the locked format: release). A loss whites out as usual, which rerolls the guest.

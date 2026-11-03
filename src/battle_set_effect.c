@@ -81,7 +81,7 @@ static void HandleSetEffectConfusion(struct BattleCalcValues *cv, struct SetEffe
     else
     {
         // Fantasy Retold: Confused (Lv1) -> Stupefied (Lv2) -> Frightened (Lv3); a status move starts at
-        // Stupefied, a secondary at Confused. 3 turns, kept when the line advances (design.md §6).
+        // Stupefied, a secondary at Confused. 3 turns, kept when the line advances (combat.md §6).
         u8 level = ApplyStatusRailOrSynchronize(se->effectBattler, RAIL_CONFUSION, GetSecondaryRailMinLevel(se));
         gBattleStruct->statusRailsAppliedByMove[se->effectBattler] |= STATUS_RAIL_BIT(RAIL_CONFUSION);
         gEffectBattler = se->effectBattler;
@@ -341,7 +341,7 @@ static void HandleSetEffectRemoveStatus(struct BattleCalcValues *cv, struct SetE
     u32 argStatus = GetMoveEffectArg_Status(gCurrentMove); // TODO: use the arg field in move effect
     enum StatusRail rail = GetStatusRailFromStatus1(argStatus);
 
-    // Fantasy Retold: cures its line like a full cure (Lv3 -> volatile Lv1, the rest clear; design.md §6).
+    // Fantasy Retold: cures its line like a full cure (Lv3 -> volatile Lv1, the rest clear; combat.md §6).
     if (rail != NUM_STATUS_RAILS && GetStatusRailLevel(se->effectBattler, rail) != 0
      && (NumAffectedSpreadMoveTargets() > 1 || !IsMoveEffectBlockedByTarget(cv->abilities[se->effectBattler])))
     {

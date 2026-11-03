@@ -644,6 +644,10 @@ gSpecials::
 	def_special GymReward_GetHeldItem
 	def_special GymReward_GetStatItem
 	def_special GymReward_GiveEgg
+	def_special Gauntlet_IsClaimed
+	def_special Gauntlet_GiveRewardItems
+	def_special Gauntlet_GetRewardItem
+	def_special Gauntlet_BufferRewardMoney
 	def_special EggShop_Restock
 	def_special EggShop_BufferMenu
 	def_special EggShop_BufferOffer

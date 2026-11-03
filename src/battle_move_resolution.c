@@ -375,7 +375,7 @@ static enum CancelerResult CancelerImprisoned(struct BattleCalcValues *cv)
 
 static enum CancelerResult CancelerConfused(struct BattleCalcValues *cv)
 {
-    // Fantasy Retold: the Confusion line (design.md §6). Effects are cumulative: Frightened (Lv3) may flee,
+    // Fantasy Retold: the Confusion line (combat.md §6). Effects are cumulative: Frightened (Lv3) may flee,
     // every level may hit itself, Stupefied+ (Lv2) may turn its move on its ally (or itself in singles). The
     // turns count down at end of turn (status_rail.c), not here.
     u32 confusionLevel;
@@ -1072,7 +1072,7 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
     if (cv->move != gLastResultingMoves[cv->battlerAtk] || gBattleStruct->unableToUseMove)
         gBattleMons[cv->battlerAtk].volatiles.metronomeItemCounter = 0;
 
-    // Fantasy Retold: the Signature / Itemized Move's PP is kept outside gBattleMons (design.md §10).
+    // Fantasy Retold: the Signature / Itemized Move's PP is kept outside gBattleMons (combat.md §10).
     if (movePosition < MAX_MON_MOVES)
     {
         if (gBattleMons[cv->battlerAtk].pp[movePosition] > ppToDeduct)
@@ -1097,7 +1097,7 @@ static enum CancelerResult CancelerPPDeduction(struct BattleCalcValues *cv)
         UpdateStaminaGaugeOnHealthbox(cv->battlerAtk); // Fantasy Retold: reflect action cost immediately.
     }
 
-    // Fantasy Retold: count the move toward mastery (design.md §10), by move ID on the player's own mon (not a multi
+    // Fantasy Retold: count the move toward mastery (design.md §2), by move ID on the player's own mon (not a multi
     // partner's), and only a move it really knows in that slot (not a Mimic / Transform copy).
     if (movePosition < MAX_MON_MOVES && GetBattlerParty(cv->battlerAtk) == gParties[B_TRAINER_PLAYER])
     {
@@ -3857,7 +3857,7 @@ static enum MoveEndResult MoveEndFaintBlock(struct BattleCalcValues *cv)
 
                 if (moveIndex >= MAX_MON_MOVES)
                 {
-                    // Fantasy Retold: the Signature / Itemized Move's PP lives outside gBattleMons (design.md §10).
+                    // Fantasy Retold: the Signature / Itemized Move's PP lives outside gBattleMons (combat.md §10).
                     DeductBattlerExtraMovePP(cv->battlerAtk, moveIndex, GetBattlerExtraMovePP(cv->battlerAtk, moveIndex));
                     PREPARE_MOVE_BUFFER(gBattleTextBuff1, GetBattlerMoveAtPosition(cv->battlerAtk, moveIndex))
                 }
@@ -4261,7 +4261,7 @@ static enum MoveEndResult MoveEndDefrost(struct BattleCalcValues *cv)
     return MOVEEND_RESULT_CONTINUE;
 }
 
-// Fantasy Retold: status rails after a damaging move (design.md §6). For the user and every battler it hit:
+// Fantasy Retold: status rails after a damaging move (combat.md §6). For the user and every battler it hit:
 // the type interaction (Fire thaws the Chill line, Water / Ice ease a Burn, Ground drains the Electric line),
 // Ice damage renews the Chill line, a Water hit may Soak (or douse a Burn), an Electric hit may paralyze a
 // Shocked mon, a critical Ghost / Psychic hit tops out the Sleep / Confusion line, and a hit may take a turn

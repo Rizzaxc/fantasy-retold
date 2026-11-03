@@ -192,9 +192,9 @@ static EWRAM_DATA struct PokemonSummaryScreenData
         u8 OTName[17]; // 0x36
         u32 OTID; // 0x48  
         u8 teraType;
-        u16 signatureMove; // Fantasy Retold: lives outside the four move slots (design.md §10)
+        u16 signatureMove; // Fantasy Retold: lives outside the four move slots (design.md §2)
         u8 signaturePP;
-        u16 itemizedMove; // Fantasy Retold: move given by a held TM (design.md §10)
+        u16 itemizedMove; // Fantasy Retold: move given by a held TM (design.md §2)
         u8 mintNature;
         u8 ivHp;
         u8 ivAtk;
@@ -230,7 +230,7 @@ static EWRAM_DATA struct PokemonSummaryScreenData
     u8 spriteIds[SPRITE_ARR_ID_COUNT];
     bool8 handleDeoxys;
     bool8 selectingSignature; // Fantasy Retold: SUMMARY_MODE_SELECT_MOVE picks a mastered move as the Signature Move
-    bool8 showInnateMoves; // Fantasy Retold: the battle moves page shows the innate moveset (SELECT, design.md §10)
+    bool8 showInnateMoves; // Fantasy Retold: the battle moves page shows the innate moveset (SELECT, design.md §2)
     s16 switchCounter; // Used for various switch statement cases that decompress/load graphics or Pokémon data
     u16 monAnimTimer; // tracks time between re-playing mon anims
     bool8 monAnimPlayed; // tracks if anim has been played at least once
@@ -1798,7 +1798,7 @@ void ShowSelectMovePokemonSummaryScreen_BW(struct Pokemon *mons, u8 monIndex, u8
     sMonSummaryScreen->newMove = newMove;
 }
 
-// Fantasy Retold: the move selection screen used to commit a Signature Move (design.md §10): only a mastered move
+// Fantasy Retold: the move selection screen used to commit a Signature Move (design.md §2): only a mastered move
 // can be picked, the row below the moves is "Cancel".
 void ShowSelectSignatureMoveSummaryScreen_BW(struct Pokemon *mons, u8 monIndex, u8 maxMonIndex, void (*callback)(void))
 {
@@ -4687,7 +4687,7 @@ static void PrintMoveNameAndPP(u8 moveIndex)
     PrintTextOnWindowWithFont(moveNameWindowId, text, 8, moveIndex * 28 + 16, 0, ppState, FONT_SMALL);
 }
 
-// Fantasy Retold (design.md §10): SELECT on the battle moves page swaps the four moves for the innate moveset, in the
+// Fantasy Retold (design.md §2): SELECT on the battle moves page swaps the four moves for the innate moveset, in the
 // battle's innate menu order: Dodge, Recuperate, then the Signature Move and the Itemized Move (whichever it has). A INFO
 // inspects them; they can't be reordered.
 enum SummaryInnateEntry
@@ -5778,7 +5778,7 @@ static void ShowMoveRelearner(void)
     gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_RELEARN_PROMPT]].invisible = FALSE;
 }
 
-// Fantasy Retold: the SELECT / INNATE prompt (design.md §10) shows on the battle moves page while browsing, right of
+// Fantasy Retold: the SELECT / INNATE prompt (design.md §2) shows on the battle moves page while browsing, right of
 // START RELEARN, or in its place when there's nothing to relearn.
 static void UpdateInnatePrompt(bool32 show)
 {

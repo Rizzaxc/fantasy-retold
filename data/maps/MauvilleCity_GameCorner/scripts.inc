@@ -210,7 +210,7 @@ MauvilleCity_GameCorner_EventScript_NoRoomForDoll::
 	end
 
 @ Fantasy Retold: three Mega Stones and three Z-Crystals the player doesn't have, restocked after every badge,
-@ rival battle and Elite Four clear (design.md §10). VAR_0x8004 = category, VAR_0x8005 = row, VAR_0x8006 = price.
+@ rival battle and Elite Four clear (design.md §2). VAR_0x8004 = category, VAR_0x8005 = row, VAR_0x8006 = price.
 MauvilleCity_GameCorner_EventScript_MegaStonePrize::
 	setvar VAR_0x8004, GAME_CORNER_STOCK_MEGA_STONE
 	setvar VAR_0x8006, GAME_CORNER_MEGA_STONE_COINS
