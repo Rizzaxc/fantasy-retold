@@ -107,6 +107,8 @@ Route117_PokemonDayCare_EventScript_GiveMonToRaise::
 	specialvar VAR_RESULT, CountPartyAliveNonEggMons_IgnoreVar0x8004Slot
 	goto_if_eq VAR_RESULT, 0, Route117_PokemonDayCare_EventScript_OnlyOneAliveMon
 	specialvar VAR_0x8005, GetSelectedMonNicknameAndSpecies
+	specialvar VAR_RESULT, ParadoxLab_IsParadox
+	goto_if_eq VAR_RESULT, TRUE, Route117_PokemonDayCare_EventScript_RefuseParadox
 	waitse
 	playmoncry VAR_0x8005, CRY_MODE_NORMAL
 	msgbox Route117_PokemonDayCare_Text_WellRaiseYourMon, MSGBOX_DEFAULT
@@ -118,6 +120,18 @@ Route117_PokemonDayCare_EventScript_GiveMonToRaise::
 	goto_if_eq VAR_RESULT, DAYCARE_ONE_MON, Route117_PokemonDayCare_EventScript_CanRaiseOneMore
 	release
 	end
+
+@ Fantasy Retold: paradoxes only grow in battle (design.md §2, Lanette's Paradox Lab).
+Route117_PokemonDayCare_EventScript_RefuseParadox::
+	msgbox Route117_PokemonDayCare_Text_RefuseParadox, MSGBOX_DEFAULT
+	release
+	end
+
+Route117_PokemonDayCare_Text_RefuseParadox::
+	.string "{STR_VAR_1}…? I've never seen a\n"
+	.string "POKéMON like that.\p"
+	.string "I'm sorry, dear, I wouldn't know\n"
+	.string "how to raise it.$"
 
 Route117_PokemonDayCare_EventScript_ComeAgain::
 	msgbox Route117_PokemonDayCare_Text_ComeAgain, MSGBOX_DEFAULT

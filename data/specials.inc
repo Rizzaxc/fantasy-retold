@@ -673,6 +673,12 @@ gSpecials::
 	def_special LabResearch_Trade
 	def_special LabResearch_Skip
 	def_special LabResearch_SetCalled
+	def_special ParadoxLab_RollGift
+	def_special ParadoxLab_CheckMon
+	def_special ParadoxLab_BufferTarget
+	def_special ParadoxLab_Convert
+	def_special ParadoxLab_IsQuarkDrive
+	def_special ParadoxLab_IsParadox
 	def_special GameCorner_Restock
 	def_special GameCorner_BufferStock
 	def_special GameCorner_BufferOffer

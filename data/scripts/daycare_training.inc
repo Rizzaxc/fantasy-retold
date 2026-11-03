@@ -11,6 +11,7 @@ Common_EventScript_DaycareTraining::
 	goto_if_ge VAR_0x8004, PARTY_SIZE, Common_EventScript_DaycareTrainingLeave
 	specialvar VAR_RESULT, DaycareTraining_BufferOffer
 	goto_if_eq VAR_RESULT, DAYCARE_TRAINING_EGG, Common_EventScript_DaycareTrainingEgg
+	goto_if_eq VAR_RESULT, DAYCARE_TRAINING_PARADOX, Common_EventScript_DaycareTrainingParadox
 	goto_if_eq VAR_RESULT, DAYCARE_TRAINING_AT_CAP, Common_EventScript_DaycareTrainingAtCap
 	goto_if_eq VAR_RESULT, DAYCARE_TRAINING_NO_MONEY, Common_EventScript_DaycareTrainingNoMoney
 	message gText_DaycareTrainingOffer
@@ -46,6 +47,11 @@ Common_EventScript_DaycareTrainingNoMoney::
 
 Common_EventScript_DaycareTrainingEgg::
 	msgbox gText_DaycareTrainingEgg, MSGBOX_DEFAULT
+	release
+	end
+
+Common_EventScript_DaycareTrainingParadox::
+	msgbox gText_DaycareTrainingParadox, MSGBOX_DEFAULT
 	release
 	end
 
@@ -92,6 +98,12 @@ gText_DaycareTrainingNotEnoughMoney::
 gText_DaycareTrainingEgg::
 	.string "That's an EGG! It'll need to\n"
 	.string "hatch before I can train it.$"
+
+gText_DaycareTrainingParadox::
+	.string "{STR_VAR_1}…? I've never seen a\n"
+	.string "POKéMON like that before.\p"
+	.string "I wouldn't know how to train it.\n"
+	.string "It'll have to grow in battle.$"
 
 gText_DaycareTrainingAtCap::
 	.string "{STR_VAR_1} is as strong as I can\n"

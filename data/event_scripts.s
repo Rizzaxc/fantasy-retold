@@ -43,6 +43,7 @@
 #include "constants/items.h"
 #include "constants/heal_locations.h"
 #include "constants/lab_research.h"
+#include "constants/paradox_lab.h"
 #include "constants/gimmick_reward.h"
 #include "constants/mart_tms.h"
 #include "constants/layouts.h"

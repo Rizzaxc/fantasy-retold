@@ -24,6 +24,7 @@
 #define DAYCARE_TRAINING_EGG       1
 #define DAYCARE_TRAINING_AT_CAP    2
 #define DAYCARE_TRAINING_NO_MONEY  3
+#define DAYCARE_TRAINING_PARADOX   4 // paradoxes are never trained (design.md §2, Lanette's Paradox Lab)
 
 // Fantasy Retold: Hyper Training by the daycare man (design.md §2)
 #define HYPER_TRAINING_PRICE      1000

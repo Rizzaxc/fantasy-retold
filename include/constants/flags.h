@@ -77,7 +77,7 @@
 #define FLAG_GAUNTLET_REWARD_6    0x37
 #define FLAG_GAUNTLET_REWARD_7    0x38
 #define FLAG_GAUNTLET_REWARD_8    0x39
-#define FLAG_UNUSED_0x03A    0x3A // Unused Flag
+#define FLAG_RECEIVED_PARADOX_GIFT    0x3A // Fantasy Retold: Lanette's paradox gift (design.md §2, Lanette's Paradox Lab)
 #define FLAG_UNUSED_0x03B    0x3B // Unused Flag
 #define FLAG_UNUSED_0x03C    0x3C // Unused Flag
 #define FLAG_UNUSED_0x03D    0x3D // Unused Flag

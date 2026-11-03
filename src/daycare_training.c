@@ -39,7 +39,7 @@ static u32 GetTrainingCost(struct Pokemon *mon, u32 targetLevel)
 }
 
 // Checks the mon in VAR_0x8004 and returns a DAYCARE_TRAINING_* result. Always buffers its nickname (STR_VAR_1).
-// AT_CAP buffers the level cap (STR_VAR_2). OK sets VAR_0x8005 to the highest level the player can afford (up to the
+// PARADOX: paradoxes are never trained (design.md §2, Lanette's Paradox Lab). AT_CAP buffers the level cap (STR_VAR_2). OK sets VAR_0x8005 to the highest level the player can afford (up to the
 // cap) and VAR_0x8006 to one level up, and buffers that level (STR_VAR_2) and its price (STR_VAR_3).
 u16 DaycareTraining_BufferOffer(void)
 {
@@ -51,6 +51,8 @@ u16 DaycareTraining_BufferOffer(void)
     if (GetMonData(mon, MON_DATA_IS_EGG))
         return DAYCARE_TRAINING_EGG;
     GetMonNickname(mon, gStringVar1);
+    if (gSpeciesInfo[GetMonData(mon, MON_DATA_SPECIES)].isParadox)
+        return DAYCARE_TRAINING_PARADOX;
     level = GetMonData(mon, MON_DATA_LEVEL);
     if (level >= cap)
     {
