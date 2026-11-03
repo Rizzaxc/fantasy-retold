@@ -5388,8 +5388,9 @@ void ItemUseCB_AbilityPatch(u8 taskId, TaskFunc task)
 
 void Task_Mint(u8 taskId)
 {
-    static const u8 sText_askText[] = _("It might affect {STR_VAR_1}'s stats.\nAre you sure you want to use it?");
-    static const u8 sText_doneText[] = _("{STR_VAR_1}'s stats may have changed due\nto the effects of the {STR_VAR_2}!{PAUSE_UNTIL_PRESS}");
+    // Fantasy Retold: mints change the true nature, innate included (design.md §5).
+    static const u8 sText_askText[] = _("It will change {STR_VAR_1}'s nature.\nAre you sure you want to use it?");
+    static const u8 sText_doneText[] = _("{STR_VAR_1}'s nature became\n{STR_VAR_2}!{PAUSE_UNTIL_PRESS}");
     s16 *data = gTasks[taskId].data;
 
     switch (tState)
@@ -5442,6 +5443,7 @@ void Task_Mint(u8 taskId)
         break;
     case 3:
         PlaySE(SE_USE_ITEM);
+        StringCopy(gStringVar2, gNaturesInfo[tNewNature].name);
         StringExpandPlaceholders(gStringVar4, sText_doneText);
         DisplayPartyMenuMessage(gStringVar4, 1);
         ScheduleBgCopyTilemapToVram(2);
@@ -5452,8 +5454,7 @@ void Task_Mint(u8 taskId)
             tState++;
         break;
     case 5:
-        SetMonData(&gParties[B_TRAINER_PLAYER][tMonId], MON_DATA_HIDDEN_NATURE, &tNewNature);
-        CalculateMonStats(&gParties[B_TRAINER_PLAYER][tMonId]);
+        SetMonNature(&gParties[B_TRAINER_PLAYER][tMonId], tNewNature); // Fantasy Retold: the true nature (design.md §5)
         RemoveBagItem(gSpecialVar_ItemId, 1);
         gTasks[taskId].func = Task_ClosePartyMenu;
         break;
@@ -5466,8 +5467,11 @@ void ItemUseCB_Mint(u8 taskId, TaskFunc task)
 
     tState = 0;
     tMonId = gPartyMenu.slotId;
-    tOldNature = GetMonData(&gParties[B_TRAINER_PLAYER][tMonId], MON_DATA_HIDDEN_NATURE);
     tNewNature = GetItemSecondaryId(gSpecialVar_ItemId);
+    // Fantasy Retold: no effect only if both the true nature and the stat nature are already the mint's.
+    tOldNature = GetMonData(&gParties[B_TRAINER_PLAYER][tMonId], MON_DATA_HIDDEN_NATURE);
+    if (GetNature(&gParties[B_TRAINER_PLAYER][tMonId]) != tOldNature)
+        tOldNature = NUM_NATURES;
     SetWordTaskArg(taskId, tOldFunc, (uintptr_t)(gTasks[taskId].func));
     gTasks[taskId].func = Task_Mint;
 }

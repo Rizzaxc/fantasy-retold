@@ -6564,6 +6564,26 @@ void UpdateMonPersonality(struct BoxPokemon *boxMon, u32 personality)
     SetBoxMonData(boxMon, MON_DATA_TERA_TYPE, &teraType);
 }
 
+// Fantasy Retold: mints change the true nature, so the nature's innate follows (design.md §5). Only the personality's
+// upper 24 bits change (256 * k shifts the nature by 6k mod 25, which reaches all of them), so gender is kept;
+// UpdateMonPersonality keeps shininess and the Tera Type. The hidden nature is reset to the new one.
+void SetMonNature(struct Pokemon *mon, u32 nature)
+{
+    u32 personality = GetMonData(mon, MON_DATA_PERSONALITY);
+    u32 steps = ((nature + NUM_NATURES - GetNatureFromPersonality(personality)) * 21) % NUM_NATURES; // 21 = 6^-1 mod 25
+
+    if (steps != 0)
+    {
+        if (personality <= UINT32_MAX - 256 * steps)
+            personality += 256 * steps;
+        else
+            personality -= 256 * (NUM_NATURES - steps);
+        UpdateMonPersonality(&mon->box, personality);
+    }
+    SetMonData(mon, MON_DATA_HIDDEN_NATURE, &nature);
+    CalculateMonStats(mon);
+}
+
 void HealPokemon(struct Pokemon *mon)
 {
     u32 data;

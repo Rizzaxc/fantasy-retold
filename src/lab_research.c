@@ -106,8 +106,8 @@ static u32 GetSpeciesBST(enum Species species)
          + info->baseSpeed + info->baseSpAttack + info->baseSpDefense;
 }
 
-// Highest BST among the final evolutions reachable from the species (its own if it doesn't evolve).
-static u32 GetLineBST(enum Species species, u32 depth)
+// Highest BST among the final evolutions reachable from the species (its own if it doesn't evolve). Shared with the gym reward.
+u32 GetLineBST(enum Species species, u32 depth)
 {
     const struct Evolution *evolutions = GetSpeciesEvolutions(species);
     u32 best = 0;

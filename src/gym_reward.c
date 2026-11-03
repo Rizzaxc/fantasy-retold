@@ -2,6 +2,8 @@
 #include "battle_main.h"
 #include "event_data.h"
 #include "gym_reward.h"
+#include "item.h"
+#include "lab_research.h"
 #include "pokemon.h"
 #include "random.h"
 #include "script_pokemon_util.h"
@@ -10,11 +12,14 @@
 #include "constants/pokemon.h"
 #include "constants/species.h"
 
-// Fantasy Retold: gym leader reward (design.md §10). After a badge the leader offers a choice: a random
-// competitive held item, or an Egg of a random non-Hoenn, non-legendary species sharing the gym's type.
-// Scripts pass the gym number (1-8) in VAR_0x8008.
+// Fantasy Retold: gym leader reward (design.md §10). After a badge the leader offers one of three rolled rewards:
+// a competitive held item, a stat item (Bottle Cap / Ability Capsule / Ability Patch / mint), or an Egg of a
+// non-Hoenn, non-legendary species sharing the gym's type whose line reaches GYM_REWARD_EGG_MIN_BST.
+// The offer is rolled once and kept in VAR_GYM_REWARD_* until claimed. Scripts pass the gym number (1-8) in VAR_0x8008.
 
 #define GYM_COUNT 8
+#define GYM_REWARD_EGG_MIN_BST 500
+#define EVO_LINE_DEPTH 3
 
 static const enum Type sGymRewardTypes[GYM_COUNT] =
 {
@@ -48,22 +53,47 @@ static const enum Item sGymRewardItems[] =
     ITEM_DAMP_ROCK, ITEM_HEAT_ROCK, ITEM_SMOOTH_ROCK, ITEM_ICY_ROCK,
 };
 
-static enum Type GetGymRewardType(void)
+// Mints by the innate their nature grants (design.md §5). Serious stands in for the neutral natures.
+static const enum Item sMintsStandardOffense[] = { ITEM_ADAMANT_MINT, ITEM_MODEST_MINT, ITEM_JOLLY_MINT, ITEM_TIMID_MINT };
+static const enum Item sMintsSuperLuck[] =
+{
+    ITEM_LONELY_MINT, ITEM_BRAVE_MINT, ITEM_NAUGHTY_MINT, ITEM_MILD_MINT,
+    ITEM_QUIET_MINT, ITEM_RASH_MINT, ITEM_HASTY_MINT, ITEM_NAIVE_MINT,
+};
+static const enum Item sMintsBattleArmor[] = { ITEM_BOLD_MINT, ITEM_IMPISH_MINT };
+static const enum Item sMintsResilient[] = { ITEM_CALM_MINT, ITEM_CAREFUL_MINT };
+static const enum Item sMintsRegenerator[] = { ITEM_RELAXED_MINT, ITEM_LAX_MINT };
+static const enum Item sMintsNaturalCure[] = { ITEM_SASSY_MINT, ITEM_GENTLE_MINT };
+
+static const struct { const enum Item *mints; u32 count; } sMintGroups[] =
+{
+    { sMintsStandardOffense, ARRAY_COUNT(sMintsStandardOffense) },
+    { sMintsSuperLuck,       ARRAY_COUNT(sMintsSuperLuck) },
+    { sMintsBattleArmor,     ARRAY_COUNT(sMintsBattleArmor) },
+    { sMintsResilient,       ARRAY_COUNT(sMintsResilient) },
+    { sMintsRegenerator,     ARRAY_COUNT(sMintsRegenerator) },
+    { sMintsNaturalCure,     ARRAY_COUNT(sMintsNaturalCure) },
+};
+
+#define SERIOUS_MINT_PERCENT 10
+
+static u32 GetGymRewardGym(void)
 {
     u32 gym = gSpecialVar_0x8008;
 
     if (gym < 1 || gym > GYM_COUNT)
         gym = 1;
-    return sGymRewardTypes[gym - 1];
+    return gym;
+}
+
+static enum Type GetGymRewardType(void)
+{
+    return sGymRewardTypes[GetGymRewardGym() - 1];
 }
 
 static u32 GetGymRewardFlag(void)
 {
-    u32 gym = gSpecialVar_0x8008;
-
-    if (gym < 1 || gym > GYM_COUNT)
-        gym = 1;
-    return FLAG_GYM_REWARD_1 + gym - 1;
+    return FLAG_GYM_REWARD_1 + GetGymRewardGym() - 1;
 }
 
 bool32 GymReward_IsClaimed(void)
@@ -74,18 +104,29 @@ bool32 GymReward_IsClaimed(void)
 void GymReward_SetClaimed(void)
 {
     FlagSet(GetGymRewardFlag());
+    VarSet(VAR_GYM_REWARD_GYM, 0);
 }
 
-// Buffers the gym's type name in STR_VAR_2 for the offer.
-void GymReward_BufferType(void)
+// Even among Bottle Cap, Ability Capsule, Ability Patch and a mint. The mint is Serious SERIOUS_MINT_PERCENT of the
+// time, otherwise an even pick of the groups, then of the group's mints.
+static enum Item RollStatItem(void)
 {
-    StringCopy(gStringVar2, gTypesInfo[GetGymRewardType()].name);
-}
-
-// Rolled when the player picks it, so backing out and talking again can't fish for an item.
-u16 GymReward_RollItem(void)
-{
-    return sGymRewardItems[Random() % ARRAY_COUNT(sGymRewardItems)];
+    switch (Random() % 4)
+    {
+    case 0:
+        return ITEM_BOTTLE_CAP;
+    case 1:
+        return ITEM_ABILITY_CAPSULE;
+    case 2:
+        return ITEM_ABILITY_PATCH;
+    default:
+    {
+        if (Random() % 100 < SERIOUS_MINT_PERCENT)
+            return ITEM_SERIOUS_MINT;
+        u32 group = Random() % ARRAY_COUNT(sMintGroups);
+        return sMintGroups[group].mints[Random() % sMintGroups[group].count];
+    }
+    }
 }
 
 // TRUE if the species or anything it evolves into has a Hoenn Pokédex number. Shared with the egg shop.
@@ -126,7 +167,9 @@ static bool32 IsEggRewardCandidate(enum Species species, enum Type type, const u
     const struct Evolution *evolutions = GetSpeciesEvolutions(species);
     if (info->eggGroups[0] == EGG_GROUP_NO_EGGS_DISCOVERED && (evolutions == NULL || evolutions[0].method == EVOLUTIONS_END))
         return FALSE;
-    if (IsInHoennFamily(species, 3))
+    if (IsInHoennFamily(species, EVO_LINE_DEPTH))
+        return FALSE;
+    if (GetLineBST(species, EVO_LINE_DEPTH) < GYM_REWARD_EGG_MIN_BST)
         return FALSE;
     return TRUE;
 }
@@ -168,10 +211,38 @@ static enum Species PickEggRewardSpecies(enum Type type)
     return SPECIES_NONE;
 }
 
+// Rolls this gym's offer unless it is already the stored one, so backing out and talking again shows the same three.
+// Buffers the held item (STR_VAR_1), the stat item (STR_VAR_2) and the Egg's species (STR_VAR_3) for the menu.
+void GymReward_RollOffer(void)
+{
+    u32 gym = GetGymRewardGym();
+
+    if (VarGet(VAR_GYM_REWARD_GYM) != gym)
+    {
+        VarSet(VAR_GYM_REWARD_HELD_ITEM, sGymRewardItems[Random() % ARRAY_COUNT(sGymRewardItems)]);
+        VarSet(VAR_GYM_REWARD_STAT_ITEM, RollStatItem());
+        VarSet(VAR_GYM_REWARD_EGG_SPECIES, PickEggRewardSpecies(GetGymRewardType()));
+        VarSet(VAR_GYM_REWARD_GYM, gym);
+    }
+    CopyItemName(VarGet(VAR_GYM_REWARD_HELD_ITEM), gStringVar1);
+    CopyItemName(VarGet(VAR_GYM_REWARD_STAT_ITEM), gStringVar2);
+    StringCopy(gStringVar3, GetSpeciesName(VarGet(VAR_GYM_REWARD_EGG_SPECIES)));
+}
+
+u16 GymReward_GetHeldItem(void)
+{
+    return VarGet(VAR_GYM_REWARD_HELD_ITEM);
+}
+
+u16 GymReward_GetStatItem(void)
+{
+    return VarGet(VAR_GYM_REWARD_STAT_ITEM);
+}
+
 // Gives the Egg to the party, or the PC when the party is full; returns MON_GIVEN_TO_PARTY / MON_GIVEN_TO_PC / MON_CANT_GIVE.
 u16 GymReward_GiveEgg(void)
 {
-    enum Species species = PickEggRewardSpecies(GetGymRewardType());
+    enum Species species = VarGet(VAR_GYM_REWARD_EGG_SPECIES);
 
     if (species == SPECIES_NONE)
         return MON_CANT_GIVE;

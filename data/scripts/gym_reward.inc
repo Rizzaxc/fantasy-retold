@@ -1,24 +1,31 @@
 @ Fantasy Retold: gym leader reward (design.md §10).
-@ Call with VAR_0x8008 = gym number (1-8). Offers a random held item or a random Egg of the gym's type, once.
-@ Backing out (B) leaves it unclaimed; the leader offers it again when talked to.
+@ Call with VAR_0x8008 = gym number (1-8). Offers one of three rewards, rolled once and shown up front:
+@ a held item, a stat item, or an Egg of the gym's type. Backing out (B) leaves it unclaimed; the leader
+@ offers the same three again when talked to.
 Common_EventScript_GymReward::
 	specialvar VAR_RESULT, GymReward_IsClaimed
 	goto_if_eq VAR_RESULT, TRUE, Common_EventScript_GymRewardDone
-	special GymReward_BufferType
-	msgbox gText_GymRewardOffer, MSGBOX_DEFAULT
 Common_EventScript_GymRewardChoose::
-	message gText_GymRewardWhichOne
+	@ Also re-buffers the names, which a full-bag message overwrites.
+	special GymReward_RollOffer
+	message gText_GymRewardOffer
 	waitmessage
-	dynmultichoice 19, 6, FALSE, 2, 0, DYN_MULTICHOICE_CB_NONE, gText_GymRewardChoiceItem, gText_GymRewardChoiceEgg
+	dynmultichoice 19, 6, FALSE, 3, 0, DYN_MULTICHOICE_CB_NONE, gText_GymRewardChoiceHeldItem, gText_GymRewardChoiceStatItem, gText_GymRewardChoiceEgg
 	switch VAR_RESULT
-	case 0, Common_EventScript_GymRewardItem
-	case 1, Common_EventScript_GymRewardEgg
+	case 0, Common_EventScript_GymRewardHeldItem
+	case 1, Common_EventScript_GymRewardStatItem
+	case 2, Common_EventScript_GymRewardEgg
 	msgbox gText_GymRewardLater, MSGBOX_DEFAULT
 Common_EventScript_GymRewardDone::
 	return
 
-Common_EventScript_GymRewardItem::
-	specialvar VAR_0x8009, GymReward_RollItem
+Common_EventScript_GymRewardHeldItem::
+	specialvar VAR_0x8009, GymReward_GetHeldItem
+	goto Common_EventScript_GymRewardGiveItem
+
+Common_EventScript_GymRewardStatItem::
+	specialvar VAR_0x8009, GymReward_GetStatItem
+Common_EventScript_GymRewardGiveItem::
 	giveitem VAR_0x8009
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_GymRewardBagFull
 	special GymReward_SetClaimed
@@ -49,28 +56,24 @@ Common_EventScript_GymRewardNoRoomForEgg::
 	goto Common_EventScript_GymRewardChoose
 
 gText_GymRewardOffer::
-	.string "As a token of your victory, you may\n"
-	.string "take one more reward.\p"
-	.string "An item for a POKéMON to hold\n"
-	.string "in battle…\p"
-	.string "…or an EGG of a {STR_VAR_2}-type\n"
-	.string "POKéMON from a faraway land.$"
+	.string "You may choose one of\n"
+	.string "these rewards.$"
 
-gText_GymRewardWhichOne::
-	.string "Which will you take?$"
+gText_GymRewardChoiceHeldItem::
+	.string "{STR_VAR_1}$"
 
-gText_GymRewardChoiceItem::
-	.string "HELD ITEM$"
+gText_GymRewardChoiceStatItem::
+	.string "{STR_VAR_2}$"
 
 gText_GymRewardChoiceEgg::
-	.string "EGG$"
+	.string "{STR_VAR_3} EGG$"
 
 gText_GymRewardLater::
 	.string "Take your time. Come see me\n"
 	.string "when you've decided.$"
 
 gText_GymRewardReceivedEgg::
-	.string "{PLAYER} received the EGG.$"
+	.string "{PLAYER} received the {STR_VAR_3} EGG.$"
 
 gText_GymRewardEggHatch::
 	.string "Keep it with you as you travel,\n"

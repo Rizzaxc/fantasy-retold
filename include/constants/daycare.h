@@ -25,4 +25,20 @@
 #define DAYCARE_TRAINING_AT_CAP    2
 #define DAYCARE_TRAINING_NO_MONEY  3
 
+// Fantasy Retold: Hyper Training by the daycare man (design.md §10)
+#define HYPER_TRAINING_PRICE      1000
+#define HYPER_TRAINING_OK         0
+#define HYPER_TRAINING_EGG        1
+#define HYPER_TRAINING_ALL_MAXED  2
+#define HYPER_TRAINING_STAT_ROWS  6 // NUM_STATS, which scripts can't read (an enum); also the Cancel row's id
+
+// Fantasy Retold: Signature Training by the daycare man (design.md §10)
+#define SIGNATURE_TRAINING_PRICE          5000
+#define SIGNATURE_TRAINING_OK             0
+#define SIGNATURE_TRAINING_EGG            1
+#define SIGNATURE_TRAINING_NOT_FINAL      2
+#define SIGNATURE_TRAINING_HAS_SIGNATURE  3
+#define SIGNATURE_TRAINING_NO_MASTERED    4
+#define SIGNATURE_TRAINING_CANCEL         4 // MAX_MON_MOVES: the Cancel row's id, after the mastered moves
+
 #endif //GUARD_DAYCARE_CONSTANTS_H

@@ -640,8 +640,9 @@ gSpecials::
 	def_special CheckAddCoins
 	def_special GymReward_IsClaimed
 	def_special GymReward_SetClaimed
-	def_special GymReward_BufferType
-	def_special GymReward_RollItem
+	def_special GymReward_RollOffer
+	def_special GymReward_GetHeldItem
+	def_special GymReward_GetStatItem
 	def_special GymReward_GiveEgg
 	def_special EggShop_Restock
 	def_special EggShop_BufferMenu
@@ -651,6 +652,13 @@ gSpecials::
 	def_special DaycareTraining_BufferOffer
 	def_special DaycareTraining_Charge
 	def_special DaycareTraining_LevelUpMon, waitstate=1
+	def_special HyperTraining_CheckMon
+	def_special HyperTraining_BufferStatRow
+	def_special HyperTraining_CanTrainStat
+	def_special HyperTraining_Train
+	def_special SignatureTraining_CheckMon
+	def_special SignatureTraining_BufferMove
+	def_special SignatureTraining_Commit
 	def_special SelectMenu_BufferLabels
 	def_special SelectMenu_ToggleRepel
 	def_special SelectMenu_ToggleExpShare

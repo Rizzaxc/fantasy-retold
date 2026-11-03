@@ -207,6 +207,7 @@ Walls get the same breadth as attackers: four abilities, each answering one of a
 
 ### Notes
 
+* **Mints** change the true nature, so they change the innate too (§10 Mints).
 * **Meaningful trade, not an upgrade:** Adamant (Sheer Force: power, no status) vs a +Atk Reckless nature (Super Luck: crit/Trauma, keeps status). Each wall ability likewise answers one threat while leaving the others open — Resilient shrugs off Special Trauma but not crit Trauma, Toxic or status; Natural Cure cleanses status but not a Trauma nuke; Battle Armor stops crits but not statuses.
 * **Off-meta uplift:** handing Regenerator / Natural Cure to the off-meta walls (Relaxed, Lax, Sassy, Gentle) gives them a reason to see play.
 * **[Alt — Jolly/Timid]** On-KO snowball (Moxie / Grim Neigh, +1 Atk/SpA per KO) remains an offense-flavored option, naturally capped by halved damage.
@@ -414,7 +415,7 @@ Every Pokémon features an integrated Signature Move that sits outside the tradi
 * **Storage.** `SaveBlock1.moveUseRecords[PARTY_SIZE]` (`struct MoveUseRecord`): one record per Pokémon, keyed by personality, holding up to 4 move IDs with their counts (bits 0–6, saturating at 127; bit 7 = mastery announced). A Pokémon that needs a record takes a free one, else one of a Pokémon no longer in the party, else the least-used one, so a deposited Pokémon keeps its progress until its record is reused. A move it no longer knows gives its entry to a new move unless it is mastered. These records replaced the old per-slot counters (which leaked counts from one Pokémon to whoever took its party slot); every Pokémon started again from 0.
 * **"Mastered" prompt.** Before a battle closes (not after a loss, nor in link / Frontier / e-Reader battles), each newly mastered move prints *"X mastered Y!"*, plus *"Once fully evolved, it can make a mastered move its Signature Move!"* if X isn't fully evolved (`TryAnnounceMasteredMove` in `HandleEndTurn_FinishBattle`, `BattleScript_FRMoveMastered` / `...NotFinal`). Once per move.
 * **Committing it.** A Signature Move is **never assigned automatically**. When a Pokémon **evolves into its final stage** (evolution scene: level up, Rare Candy, items) with at least one mastered move it still knows and no Signature Move, the scene says *"X can commit a mastered move as its Signature Move!"* and opens the move selection screen (`ShowSelectSignatureMoveSummaryScreen_BW`; the row below the moves is "Cancel"). Only a mastered move can be picked (others play the error sound), then *"Make Y its Signature Move?"*: Yes commits it (*"Y became X's Signature Move!"*), No goes back to the selection. Cancel / B gives *"X didn't commit a Signature Move."* This runs before the evolution's new moves are learned. The move then **leaves the four-slot moveset**, freeing that slot (later moves, their PP and PP Ups shift up), and the Pokémon's move records start over (`CommitSignatureMove`). Trade evolutions don't offer it (a traded-in Pokémon has no mastered moves). Saves that still hold the signature in a slot are fixed up after battle and after evolution (`FixUpSignatureMove(s)`).
-* **TODO: earning one later.** A Pokémon that refused, mastered a move only after reaching its final stage (or never evolves), or forgot its Signature Move at the Move Relearner has no way to commit one yet; this path is still to be designed.
+* **Earning one later.** A Pokémon that refused, mastered a move only after reaching its final stage (or never evolves), or forgot its Signature Move at the Move Relearner can commit one at the **Day-Care Man** for ¥5,000, under the same rule (§ Daycare Training, Signature Training).
 * **Forgetting it.** The Move Relearner lists the Signature Move first on the level-up list (after the Tera Type entry, when the player has the Tera Orb) as *"Y (Sig.)"* (so `START RELEARN` / the NPC relearner show up for it). Picking it asks *"Make X forget its Signature Move, Y?"*; Yes clears it and the Pokémon's move records (*"Its uses count from 0 again."*). It is not put back into a slot; since it no longer counts as known, it can be relearned like any move. (`ForgetSignatureMove`, `move_relearner.c`.)
 * **Knowing it.** The Signature Move counts as known: level-up learning, TMs and tutors treat it as already learned, so it can't be re-added to a slot.
 * **Using it.** It is picked from the innate menu (L on the move screen). It has **exactly 8 PP** (`SIGNATURE_MOVE_PP`, no PP Ups) that **persist between battles**, like a slot move's PP: healing (Pokémon Center, whiting out, `HealPlayerParty`, depositing in the PC) refills them, and a newly earned Signature Move starts full. Using it pays the normal Stamina action cost (BP/10 + Body Tax) as well. The menu shows `PP n/8` and its type. Disable, Taunt, Encore, Choice lock etc. still apply through the engine's normal checks. In doubles it currently uses the move's default target (no manual target pick yet).
@@ -469,9 +470,9 @@ EXP rewards fighting opponents near your own level and discourages both over-lev
 
 ### Gym Leader Rewards
 
-After the badge and TM, each Hoenn gym leader offers **one extra reward, picked by the player**:
+After the badge and TM, each Hoenn gym leader offers **one extra reward, picked by the player from three**. All three are rolled up front and shown by name in the menu, so there is no mystery: the prompt is just *"You may choose one of these rewards."*
 
-* **A random competitive held item**, drawn evenly from one pool shared by every gym (`sGymRewardItems`, `src/gym_reward.c`), rolled when the player picks it (so backing out and talking again can't fish for a specific item):
+* **Held item.** A competitive held item, drawn evenly from one pool shared by every gym (`sGymRewardItems`, `src/gym_reward.c`):
   * *Power:* Choice Band / Specs / Scarf, Life Orb, Expert Belt, Muscle Band, Wise Glasses, Scope Lens, Razor Claw, King's Rock, Wide Lens, Zoom Lens, Metronome, Loaded Dice, Punching Glove, Throat Spray, Weakness Policy, Blunder Policy, Power Herb.
   * *Bulk / sustain:* Leftovers, Black Sludge, Shell Bell, Big Root, Assault Vest, Eviolite, Rocky Helmet, Focus Sash, Focus Band, Sitrus Berry, Lum Berry.
   * *Utility:* Quick Claw, Bright Powder, Air Balloon, Heavy-Duty Boots, Safety Goggles, Protective Pads, Covert Cloak, Clear Amulet, Ability Shield, Utility Umbrella, Mental / White / Mirror Herb, Red Card, Eject Button, Eject Pack, Room Service, Adrenaline Orb, Shed Shell, Toxic Orb, Flame Orb, Iron Ball.
@@ -479,19 +480,31 @@ After the badge and TM, each Hoenn gym leader offers **one extra reward, picked 
 
   Type-boosting items, Plates, Mega Stones, Z-Crystals and species-only items (Light Ball, Thick Club, ...) are left out.
 
-* **The gym's type** (used by the Egg): Roxanne Rock, Brawly Fighting, Wattson Electric, Flannery Fire, Norman Normal, Winona Flying, Tate & Liza Psychic, Juan Water.
+* **Stat item.** Evenly one of **Bottle Cap** (spent on Hyper Training, § Daycare Training), **Ability Capsule**, **Ability Patch** (both upstream behaviour) or a **mint**. Mints change the **true nature**, innate included (§ Mints below). The mint is **Serious 10%** of the time (it stands in for every neutral nature); otherwise one of six innate groups, **15% each**, then evenly within the group:
+  * *Standard offense:* Adamant, Modest, Jolly, Timid.
+  * *Super Luck:* Lonely, Brave, Naughty, Mild, Quiet, Rash, Hasty, Naive.
+  * *Battle Armor:* Bold, Impish. *Resilient:* Calm, Careful. *Regenerator:* Relaxed, Lax. *Natural Cure:* Sassy, Gentle.
 
-* **Or an Egg** of a random species that shares the gym's type, rolled when the player picks it. The pool is every first-stage species (default form only, so no regional / Mega / battle forms) that:
+* **Egg** of a random species that shares the gym's type, shown by species (`<SPECIES> EGG`). The gym types: Roxanne Rock, Brawly Fighting, Wattson Electric, Flannery Fire, Norman Normal, Winona Flying, Tate & Liza Psychic, Juan Water. The pool is every first-stage species (default form only, so no regional / Mega / battle forms) that:
   * has the gym's type itself (the hatchling, not a later evolution);
+  * reaches **BST ≥ 500** (`GYM_REWARD_EGG_MIN_BST`): the highest BST among the final evolutions of its line (`GetLineBST`, shared with Lab Research), so Larvitar qualifies through Tyranitar, while Talonflame's line (499) does not;
   * is not restricted / sub-legendary, mythical, an Ultra Beast or Paradox;
   * is **not from Hoenn**: neither it nor anything it evolves into has a Hoenn Pokédex number (so Pichu is out, Pikachu being in the Hoenn dex);
   * isn't an Undiscovered-group species that never evolves (Unown and the like; babies are allowed).
 
-  The species is hidden until it hatches. With a full party the Egg goes to the PC (and says so); only when the PC is full too is it refused.
+  With a full party the Egg goes to the PC (and says so); only when the PC is full too is it refused.
 
-**Flow.** The offer is a two-option menu (`HELD ITEM` / `EGG`). A full bag, or a full party *and* PC, says so and returns to the menu; **B** puts it off, and the leader offers it again whenever talked to until it is claimed. It is offered once per gym (rematches don't repeat it).
+**Flow.** The offer is a three-row menu (held item / stat item / Egg). It is rolled the first time the leader offers it and **kept until claimed**: **B** puts it off, and the leader offers the **same three** again whenever talked to, so backing out can't fish for a better roll. A full bag, or a full party *and* PC, says so and returns to the menu. It is offered once per gym (rematches don't repeat it).
 
-* **Engine.** `Common_EventScript_GymReward` (`data/scripts/gym_reward.inc`), called with `VAR_0x8008` = gym number at the end of each gym's give-TM scripts and in the leader's post-battle talk once the TM is owned. Specials: `GymReward_IsClaimed` / `GymReward_SetClaimed` (`FLAG_GYM_REWARD_1`–`_8`, the old unused flags 0x21–0x28), `GymReward_BufferType` (type name for the offer), `GymReward_RollItem`, `GymReward_GiveEgg` (`PickEggRewardSpecies`, then `ScriptGiveEgg`). Kanto (FRLG) gyms are not hooked.
+* **Engine.** `Common_EventScript_GymReward` (`data/scripts/gym_reward.inc`), called with `VAR_0x8008` = gym number at the end of each gym's give-TM scripts and in the leader's post-battle talk once the TM is owned. Specials: `GymReward_IsClaimed` / `GymReward_SetClaimed` (`FLAG_GYM_REWARD_1`–`_8`, the old unused flags 0x21–0x28), `GymReward_RollOffer` (rolls the offer unless the stored one is this gym's, and buffers the names in `STR_VAR_1`–`3`; it runs again each time the menu shows, since `giveitem` overwrites them), `GymReward_GetHeldItem` / `GymReward_GetStatItem`, `GymReward_GiveEgg` (the stored species, via `ScriptGiveEgg`). The offer lives in `VAR_GYM_REWARD_GYM` (gym number it was rolled for, 0 once claimed), `VAR_GYM_REWARD_HELD_ITEM`, `VAR_GYM_REWARD_STAT_ITEM` and `VAR_GYM_REWARD_EGG_SPECIES` (the old unused 0x4091, 0x409B, 0x409D, 0x40A1); one offer is stored at a time, and an unclaimed older gym's offer is rerolled when it comes back. Stat item: `RollStatItem`, mint groups `sMintGroups`. Kanto (FRLG) gyms are not hooked.
+
+### Mints
+
+Mints change the Pokémon's **true nature**, not just its stat growth, so the nature's innate (§5) changes with it. This applies to every mint in the game, wherever it comes from.
+
+* **Use.** From the bag, as upstream: *"It will change X's nature."*, Yes → *"X's nature became Y!"*. No effect only when both the true nature and the stat nature are already the mint's.
+* **What is kept.** Gender, shininess, ability slot, Tera Type, IVs, EVs and everything else in the data; the old stat-only override (hidden nature) is reset to the new nature. Only cosmetics read from the personality's upper bits can change (Spinda's spots, and similar).
+* **Engine.** `SetMonNature` (`pokemon.c`): shifts the personality by 256 × *k* (each step moves the nature by 6 mod 25, so every nature is reachable without touching the gender byte), rewrites it with `UpdateMonPersonality`, sets `MON_DATA_HIDDEN_NATURE` to the new nature and recalculates stats. Called from `Task_Mint` (`party_menu.c`). Mint descriptions read *"Changes nature; raises X and lowers Y."*
 
 ### Tera Orb
 
@@ -583,7 +596,7 @@ From the **4th gym** on, every gym leader's first fight follows one set of rules
 The Route 117 **Day-Care Lady** also sells Eggs. Talking to her opens `DAY-CARE` / `BUY AN EGG` (B leaves); `DAY-CARE` is the vanilla flow. The shop is a **money sink**: prices are deliberately steep.
 
 * **Stock.** Three Eggs, **one per tier** (Starter, Strong, Powerhouse, in that order), each sold as **`<REGION> <TIER> EGG`** (e.g. `KANTO POWERHOUSE EGG`). Only the region is rolled, **evenly** among the regions that have at least one species in the tier. A bought slot shows `SOLD OUT`. With all three sold she says she has none left.
-* **Species is a surprise.** Like the gym Egg, the species is rolled **when the Egg is bought**, evenly among that tier's species of that region, and stays hidden until it hatches.
+* **Species is a surprise.** Unlike the gym Egg (shown by name), the species is rolled **when the Egg is bought**, evenly among that tier's species of that region, and stays hidden until it hatches.
 * **Region** of a species: a regional form belongs to its form's region (Galarian Slowpoke → Galar, Paldean Wooper → Paldea, Hisuian Sneasel and White-Striped Basculin → Hisui); otherwise it's the region where its National Dex number debuted.
 * **Prices.** Starter **¥30,000**, Strong **¥60,000**, Powerhouse **¥120,000**. The money is taken only once the Egg is given (party, or PC when the party is full; refused when both are full).
 * **Refresh.** The stock rolls again after every **gym badge**, **rival battle** (May / Brendan on Route 103, Rustboro / Route 104, Route 110, Route 119, Lilycove; Wally in Mauville and at Victory Road) and **Elite Four clear** (Hall of Fame entry). It is refreshed lazily: the shop counts those milestones when opened and rerolls if the count changed since the last stock, so several milestones between visits give one fresh stock. The first visit always stocks.
@@ -595,12 +608,32 @@ The Route 117 **Day-Care Lady** also sells Eggs. Talking to her opens `DAY-CARE`
 
 ### Daycare Training
 
-The Route 117 **Day-Care Man** trains party Pokémon for money. Talking to him opens `DAY-CARE` / `TRAINING` (B leaves); `DAY-CARE` is the vanilla flow (Egg pickup, checking on the mons).
+The Route 117 **Day-Care Man** trains party Pokémon for money. Talking to him opens `DAY-CARE` / `TRAINING` / `HYPER TRAIN` / `SIGNATURE` (B leaves; Hyper and Signature Training below); `DAY-CARE` is the vanilla flow (Egg pickup, checking on the mons).
 
 * **Price.** **¥200 per level**, paid up front.
 * **Cap.** He only trains up to **the party's highest level − 5** (Eggs don't count). A Pokémon already at or above that is refused, as are Eggs.
 * **Flow.** Pick a party Pokémon; he offers `ONE LEVEL` or `TO LV. n`, where *n* is the highest level the player can afford, up to the cap (the message shows its price). The level up plays out like a **Rare Candy** on the party menu: stats window, level-up moves (with the replace-a-move prompt), then evolution. One Pokémon per conversation: backing out of the party menu or the offer, a refusal, or a finished training ends it.
 * **Engine.** `Common_EventScript_DaycareTraining` (`data/scripts/daycare_training.inc`, texts there too), reached from `Route117_EventScript_DaycareMan`. Specials in `src/daycare_training.c`: `DaycareTraining_BufferOffer` (slot in `VAR_0x8004`; returns `DAYCARE_TRAINING_*` from `constants/daycare.h`, sets `VAR_0x8005` = affordable target, `VAR_0x8006` = level + 1) and `DaycareTraining_Charge` (takes the fee for slot `VAR_0x8004` → level `VAR_0x8005`). The level up is `DaycareTraining_LevelUpMon` in `party_menu.c` (it needs the Rare Candy flow's statics): it opens the party menu on the slot, sets EXP to the target level's threshold, and hands off to `Task_DisplayLevelUpStatsPg1` with `gSpecialVar_ItemId = ITEM_NONE` so the flow closes back to the script. Tunables: `DAYCARE_TRAINING_PRICE`, `DAYCARE_TRAINING_LEVEL_GAP`.
+
+#### Hyper Training
+
+The Day-Care Man also does **Hyper Training** (`HYPER TRAIN` on his menu).
+
+* **Price.** **¥1,000 and one Bottle Cap per stat**, both consumed. The Bottle Cap can't be used from the bag (*"The Day-Care Man uses it to max out one stat's IV."*); gym rewards hand them out (§ Gym Leader Rewards).
+* **No level requirement**, unlike upstream Hyper Training at Lv. 100.
+* **Flow.** Without a Bottle Cap or the money he says so and ends. Otherwise pick a party Pokémon (Eggs refused, a Pokémon with every stat maxed is refused), then a stat: `HP` / `ATTACK` / `DEFENSE` / `SP. ATK` / `STAMINA` / `SPEED` / `CANCEL`, each row showing its IV or `MAX` (IV 31 or already trained). A maxed stat is refused. A YES/NO confirm with the money box, then *"X's STAT is now maxed out!"*.
+* **Looping.** While the player still has a Bottle Cap and ¥1,000 he goes back to the stat list for the **same** Pokémon (to the party picker once it is fully maxed); B on the stat list goes back to the party picker, B there leaves. Out of caps or money, he says so and ends.
+* **Effect.** Sets the stat's **hyper-trained flag** (`MON_DATA_HYPER_TRAINED_*`), which the stat calc reads as IV 31; the stored IV, and so Hidden Power, is unchanged.
+* **Engine.** `Common_EventScript_HyperTraining` (`data/scripts/daycare_training.inc`, texts there too), reached from `Route117_EventScript_DaycareMan`. Specials in `src/daycare_training.c` (party slot in `VAR_0x8004`, stat in `VAR_0x8005`): `HyperTraining_CheckMon` (`HYPER_TRAINING_*` in `constants/daycare.h`), `HyperTraining_BufferStatRow` (row `VAR_0x8005` → `STR_VAR_2`, returns the stat; the rows are pushed with `dynmultipush`), `HyperTraining_CanTrainStat`, `HyperTraining_Train` (takes the fee and the cap, sets the flag, recalculates stats). Tunable: `HYPER_TRAINING_PRICE`.
+
+#### Signature Training
+
+The Day-Care Man also commits a **Signature Move** (`SIGNATURE` on his menu), for Pokémon that can't get one by evolving (§ Signature Moves).
+
+* **Price.** **¥5,000**, taken on Yes. Without it he says so and ends.
+* **Rule.** The same as on evolving into the final stage (`CanCommitSignatureMove`): the Pokémon is **fully evolved**, has **no Signature Move**, and the move is **mastered** and still in its four slots. Each failure has its own line, back to the party picker: Egg, not fully evolved, already has one (*the Move Relearner can make it forget that one first*), nothing mastered.
+* **Flow.** Pick a party Pokémon, then one of its mastered moves (`CANCEL` / B goes back to the party picker), then a YES/NO confirm with the money box: *"Make Y X's SIGNATURE MOVE for ¥5,000?"* → *"Y became X's SIGNATURE MOVE!"*. The commit is the evolution one (`CommitSignatureMove`): the move leaves its slot, PP 8/8, the move records start over. One Pokémon per conversation.
+* **Engine.** `Common_EventScript_SignatureTraining` (`data/scripts/daycare_training.inc`). Specials in `src/daycare_training.c` (party slot in `VAR_0x8004`, row among the mastered moves in `VAR_0x8005`): `SignatureTraining_CheckMon` (`SIGNATURE_TRAINING_*` in `constants/daycare.h`; `VAR_0x8006` = mastered move count, for the `dynmultipush` loop), `SignatureTraining_BufferMove`, `SignatureTraining_Commit` (re-checks the rule and the money). Tunable: `SIGNATURE_TRAINING_PRICE`.
 
 ### Mart TMs
 
@@ -711,13 +744,15 @@ Pressing **SELECT** in the overworld opens a small menu (it replaces vanilla's d
 | Items      | Choice items                    | no Dodge / Recuperate; Band/Specs skip repeat-trap; Scarf never fully Dodged |
 | Items      | Bag in battle                   | none in trainer battles; big-battle trainers carry no items        |
 | AI         | Smart Trainer extras            | bonus cap +3, never on a KO move; decisive speed control +4        |
-| Gym reward | Choice per gym                  | random held item (shared pool), or Egg: random non-Hoenn, non-legendary, gym type |
+| Gym reward | Choice of 3 per gym, rolled and shown up front | held item (shared pool) / stat item (Bottle Cap, Ability Capsule, Ability Patch, mint, 1/4 each; mint: Serious 10%, six innate groups 15% each) / Egg: non-Hoenn, non-legendary, gym type, line BST ≥ 500 |
 | Tera Orb   | Roxanne, after her gym reward  | always charged; Terastallize once per battle (START); Tera Type on the summary; changed for free at the Move Relearner; any mon relearns Tera Blast |
 | Gimmick ring | Wattson, pick one (permanent) | Mega Ring or Z-Ring; Birch then gives the starter's Mega Stone / type Z-Crystal; Game Corner: stock of 3 unowned Mega Stones (4,000 coins) + 3 Z-Crystals (3,000), restocked per badge / rival / E4 clear |
 | Guest leader | Gyms 4–8, first fight      | 24% per roll in release builds, 100% in dev (rerolled on whiteout); Kanto guest of another type, once per save; tag team / doubles / guest only, 1/3 each, locked till win or whiteout; ace = home ace, EVs × level; top 3 each in tag / doubles |
 | Lineups    | Gyms 4–8, rivals from Rustboro | 6 mons (gym type), 31 IVs, EVs +80 per gym (Wattson 240 → cap 510), 1 Mega + 1 Tera, Signature Move on every fully evolved member, Smart Trainer AI; rematches (gyms 3–8) 6-mon doubles, +80 EVs per tier, one swap per tier; E4 / Champion +6 Lv |
 | Egg shop   | Prices (Starter / Strong / Powerhouse) | ¥30,000 / ¥60,000 / ¥120,000; one `<REGION> <TIER> EGG` per tier, region and species uniform (species hidden), restocked per badge / rival / E4 clear |
 | Daycare training | ¥200 per level | up to the party's highest level − 5; Rare Candy flow (moves, evolution) |
+| Hyper Training | ¥1,000 + Bottle Cap per stat | Day-Care Man; any level; sets the hyper-trained flag; loops while caps and money last |
+| Signature Training | ¥5,000 | Day-Care Man; fully evolved, no Signature Move, mastered move still known (the evolution rule) |
 | Mart TMs   | 5 per Hoenn town mart, ¥5,000 | fixed per save (trainer ID); 42-TM pool (no HMs, no gym TMs), no repeats within a mart, first 8 marts disjoint; listed as `TM08 Bulk Up` |
 | Lab trade  | 2 party Pokémon → 1 reward       | Lv5 first-stage, non-Hoenn, non-legendary; line shares a rolled input type; line BST > both inputs; IVs best of 2 per stat; 1 per badge / E4 clear; typed from the 4th; Rare Candy if no reward |
 | Pacing     | Time-to-death (physical)        | frail 5–7 / mid 7–10 / giga 10+ turns                              |

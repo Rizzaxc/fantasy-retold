@@ -1575,7 +1575,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Lonely Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Attack and\n"
             "lowers Defense."),
         .pocket = POCKET_ITEMS,
@@ -1593,7 +1593,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Adamant Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Attack and\n"
             "lowers Sp. Atk."),
         .pocket = POCKET_ITEMS,
@@ -1611,7 +1611,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Naughty Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Attack and\n"
             "lowers Stamina."),
         .pocket = POCKET_ITEMS,
@@ -1629,7 +1629,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Brave Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Attack and\n"
             "lowers Speed."),
         .pocket = POCKET_ITEMS,
@@ -1647,7 +1647,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Bold Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Defense and\n"
             "lowers Attack."),
         .pocket = POCKET_ITEMS,
@@ -1665,7 +1665,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Impish Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Defense and\n"
             "lowers Sp. Atk."),
         .pocket = POCKET_ITEMS,
@@ -1683,7 +1683,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Lax Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Defense and\n"
             "lowers Stamina."),
         .pocket = POCKET_ITEMS,
@@ -1701,7 +1701,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Relaxed Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Defense and\n"
             "lowers Speed."),
         .pocket = POCKET_ITEMS,
@@ -1719,7 +1719,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Modest Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Sp. Atk and\n"
             "lowers Attack."),
         .pocket = POCKET_ITEMS,
@@ -1737,7 +1737,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Mild Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Sp. Atk and\n"
             "lowers Defense."),
         .pocket = POCKET_ITEMS,
@@ -1755,7 +1755,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Rash Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Sp. Atk and\n"
             "lowers Stamina."),
         .pocket = POCKET_ITEMS,
@@ -1773,7 +1773,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Quiet Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Sp. Atk and\n"
             "lowers Speed."),
         .pocket = POCKET_ITEMS,
@@ -1791,7 +1791,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Calm Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Stamina and\n"
             "lowers Attack."),
         .pocket = POCKET_ITEMS,
@@ -1809,7 +1809,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Gentle Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Stamina and\n"
             "lowers Defense."),
         .pocket = POCKET_ITEMS,
@@ -1827,7 +1827,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Careful Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Stamina and\n"
             "lowers Sp. Atk."),
         .pocket = POCKET_ITEMS,
@@ -1845,7 +1845,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Sassy Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Stamina and\n"
             "lowers Speed."),
         .pocket = POCKET_ITEMS,
@@ -1863,7 +1863,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Timid Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Speed and\n"
             "lowers Attack."),
         .pocket = POCKET_ITEMS,
@@ -1881,7 +1881,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Hasty Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Speed and\n"
             "lowers Defense."),
         .pocket = POCKET_ITEMS,
@@ -1899,7 +1899,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Jolly Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Speed and\n"
             "lowers Sp. Atk."),
         .pocket = POCKET_ITEMS,
@@ -1917,7 +1917,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Naive Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "raises Speed and\n"
             "lowers Stamina."),
         .pocket = POCKET_ITEMS,
@@ -1935,7 +1935,7 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Serious Mint"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 20,
         .description = COMPOUND_STRING(
-            "When smelled, it\n"
+            "Changes nature;\n"
             "makes a Pokémon's\n"
             "stats grow equally."),
         .pocket = POCKET_ITEMS,
@@ -2608,9 +2608,9 @@ const struct ItemInfo gItemsInfo[] =
         .name = ITEM_NAME("Bottle Cap"),
         .price = (I_PRICE >= GEN_9) ? 20000 : 5000,
         .description = COMPOUND_STRING(
-            "A beautiful bottle\n"
-            "cap that gives off\n"
-            "a silver gleam."),
+            "The Day-Care Man\n"
+            "uses it to max out\n"
+            "one stat's IV."),
         .pocket = POCKET_ITEMS,
         .sortType = ITEM_TYPE_SELLABLE,
         .type = ITEM_USE_BAG_MENU,

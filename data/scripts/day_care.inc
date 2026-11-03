@@ -1,11 +1,13 @@
 Route117_EventScript_DaycareMan::
 	lock
 	faceplayer
-	@ Fantasy Retold: he also trains POKéMON (design.md §10).
+	@ Fantasy Retold: he also trains POKéMON, and does Hyper and Signature Training (design.md §10).
 	message Route117_Text_DayCareOrTraining
 	waitmessage
-	dynmultichoice 19, 6, FALSE, 2, 0, DYN_MULTICHOICE_CB_NONE, gText_EggShopChoiceDayCare, gText_DaycareTrainingChoice
+	dynmultichoice 19, 4, FALSE, 4, 0, DYN_MULTICHOICE_CB_NONE, gText_EggShopChoiceDayCare, gText_DaycareTrainingChoice, gText_HyperTrainingChoice, gText_SignatureTrainingChoice
 	goto_if_eq VAR_RESULT, 1, Common_EventScript_DaycareTraining
+	goto_if_eq VAR_RESULT, 2, Common_EventScript_HyperTraining
+	goto_if_eq VAR_RESULT, 3, Common_EventScript_SignatureTraining
 	goto_if_ne VAR_RESULT, 0, Common_EventScript_DaycareTrainingLeave
 	special GetDaycareMonNicknames
 	specialvar VAR_RESULT, GetDaycareState
