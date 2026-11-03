@@ -1,6 +1,7 @@
 #include "global.h"
 #include "item_ball.h"
 #include "event_data.h"
+#include "gimmick_reward.h"
 #include "constants/event_objects.h"
 #include "constants/items.h"
 
@@ -27,6 +28,15 @@ static u32 GetItemBallIdFromTemplate(u32 itemBallId)
 void GetItemBallIdAndAmountFromTemplate(void)
 {
     u32 itemBallId = (gSpecialVar_LastTalked - 1);
+    // Vitamin / X-item / repel balls give a seeded Mega Stone or Z-Crystal instead (design.md §2).
+    u16 gimmickItem = GetOverworldGimmickItem(gMapHeader.events->objectEvents[itemBallId].flagId);
+
+    if (gimmickItem != ITEM_NONE)
+    {
+        gSpecialVar_Result = gimmickItem;
+        gSpecialVar_0x8009 = 1;
+        return;
+    }
     gSpecialVar_Result = GetItemBallIdFromTemplate(itemBallId);
     gSpecialVar_0x8009 = GetItemBallAmountFromTemplate(itemBallId);
 }

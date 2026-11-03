@@ -22,12 +22,37 @@
 
 static EWRAM_DATA u8 sBirchGimmickCallSteps = 0;
 
-// A Mega Stone counts only if some enabled species Mega Evolves with it. One species scan marks them all.
+static bool32 IsLegendarySpecies(enum Species species)
+{
+    const struct SpeciesInfo *info = &gSpeciesInfo[species];
+
+    return info->isRestrictedLegendary || info->isSubLegendary || info->isMythical;
+}
+
+// Species Z-Crystals of legendary / mythical Pokémon, left out of the Game Corner like their Mega Stones.
+static bool32 IsLegendaryZCrystal(enum Item item)
+{
+    switch (item)
+    {
+    case ITEM_MEWNIUM_Z:
+    case ITEM_TAPUNIUM_Z:
+    case ITEM_SOLGANIUM_Z:
+    case ITEM_LUNALIUM_Z:
+    case ITEM_MARSHADIUM_Z:
+    case ITEM_ULTRANECROZIUM_Z:
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
+// A Mega Stone counts only if some enabled, non-legendary species Mega Evolves with it. One species scan marks
+// them all.
 static void MarkUsableMegaStones(u8 *usable)
 {
     for (enum Species species = 1; species < NUM_SPECIES; species++)
     {
-        if (!IsSpeciesEnabled(species))
+        if (!IsSpeciesEnabled(species) || IsLegendarySpecies(species))
             continue;
         const struct FormChange *formChanges = GetSpeciesFormChanges(species);
         if (formChanges == NULL)
@@ -61,12 +86,15 @@ static const enum HoldEffect sGameCornerStockHoldEffects[] =
 
 static const u8 sText_SoldOut[] = _("SOLD OUT");
 
-// Not in the bag yet; a Mega Stone also needs some enabled species that Mega Evolves with it.
+// Not in the bag yet; a Mega Stone also needs some enabled, non-legendary species that Mega Evolves with it, and a
+// Z-Crystal must not be a legendary's.
 static bool32 IsStockCandidate(enum Item item, enum HoldEffect holdEffect, const u8 *usableStones)
 {
     if (GetItemHoldEffect(item) != holdEffect || CheckBagHasItem(item, 1))
         return FALSE;
     if (holdEffect == HOLD_EFFECT_MEGA_STONE && !(usableStones[item / 8] & (1 << (item % 8))))
+        return FALSE;
+    if (holdEffect == HOLD_EFFECT_Z_CRYSTAL && IsLegendaryZCrystal(item))
         return FALSE;
     return TRUE;
 }
@@ -237,4 +265,215 @@ bool32 ShouldDoBirchGimmickCall(void)
     default:
         return FALSE;
     }
+}
+
+// Overworld Mega Stones / Z-Crystals (design.md §2). Every Hoenn vitamin, X-item and repel pick-up (item ball or
+// hidden item) gives one instead. The table is rolled from the trainer ID, so it is fixed per save and stored nowhere.
+
+#define OW_GIMMICK_SEED      0x4F574D5A // "OWMZ"
+#define OW_GIMMICK_MEGA_ODDS 2          // Mega Stone 2 times in 3, else a type Z-Crystal
+
+// Spots by pick-up flag, in rough story order.
+static const u16 sOverworldGimmickSpots[] =
+{
+    FLAG_ITEM_ROUTE_103_GUARD_SPEC,
+    FLAG_ITEM_ROUTE_104_X_ACCURACY,
+    FLAG_ITEM_PETALBURG_WOODS_X_ATTACK,
+    FLAG_ITEM_RUSTBORO_CITY_X_DEFEND,
+    FLAG_ITEM_ROUTE_116_X_SPECIAL,
+    FLAG_ITEM_ROUTE_116_HP_UP,
+    FLAG_ITEM_ROUTE_116_REPEL,
+    FLAG_ITEM_ROUTE_105_IRON,
+    FLAG_ITEM_ROUTE_106_PROTEIN,
+    FLAG_ITEM_GRANITE_CAVE_B2F_REPEL,
+    FLAG_ITEM_ROUTE_110_DIRE_HIT,
+    FLAG_ITEM_MAUVILLE_CITY_X_SPEED,
+    FLAG_HIDDEN_ITEM_ROUTE_117_REPEL,
+    FLAG_ITEM_ROUTE_111_HP_UP,
+    FLAG_HIDDEN_ITEM_ROUTE_111_PROTEIN,
+    FLAG_ITEM_ROUTE_113_SUPER_REPEL,
+    FLAG_ITEM_ROUTE_114_PROTEIN,
+    FLAG_HIDDEN_ITEM_ROUTE_114_CARBOS,
+    FLAG_ITEM_ROUTE_115_IRON,
+    FLAG_HIDDEN_ITEM_ROUTE_118_IRON,
+    FLAG_ITEM_ROUTE_119_ZINC,
+    FLAG_HIDDEN_ITEM_ROUTE_119_CALCIUM,
+    FLAG_ITEM_ROUTE_119_SUPER_REPEL,
+    FLAG_HIDDEN_ITEM_ROUTE_120_ZINC,
+    FLAG_ITEM_ROUTE_121_CARBOS,
+    FLAG_ITEM_ROUTE_121_ZINC,
+    FLAG_HIDDEN_ITEM_ROUTE_121_HP_UP,
+    FLAG_ITEM_LILYCOVE_CITY_MAX_REPEL,
+    FLAG_ITEM_SAFARI_ZONE_NORTH_CALCIUM,
+    FLAG_HIDDEN_ITEM_SAFARI_ZONE_NORTH_EAST_ZINC,
+    FLAG_ITEM_ROUTE_123_CALCIUM,
+    FLAG_HIDDEN_ITEM_ROUTE_123_SUPER_REPEL,
+    FLAG_ITEM_MT_PYRE_3F_SUPER_REPEL,
+    FLAG_HIDDEN_ITEM_MT_PYRE_SUMMIT_ZINC,
+    FLAG_HIDDEN_ITEM_UNDERWATER_124_CARBOS,
+    FLAG_HIDDEN_ITEM_UNDERWATER_124_CALCIUM,
+    FLAG_HIDDEN_ITEM_UNDERWATER_126_IRON,
+    FLAG_HIDDEN_ITEM_UNDERWATER_127_HP_UP,
+    FLAG_HIDDEN_ITEM_UNDERWATER_128_PROTEIN,
+    FLAG_ITEM_ROUTE_127_ZINC,
+    FLAG_ITEM_ROUTE_127_CARBOS,
+    FLAG_ITEM_ROUTE_132_PROTEIN,
+    FLAG_ITEM_ROUTE_134_CARBOS,
+    FLAG_HIDDEN_ITEM_VICTORY_ROAD_B2F_MAX_REPEL,
+    FLAG_ITEM_ARTISAN_CAVE_1F_CARBOS,
+    FLAG_ITEM_ARTISAN_CAVE_B1F_HP_UP,
+    FLAG_HIDDEN_ITEM_ARTISAN_CAVE_B1F_ZINC,
+    FLAG_HIDDEN_ITEM_ARTISAN_CAVE_B1F_CALCIUM,
+    FLAG_HIDDEN_ITEM_ARTISAN_CAVE_B1F_PROTEIN,
+    FLAG_HIDDEN_ITEM_ARTISAN_CAVE_B1F_IRON,
+};
+
+#define OW_GIMMICK_SPOTS ARRAY_COUNT(sOverworldGimmickSpots)
+
+enum
+{
+    OW_GIMMICK_MEGA,
+    OW_GIMMICK_Z,
+    OW_GIMMICK_CATEGORIES,
+};
+
+struct OverworldGimmickPools
+{
+    u16 items[OW_GIMMICK_CATEGORIES][MAX_STOCK_CANDIDATES];
+    u8 counts[OW_GIMMICK_CATEGORIES];
+};
+
+// Mega side: the Game Corner's Mega Stones. Z side: the 18 type Z-Crystals only.
+static void BuildOverworldGimmickPools(struct OverworldGimmickPools *pools)
+{
+    u8 usableStones[(ITEMS_COUNT + 7) / 8] = {0};
+
+    MarkUsableMegaStones(usableStones);
+    pools->counts[OW_GIMMICK_MEGA] = 0;
+    for (enum Item item = ITEM_NONE + 1; item < ITEMS_COUNT && pools->counts[OW_GIMMICK_MEGA] < MAX_STOCK_CANDIDATES; item++)
+    {
+        if (GetItemHoldEffect(item) == HOLD_EFFECT_MEGA_STONE && (usableStones[item / 8] & (1 << (item % 8))))
+            pools->items[OW_GIMMICK_MEGA][pools->counts[OW_GIMMICK_MEGA]++] = item;
+    }
+    pools->counts[OW_GIMMICK_Z] = 0;
+    for (enum Item item = ITEM_NORMALIUM_Z; item <= ITEM_FAIRIUM_Z; item++)
+        pools->items[OW_GIMMICK_Z][pools->counts[OW_GIMMICK_Z]++] = item;
+}
+
+static void ShuffleItems(u16 *items, u32 count, rng_value_t *rng)
+{
+    for (u32 i = count; i > 1; i--)
+    {
+        u32 j = LocalRandom(rng) % i;
+        u16 temp = items[i - 1];
+
+        items[i - 1] = items[j];
+        items[j] = temp;
+    }
+}
+
+// Each spot flips Mega / Z, then takes the next item of that category's shuffled pool, so no item is seeded twice.
+// A spent category falls back to the other one. Shuffles the pools in place (the reroll doesn't care about order).
+static void RollOverworldGimmickTable(struct OverworldGimmickPools *pools, u16 *table)
+{
+    u32 next[OW_GIMMICK_CATEGORIES] = {0};
+    rng_value_t rng = LocalRandomSeed(READ_OTID_FROM_SAVE ^ OW_GIMMICK_SEED);
+
+    for (u32 category = 0; category < OW_GIMMICK_CATEGORIES; category++)
+        ShuffleItems(pools->items[category], pools->counts[category], &rng);
+    for (u32 spot = 0; spot < OW_GIMMICK_SPOTS; spot++)
+    {
+        u32 category = (LocalRandom(&rng) % 3 < OW_GIMMICK_MEGA_ODDS) ? OW_GIMMICK_MEGA : OW_GIMMICK_Z;
+
+        if (next[category] >= pools->counts[category])
+            category ^= 1;
+        if (next[category] < pools->counts[category])
+            table[spot] = pools->items[category][next[category]++];
+        else
+            table[spot] = ITEM_RARE_CANDY;
+    }
+}
+
+// In the bag or held by a party Pokémon.
+static bool32 IsGimmickItemOwned(u16 item)
+{
+    if (CheckBagHasItem(item, 1))
+        return TRUE;
+    for (u32 i = 0; i < PARTY_SIZE; i++)
+    {
+        if (GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM) == item)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// Seeded on a spot other than this one that hasn't been picked up yet.
+static bool32 IsSeededOnOtherSpot(u16 item, const u16 *table, u32 spot)
+{
+    for (u32 other = 0; other < OW_GIMMICK_SPOTS; other++)
+    {
+        if (other != spot && table[other] == item && !FlagGet(sOverworldGimmickSpots[other]))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+static bool32 IsRerollCandidate(u16 item, bool32 seededElsewhere, const u16 *table, u32 spot)
+{
+    return !IsGimmickItemOwned(item) && IsSeededOnOtherSpot(item, table, spot) == seededElsewhere;
+}
+
+// The item at a replaced pick-up, by its flag; ITEM_NONE if the flag isn't one of the spots. A seeded item the
+// player already owns is rerolled, uniformly within the first non-empty tier: same category not seeded on another
+// unpicked spot, other category likewise, same category seeded elsewhere, other category seeded elsewhere. The
+// reroll is seeded by the trainer ID and the spot, so it only changes with what the player owns. Nothing left:
+// Rare Candy.
+u16 GetOverworldGimmickItem(u32 flag)
+{
+    struct OverworldGimmickPools pools;
+    u16 table[OW_GIMMICK_SPOTS];
+    u32 spot;
+
+    for (spot = 0; spot < OW_GIMMICK_SPOTS; spot++)
+    {
+        if (sOverworldGimmickSpots[spot] == flag)
+            break;
+    }
+    if (spot == OW_GIMMICK_SPOTS)
+        return ITEM_NONE;
+
+    BuildOverworldGimmickPools(&pools);
+    RollOverworldGimmickTable(&pools, table);
+
+    u16 seeded = table[spot];
+    if (seeded == ITEM_RARE_CANDY || !IsGimmickItemOwned(seeded))
+        return seeded;
+
+    rng_value_t rng = LocalRandomSeed(READ_OTID_FROM_SAVE ^ (OW_GIMMICK_SEED + flag));
+    u32 seededCategory = (GetItemHoldEffect(seeded) == HOLD_EFFECT_MEGA_STONE) ? OW_GIMMICK_MEGA : OW_GIMMICK_Z;
+
+    for (u32 tier = 0; tier < 4; tier++)
+    {
+        u32 category = (tier % 2 == 0) ? seededCategory : (seededCategory ^ 1);
+        bool32 seededElsewhere = (tier >= 2);
+        u32 count = 0;
+
+        for (u32 i = 0; i < pools.counts[category]; i++)
+        {
+            if (IsRerollCandidate(pools.items[category][i], seededElsewhere, table, spot))
+                count++;
+        }
+        if (count == 0)
+            continue;
+
+        u32 pick = LocalRandom(&rng) % count;
+        for (u32 i = 0; i < pools.counts[category]; i++)
+        {
+            u16 item = pools.items[category][i];
+
+            if (IsRerollCandidate(item, seededElsewhere, table, spot) && pick-- == 0)
+                return item;
+        }
+    }
+    return ITEM_RARE_CANDY;
 }

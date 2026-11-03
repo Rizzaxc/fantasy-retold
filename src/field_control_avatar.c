@@ -471,6 +471,13 @@ static const u8 *GetInteractedBackgroundEventScript(struct MapPosition *position
         gSpecialVar_0x8009 = bgEvent->bgUnion.hiddenItem.quantity;
         if (FlagGet(gSpecialVar_0x8004) == TRUE)
             return NULL;
+        // Hidden vitamins / repels give a seeded Mega Stone or Z-Crystal instead (design.md §2).
+        u16 gimmickItem = GetOverworldGimmickItem(gSpecialVar_0x8004);
+        if (gimmickItem != ITEM_NONE)
+        {
+            gSpecialVar_0x8005 = gimmickItem;
+            gSpecialVar_0x8009 = 1;
+        }
         return EventScript_HiddenItemScript;
     case BG_EVENT_SECRET_BASE:
         if (direction == DIR_NORTH)

@@ -3454,6 +3454,15 @@ static void DoBattleIntro(void)
                 // Fantasy Retold: initialize Stamina as early as possible so no code path
                 // can observe the AllocZeroed default of 0 (which triggers exhaustion auto-crit).
                 gBattleStruct->battlerState[battler].currentStamina = GetBaseStamina(battler);
+                // Fantasy Retold: the opening send-outs never pass through SwitchInClearSetData, so seed their
+                // status rails from the incoming party status here (combat.md §6, After battle). Without this a
+                // lead's rails stay empty and the after-battle write wipes its persisted Lv2+ lines.
+                if (!(gAbsentBattlerFlags & (1u << battler)))
+                {
+                    ReconcileStatusRailsFromBridge(battler);
+                    SeedStatusRailsFromSavedStatus(battler);
+                    SyncStatusRailBridge(battler);
+                }
             }
 
 #define UNPACK_STARTING_STATUS_TO_BATTLE(_enum, _fieldName, ...) gStartingStatuses._fieldName = (statusesOpponentA._fieldName || statusesOpponentB._fieldName || gStartingStatuses._fieldName);
