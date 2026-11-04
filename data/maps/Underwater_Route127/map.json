@@ -62,7 +62,7 @@
       "x": 50,
       "y": 36,
       "elevation": 3,
-      "item": "ITEM_HP_UP",
+      "item": "ITEM_RARE_CANDY",
       "flag": "FLAG_HIDDEN_ITEM_UNDERWATER_127_HP_UP"
     },
     {

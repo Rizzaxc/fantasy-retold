@@ -71,7 +71,7 @@ SSAnne_2F_Room2_EventScript_ItemStardust::
 	end
 
 SSAnne_2F_Room4_EventScript_ItemXAttack::
-	finditem ITEM_X_ATTACK
+	finditem ITEM_RARE_CANDY
 	end
 
 SSAnne_B1F_Room2_EventScript_ItemTM44::
@@ -103,7 +103,7 @@ RocketHideout_B1F_EventScript_ItemHyperPotion::
 	end
 
 RocketHideout_B2F_EventScript_ItemXSpeed::
-	finditem ITEM_X_SPEED
+	finditem ITEM_RARE_CANDY
 	end
 
 RocketHideout_B2F_EventScript_ItemMoonStone::
@@ -135,7 +135,7 @@ RocketHideout_B4F_EventScript_ItemMaxEther::
 	end
 
 RocketHideout_B4F_EventScript_ItemCalcium::
-	finditem ITEM_CALCIUM
+	finditem ITEM_RARE_CANDY
 	end
 
 PokemonTower_3F_EventScript_ItemEscapeRope::
@@ -163,7 +163,7 @@ PokemonTower_6F_EventScript_ItemRareCandy::
 	end
 
 PokemonTower_6F_EventScript_ItemXAccuracy::
-	finditem ITEM_X_ACCURACY
+	finditem ITEM_RARE_CANDY
 	end
 
 Route12_EventScript_ItemTM48::
@@ -171,7 +171,7 @@ Route12_EventScript_ItemTM48::
 	end
 
 Route12_EventScript_ItemIron::
-	finditem ITEM_IRON
+	finditem ITEM_RARE_CANDY
 	end
 
 Route15_EventScript_ItemTM18::
@@ -199,7 +199,7 @@ SafariZone_East_EventScript_ItemLeafStone::
 	end
 
 SafariZone_North_EventScript_ItemProtein::
-	finditem ITEM_PROTEIN
+	finditem ITEM_RARE_CANDY
 	end
 
 SafariZone_North_EventScript_ItemTM47::
@@ -239,7 +239,7 @@ SilphCo_4F_EventScript_ItemFullHeal::
 	end
 
 SilphCo_5F_EventScript_ItemProtein::
-	finditem ITEM_PROTEIN
+	finditem ITEM_RARE_CANDY
 	end
 
 SilphCo_5F_EventScript_ItemTM01::
@@ -251,7 +251,7 @@ SilphCo_5F_EventScript_ItemCardKey::
 	end
 
 SilphCo_6F_EventScript_ItemHPUp::
-	finditem ITEM_HP_UP
+	finditem ITEM_RARE_CANDY
 	end
 
 SilphCo_6F_EventScript_ItemXSpecial::
@@ -259,7 +259,7 @@ SilphCo_6F_EventScript_ItemXSpecial::
 	end
 
 SilphCo_7F_EventScript_ItemCalcium::
-	finditem ITEM_CALCIUM
+	finditem ITEM_RARE_CANDY
 	end
 
 SilphCo_7F_EventScript_ItemTM08::
@@ -267,7 +267,7 @@ SilphCo_7F_EventScript_ItemTM08::
 	end
 
 SilphCo_10F_EventScript_ItemCarbos::
-	finditem ITEM_CARBOS
+	finditem ITEM_RARE_CANDY
 	end
 
 SilphCo_10F_EventScript_ItemUltraBall::
@@ -299,7 +299,7 @@ PowerPlant_EventScript_ItemElixir::
 	end
 
 PokemonMansion_1F_EventScript_ItemCarbos::
-	finditem ITEM_CARBOS
+	finditem ITEM_RARE_CANDY
 	end
 
 PokemonMansion_1F_EventScript_ItemEscapeRope::
@@ -307,7 +307,7 @@ PokemonMansion_1F_EventScript_ItemEscapeRope::
 	end
 
 PokemonMansion_2F_EventScript_ItemCalcium::
-	finditem ITEM_CALCIUM
+	finditem ITEM_RARE_CANDY
 	end
 
 PokemonMansion_3F_EventScript_ItemMaxPotion::
@@ -315,7 +315,7 @@ PokemonMansion_3F_EventScript_ItemMaxPotion::
 	end
 
 PokemonMansion_3F_EventScript_ItemIron::
-	finditem ITEM_IRON
+	finditem ITEM_RARE_CANDY
 	end
 
 PokemonMansion_B1F_EventScript_ItemTM14::
@@ -343,7 +343,7 @@ VictoryRoad_1F_EventScript_ItemTM02::
 	end
 
 VictoryRoad_2F_EventScript_ItemGuardSpec::
-	finditem ITEM_GUARD_SPEC
+	finditem ITEM_RARE_CANDY
 	end
 
 VictoryRoad_2F_EventScript_ItemTM07::
@@ -407,7 +407,7 @@ TwoIsland_EventScript_ItemRevive::
 	end
 
 ThreeIsland_EventScript_ItemZinc::
-	finditem ITEM_ZINC
+	finditem ITEM_RARE_CANDY
 	end
 
 ViridianForest_EventScript_ItemPotion2::
@@ -431,7 +431,7 @@ Route9_EventScript_ItemBurnHeal::
 	end
 
 RockTunnel_1F_EventScript_ItemRepel::
-	finditem ITEM_REPEL
+	finditem ITEM_RARE_CANDY
 	end
 
 RockTunnel_1F_EventScript_ItemPearl::
@@ -451,23 +451,23 @@ RockTunnel_B1F_EventScript_ItemMaxEther::
 	end
 
 SilphCo_8F_EventScript_ItemIron::
-	finditem ITEM_IRON
+	finditem ITEM_RARE_CANDY
 	end
 
 SilphCo_11F_EventScript_ItemZinc::
-	finditem ITEM_ZINC
+	finditem ITEM_RARE_CANDY
 	end
 
 PokemonMansion_1F_EventScript_ItemProtein::
-	finditem ITEM_PROTEIN
+	finditem ITEM_RARE_CANDY
 	end
 
 PokemonMansion_2F_EventScript_ItemZinc::
-	finditem ITEM_ZINC
+	finditem ITEM_RARE_CANDY
 	end
 
 PokemonMansion_2F_EventScript_ItemHPUp::
-	finditem ITEM_HP_UP
+	finditem ITEM_RARE_CANDY
 	end
 
 ViridianCity_EventScript_ItemPotion::
@@ -531,11 +531,11 @@ OneIsland_KindleRoad_EventScript_ItemEther::
 	end
 
 OneIsland_KindleRoad_EventScript_ItemMaxRepel::
-	finditem ITEM_MAX_REPEL
+	finditem ITEM_RARE_CANDY
 	end
 
 OneIsland_KindleRoad_EventScript_ItemCarbos::
-	finditem ITEM_CARBOS
+	finditem ITEM_RARE_CANDY
 	end
 
 FiveIsland_Meadow_EventScript_ItemMaxPotion::
@@ -567,7 +567,7 @@ SixIsland_RuinValley_EventScript_ItemFullRestore::
 	end
 
 SixIsland_RuinValley_EventScript_ItemHPUp::
-	finditem ITEM_HP_UP
+	finditem ITEM_RARE_CANDY
 	end
 
 SixIsland_RuinValley_EventScript_ItemSunStone::
@@ -607,7 +607,7 @@ MtEmber_Exterior_EventScript_ItemFireStone::
 	end
 
 MtEmber_Exterior_EventScript_ItemDireHit::
-	finditem ITEM_DIRE_HIT
+	finditem ITEM_RARE_CANDY
 	end
 
 FourIsland_IcefallCave_1F_EventScript_ItemUltraBall::

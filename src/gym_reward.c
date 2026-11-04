@@ -129,6 +129,17 @@ static enum Item RollStatItem(void)
     }
 }
 
+// Fantasy Retold: shared with the Game Corner prizes (design.md §2, Game Corner Prizes)
+enum Item RollGymRewardHeldItem(void)
+{
+    return sGymRewardItems[Random() % ARRAY_COUNT(sGymRewardItems)];
+}
+
+enum Item RollGymRewardStatItem(void)
+{
+    return RollStatItem();
+}
+
 // TRUE if the species or anything it evolves into has a Hoenn Pokédex number. Shared with the egg shop.
 bool32 IsInHoennFamily(enum Species species, u32 depth)
 {

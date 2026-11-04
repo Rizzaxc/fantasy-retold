@@ -182,7 +182,7 @@
       "x": 61,
       "y": 5,
       "elevation": 0,
-      "item": "ITEM_MAX_REPEL",
+      "item": "ITEM_RARE_CANDY",
       "flag": "FLAG_HIDDEN_ITEM_THREE_ISLAND_BOND_BRIDGE_MAX_REPEL",
       "quantity": 1,
       "underfoot": false

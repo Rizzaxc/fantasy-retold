@@ -36,6 +36,7 @@ PetalburgCity_Gym_EventScript_UnlockAllDoors::
 	return
 
 PetalburgCity_Gym_OnTransition:
+	setflag FLAG_TEMP_HIDE_GUEST_LEADER @ guest leader entrance, design.md §2
 	call_if_eq VAR_PETALBURG_GYM_STATE, 1, PetalburgCity_Gym_EventScript_MoveWallyToEntrance
 	call_if_lt VAR_PETALBURG_GYM_STATE, 6, PetalburgCity_Gym_EventScript_MoveNormanToEntrance
 	call_if_set FLAG_SYS_GAME_CLEAR, PetalburgCity_Gym_EventScript_CheckNormanForRematch
@@ -1598,3 +1599,44 @@ PetalburgCity_Gym_Text_NormanRematchNeedTwoMons:
 	.string "Sorry, but you'll have to come back\n"
 	.string "with at least two POKéMON.$"
 
+
+@ Fantasy Retold: guest leader entrance (design.md §2, Overworld). Called by Common_EventScript_GuestLeaderEnter.
+@ The guest comes through the door of Norman's room, like a challenger, and walks up beside him.
+PetalburgCity_Gym_EventScript_GuestLeaderEnter::
+	getplayerxy VAR_0x8004, VAR_0x8006
+	goto_if_ne VAR_0x8004, 5, PetalburgCity_Gym_EventScript_GuestLeaderSpawn
+	goto_if_ne VAR_0x8006, 2, PetalburgCity_Gym_EventScript_GuestLeaderSpawn
+	setobjectxyperm LOCALID_PETALBURG_GYM_GUEST_LEADER, 2, 7
+PetalburgCity_Gym_EventScript_GuestLeaderSpawn::
+	playse SE_DOOR
+	addobject LOCALID_PETALBURG_GYM_GUEST_LEADER
+	delay 8
+	goto_if_ne VAR_0x8004, 5, PetalburgCity_Gym_EventScript_GuestLeaderToA
+	goto_if_ne VAR_0x8006, 2, PetalburgCity_Gym_EventScript_GuestLeaderToA
+	applymovement LOCALID_PETALBURG_GYM_GUEST_LEADER, PetalburgCity_Gym_Movement_GuestLeaderToB
+	goto PetalburgCity_Gym_EventScript_GuestLeaderArrive
+PetalburgCity_Gym_EventScript_GuestLeaderToA::
+	applymovement LOCALID_PETALBURG_GYM_GUEST_LEADER, PetalburgCity_Gym_Movement_GuestLeaderToA
+PetalburgCity_Gym_EventScript_GuestLeaderArrive::
+	waitmovement 0
+	applymovement LOCALID_PETALBURG_GYM_GUEST_LEADER, Common_Movement_GuestLeaderArrive
+	waitmovement 0
+	return
+
+PetalburgCity_Gym_Movement_GuestLeaderToA:
+	walk_up
+	walk_up
+	walk_up
+	walk_left
+	walk_up
+	walk_up
+	step_end
+
+PetalburgCity_Gym_Movement_GuestLeaderToB:
+	walk_up
+	walk_up
+	walk_up
+	walk_right
+	walk_up
+	walk_up
+	step_end

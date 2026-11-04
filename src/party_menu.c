@@ -5874,7 +5874,7 @@ static void Task_LearnedMove(u8 taskId)
     if (gPartyMenu.learnMoveState == 0)
     {
         AdjustFriendship(mon, FRIENDSHIP_EVENT_LEARN_TMHM);
-        if (!GetItemImportance(item))
+        if (!GetItemImportance(item) && !IsReusableTM(item)) // Fantasy Retold: design.md §2, Reusable TMs
             RemoveBagItem(item, 1);
     }
     GetMonNickname(mon, gStringVar1);

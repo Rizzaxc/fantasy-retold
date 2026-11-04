@@ -216,7 +216,7 @@
       "x": 34,
       "y": 18,
       "elevation": 0,
-      "item": "ITEM_PROTEIN",
+      "item": "ITEM_RARE_CANDY",
       "flag": "FLAG_HIDDEN_ITEM_SILPH_CO_3F_PROTEIN",
       "quantity": 1,
       "underfoot": false

@@ -4,6 +4,7 @@ FortreeCity_Gym_MapScripts::
 	.byte 0
 
 FortreeCity_Gym_OnTransition:
+	setflag FLAG_TEMP_HIDE_GUEST_LEADER @ guest leader entrance, design.md §2
 	special RotatingGate_InitPuzzle
 	setflag FLAG_TEMP_HIDE_FOLLOWER @ Hide follower bc of rotating gates
 	end
@@ -327,3 +328,46 @@ FortreeCity_Gym_Text_WinonaRematchNeedTwoMons:
 	.string "POKéMON with you?\p"
 	.string "Please return with two POKéMON\n"
 	.string "at the very least.$"
+
+@ Fantasy Retold: guest leader entrance (design.md §2, Overworld). Called by Common_EventScript_GuestLeaderEnter.
+@ The guest walks in along the catwalk west of Winona's perch (from 7,4, off-screen) and climbs up beside her.
+FortreeCity_Gym_EventScript_GuestLeaderEnter::
+	getplayerxy VAR_0x8004, VAR_0x8006
+	addobject LOCALID_FORTREE_GYM_GUEST_LEADER
+	goto_if_ne VAR_0x8004, 14, FortreeCity_Gym_EventScript_GuestLeaderToA
+	goto_if_ne VAR_0x8006, 2, FortreeCity_Gym_EventScript_GuestLeaderToA
+	applymovement LOCALID_FORTREE_GYM_GUEST_LEADER, FortreeCity_Gym_Movement_GuestLeaderToB
+	goto FortreeCity_Gym_EventScript_GuestLeaderArrive
+FortreeCity_Gym_EventScript_GuestLeaderToA::
+	applymovement LOCALID_FORTREE_GYM_GUEST_LEADER, FortreeCity_Gym_Movement_GuestLeaderToA
+FortreeCity_Gym_EventScript_GuestLeaderArrive::
+	waitmovement 0
+	applymovement LOCALID_FORTREE_GYM_GUEST_LEADER, Common_Movement_GuestLeaderArrive
+	waitmovement 0
+	return
+
+FortreeCity_Gym_Movement_GuestLeaderToA:
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_up
+	walk_up
+	step_end
+
+FortreeCity_Gym_Movement_GuestLeaderToB:
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_up
+	walk_up
+	step_end

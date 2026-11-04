@@ -339,6 +339,12 @@ static enum Species PickEggShopSpecies(enum EggShopTier tier, enum Region region
     return SPECIES_NONE;
 }
 
+// Fantasy Retold: any region's Powerhouse species, for the Game Corner prizes (design.md §2, Game Corner Prizes)
+enum Species PickEggShopPowerhouseSpecies(void)
+{
+    return PickEggShopSpecies(EGG_SHOP_POWERHOUSE, REGIONS_COUNT);
+}
+
 static bool32 IsEggShopSlotInStock(u32 slot)
 {
     return (VarGet(sEggShopSlotVars[slot]) & EGG_SHOP_IN_STOCK) != 0;

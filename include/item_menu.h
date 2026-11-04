@@ -75,7 +75,7 @@ struct BagMenu
     u8 tilemapBuffer[BG_SCREEN_SIZE];
     u8 spriteIds[ITEMMENUSPRITE_COUNT];
     u8 windowIds[ITEMWIN_COUNT];
-    u8 toSwapPos;
+    u16 toSwapPos; // Fantasy Retold: pockets hold over 255 slots (design.md §2, Bag Space)
     u8 pocketSwitchDisabled:4;
     u8 itemIconSlot:2;
     u8 inhibitItemDescriptionPrint:1;
@@ -86,8 +86,8 @@ struct BagMenu
     const u8 *contextMenuItemsPtr;
     u8 contextMenuItemsBuffer[4];
     u8 contextMenuNumItems;
-    u8 numItemStacks[POCKETS_COUNT];
-    u8 numShownItems[POCKETS_COUNT];
+    u16 numItemStacks[POCKETS_COUNT];
+    u16 numShownItems[POCKETS_COUNT];
     s16 graphicsLoadState;
     u8 unused2[14];
     u8 ALIGNED(4) pocketNameBuffer[32][32];
@@ -105,7 +105,7 @@ void CB2_BagMenuFromBattle(void);
 void UpdatePocketListPosition(u8 pocketId);
 void CB2_ReturnToBagMenuPocket(void);
 void CB2_BagMenuFromStartMenu(void);
-u8 GetItemListPosition(u8 pocketId);
+u16 GetItemListPosition(u8 pocketId);
 bool8 UseRegisteredKeyItemOnField(void);
 void CB2_GoToSellMenu(void);
 void GoToBagMenu(u8 location, u8 pocket, MainCallback exitCallback);

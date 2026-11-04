@@ -6,6 +6,7 @@ MossdeepCity_Gym_MapScripts::
 @ NOTE: Mossdeep Gym was redesigned between R/S and E. Leftover (and now functionally unused) scripts are commented below
 
 MossdeepCity_Gym_OnTransition:
+	setflag FLAG_TEMP_HIDE_GUEST_LEADER @ guest leader entrance, design.md §2
 	setflag FLAG_TEMP_HIDE_FOLLOWER @ Hide follower since it can collide with moving statues
 	end
 
@@ -661,3 +662,37 @@ MossdeepCity_Gym_Text_TateAndLizaRematchNeedTwoMons:
 	.string "LIZA: You brought just one POKéMON!\p"
 	.string "TATE: We need you to bring at least…\n"
 	.string "LIZA: Two POKéMON when you come back.$"
+
+@ Fantasy Retold: guest leader entrance (design.md §2, Overworld). Called by Common_EventScript_GuestLeaderEnter.
+@ The guest teleports in on the warp pad (21,10) and steps up behind the player, beside the twins' dais. The tiles
+@ beside Tate & Liza are walls and the player always talks to them from row 8, so there is only one spot (22,9).
+MossdeepCity_Gym_EventScript_GuestLeaderEnter::
+	playse SE_WARP_IN
+	addobject LOCALID_MOSSDEEP_GYM_GUEST_LEADER
+	applymovement LOCALID_MOSSDEEP_GYM_GUEST_LEADER, MossdeepCity_Gym_Movement_GuestLeaderEnter
+	waitmovement 0
+	applymovement LOCALID_MOSSDEEP_GYM_GUEST_LEADER, Common_Movement_GuestLeaderArrive
+	waitmovement 0
+	return
+
+MossdeepCity_Gym_Movement_GuestLeaderEnter:
+	face_down
+	delay_2
+	face_left
+	delay_2
+	face_up
+	delay_2
+	face_right
+	delay_2
+	face_down
+	delay_2
+	face_left
+	delay_2
+	face_up
+	delay_2
+	face_right
+	delay_2
+	face_down
+	walk_up
+	walk_right
+	step_end

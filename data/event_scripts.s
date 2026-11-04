@@ -45,6 +45,7 @@
 #include "constants/lab_research.h"
 #include "constants/paradox_lab.h"
 #include "constants/gimmick_reward.h"
+#include "constants/game_corner_prize.h"
 #include "constants/mart_tms.h"
 #include "constants/layouts.h"
 #include "constants/lilycove_lady.h"

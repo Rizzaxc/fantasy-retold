@@ -6,6 +6,7 @@ SootopolisCity_Gym_1F_MapScripts::
 	.byte 0
 
 SootopolisCity_Gym_1F_OnTransition:
+	setflag FLAG_TEMP_HIDE_GUEST_LEADER @ guest leader entrance, design.md §2
 	setvar VAR_ICE_STEP_COUNT, 1
 	end
 
@@ -327,3 +328,43 @@ SootopolisCity_Gym_1F_Text_JuanRematchNeedTwoMons:
 	.string "I wish that you would return with\n"
 	.string "two, perhaps more, POKéMON, please.$"
 
+
+@ Fantasy Retold: guest leader entrance (design.md §2, Overworld). Called by Common_EventScript_GuestLeaderEnter.
+@ The guest steps out of a side alcove of Juan's dais (13,2 east, 3,2 west) and walks along it to his side. The
+@ stair below (8,4-8,5) is the only other way in, and the player blocks it.
+SootopolisCity_Gym_1F_EventScript_GuestLeaderEnter::
+	getplayerxy VAR_0x8004, VAR_0x8006
+	goto_if_ne VAR_0x8004, 9, SootopolisCity_Gym_1F_EventScript_GuestLeaderSpawn
+	goto_if_ne VAR_0x8006, 2, SootopolisCity_Gym_1F_EventScript_GuestLeaderSpawn
+	setobjectxyperm LOCALID_SOOTOPOLIS_GYM_GUEST_LEADER, 3, 2
+SootopolisCity_Gym_1F_EventScript_GuestLeaderSpawn::
+	addobject LOCALID_SOOTOPOLIS_GYM_GUEST_LEADER
+	goto_if_ne VAR_0x8004, 9, SootopolisCity_Gym_1F_EventScript_GuestLeaderToA
+	goto_if_ne VAR_0x8006, 2, SootopolisCity_Gym_1F_EventScript_GuestLeaderToA
+	applymovement LOCALID_SOOTOPOLIS_GYM_GUEST_LEADER, SootopolisCity_Gym_1F_Movement_GuestLeaderToB
+	goto SootopolisCity_Gym_1F_EventScript_GuestLeaderArrive
+SootopolisCity_Gym_1F_EventScript_GuestLeaderToA::
+	applymovement LOCALID_SOOTOPOLIS_GYM_GUEST_LEADER, SootopolisCity_Gym_1F_Movement_GuestLeaderToA
+SootopolisCity_Gym_1F_EventScript_GuestLeaderArrive::
+	waitmovement 0
+	applymovement LOCALID_SOOTOPOLIS_GYM_GUEST_LEADER, Common_Movement_GuestLeaderArrive
+	waitmovement 0
+	return
+
+SootopolisCity_Gym_1F_Movement_GuestLeaderToA:
+	walk_down
+	walk_left
+	walk_left
+	walk_left
+	walk_left
+	walk_up
+	step_end
+
+SootopolisCity_Gym_1F_Movement_GuestLeaderToB:
+	walk_down
+	walk_right
+	walk_right
+	walk_right
+	walk_right
+	walk_up
+	step_end

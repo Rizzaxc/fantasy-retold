@@ -160,11 +160,11 @@ __attribute__((section(".text.header_gf"))) USED static const struct GFRomHeader
     .gcnLinkFlagsOffset = offsetof(struct SaveBlock2, gcnLinkFlags),
     .gameClearFlag = FLAG_SYS_GAME_CLEAR,
     .ribbonFlag = FLAG_SYS_RIBBON_GET,
-    .bagCountItems = BAG_ITEMS_COUNT,
+    .bagCountItems = min(BAG_ITEMS_COUNT, 255), // u8 field
     .bagCountKeyItems = BAG_KEYITEMS_COUNT,
-    .bagCountPokeballs = BAG_POKEBALLS_COUNT,
+    .bagCountPokeballs = min(BAG_POKEBALLS_COUNT, 255), // u8 field
     .bagCountTMHMs = BAG_TMHM_COUNT,
-    .bagCountBerries = BAG_BERRIES_COUNT,
+    .bagCountBerries = min(BAG_BERRIES_COUNT, 255), // u8 field
     .pcItemsCount = PC_ITEMS_COUNT,
     .pcItemsOffset = offsetof(struct SaveBlock1, pcItems),
     .giftRibbonsOffset = offsetof(struct SaveBlock1, giftRibbons),

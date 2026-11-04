@@ -40,6 +40,7 @@
 #include "constants/decorations.h"
 #include "constants/event_objects.h"
 #include "constants/items.h"
+#include "reusable_tm.h"
 #include "constants/mart_tms.h"
 #include "constants/metatile_behaviors.h"
 #include "constants/rgb.h"
@@ -165,6 +166,7 @@ static void BuyMenuPrintItemDescriptionAndShowItemIcon(s32 item, bool8 onInit, s
 static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y);
 static void BuyMenuAppendMartTMs(void);
 static u32 BuyMenuGetItemPrice(enum Item item);
+static bool32 IsSoldOutForPlayer(enum Item item);
 
 static const struct YesNoFuncTable sShopPurchaseYesNoFuncs =
 {
@@ -689,7 +691,7 @@ static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y)
                 6);
         }
 
-        if (GetItemImportance(itemId) && (CheckBagHasItem(itemId, 1) || CheckPCHasItem(itemId, 1)))
+        if (IsSoldOutForPlayer(itemId))
             StringCopy(gStringVar4, gText_SoldOut);
         else
             StringExpandPlaceholders(gStringVar4, gText_PokedollarVar1);
@@ -749,28 +751,74 @@ static void GetMartTMs(u32 stockId, enum Item *tms)
         tms[i] = pool[((stockId - 1) * MART_TMS_PER_MART + i) % count];
 }
 
+// Every town mart's evolution items: a slice of one shuffle of the classic evo pool, as for the TMs
+static void GetMartEvoItems(u32 stockId, enum Item *items)
+{
+    enum Item pool[32];
+    u32 i, j, temp, count = min(GetClassicEvoItemCount(), ARRAY_COUNT(pool));
+    rng_value_t rng = LocalRandomSeed(READ_OTID_FROM_SAVE ^ 0x4D45564F); // "MEVO"
+
+    for (i = 0; i < count; i++)
+        pool[i] = GetClassicEvoItem(i);
+
+    for (i = count - 1; i > 0; i--)
+    {
+        j = LocalRandom32(&rng) % (i + 1);
+        SWAP(pool[i], pool[j], temp);
+    }
+
+    for (i = 0; i < MART_EVO_ITEMS_PER_MART; i++)
+        items[i] = pool[((stockId - 1) * MART_EVO_ITEMS_PER_MART + i) % count];
+}
+
+static bool32 IsMartEvoItem(enum Item item)
+{
+    enum Item items[MART_EVO_ITEMS_PER_MART];
+    u32 i;
+
+    if (sMartInfo.tmStockId == MART_TMS_NONE || sMartInfo.tmStockId > MART_TMS_COUNT)
+        return FALSE;
+    GetMartEvoItems(sMartInfo.tmStockId, items);
+    for (i = 0; i < MART_EVO_ITEMS_PER_MART; i++)
+    {
+        if (items[i] == item)
+            return TRUE;
+    }
+    return FALSE;
+}
+
 // Runs after TryBuildDynamicShopItemList, so the list being replaced is that function's allocation
 // (TryFreeDynamicShopItemList then frees this one and restores the script's list).
+// Owned TMs are left out (design.md §2, Reusable TMs); the evolution items always show.
 static void BuyMenuAppendMartTMs(void)
 {
-    enum Item tms[MART_TMS_PER_MART];
+    enum Item extra[MART_TMS_PER_MART + MART_EVO_ITEMS_PER_MART];
     u16 *list;
     u32 i, j, count = sMartInfo.itemCount;
 
     if (sMartInfo.tmStockId == MART_TMS_NONE || sMartInfo.tmStockId > MART_TMS_COUNT)
         return;
 
-    GetMartTMs(sMartInfo.tmStockId, tms);
-    list = Alloc((count + MART_TMS_PER_MART + 1) * sizeof(*list));
+    GetMartTMs(sMartInfo.tmStockId, extra);
+    GetMartEvoItems(sMartInfo.tmStockId, &extra[MART_TMS_PER_MART]);
+    for (i = 0; i < MART_TMS_PER_MART; i++)
+    {
+        if (PlayerOwnsItem(extra[i]))
+            extra[i] = ITEM_NONE;
+    }
+
+    list = Alloc((count + ARRAY_COUNT(extra) + 1) * sizeof(*list));
     for (i = 0; i < count; i++)
         list[i] = sMartInfo.itemList[i];
 
-    for (i = 0; i < MART_TMS_PER_MART; i++)
+    for (i = 0; i < ARRAY_COUNT(extra); i++)
     {
-        for (j = 0; j < sMartInfo.itemCount && list[j] != tms[i]; j++)
+        if (extra[i] == ITEM_NONE)
+            continue;
+        for (j = 0; j < sMartInfo.itemCount && list[j] != extra[i]; j++)
             ;
         if (j == sMartInfo.itemCount)
-            list[count++] = tms[i];
+            list[count++] = extra[i];
     }
     list[count] = ITEM_NONE;
 
@@ -779,12 +827,24 @@ static void BuyMenuAppendMartTMs(void)
     sMartInfo.itemCount = count;
 }
 
+// One copy only: an owned key item, or an owned TM (design.md §2, Reusable TMs)
+static bool32 IsSoldOutForPlayer(enum Item item)
+{
+    if (GetItemImportance(item))
+        return CheckBagHasItem(item, 1) || CheckPCHasItem(item, 1);
+    if (IsReusableTM(item))
+        return PlayerOwnsItem(item);
+    return FALSE;
+}
+
 static u32 BuyMenuGetItemPrice(enum Item item)
 {
     u32 price = GetItemPrice(item);
 
     if (sMartInfo.tmStockId != MART_TMS_NONE && GetItemPocket(item) == POCKET_TM_HM)
         price = MART_TM_PRICE;
+    else if (IsMartEvoItem(item))
+        price = MART_EVO_ITEM_PRICE;
 
     return price >> IsPokeNewsActive(POKENEWS_SLATEPORT);
 }
@@ -1150,7 +1210,7 @@ static void Task_BuyMenu(u8 taskId)
             else
                 sShopData->totalCost = gDecorations[itemId].price;
 
-            if (GetItemImportance(itemId) && (CheckBagHasItem(itemId, 1) || CheckPCHasItem(itemId, 1)))
+            if (IsSoldOutForPlayer(itemId))
                 BuyMenuDisplayMessage(taskId, gText_ThatItemIsSoldOut, BuyMenuReturnToItemList);
             else if (!IsEnoughMoney(&gSaveBlock1Ptr->money, sShopData->totalCost))
             {
@@ -1161,7 +1221,7 @@ static void Task_BuyMenu(u8 taskId)
                 if (sMartInfo.martType == MART_TYPE_NORMAL)
                 {
                     CopyItemName(itemId, gStringVar1);
-                    if (GetItemImportance(itemId))
+                    if (GetItemImportance(itemId) || IsReusableTM(itemId))
                     {
                         ConvertIntToDecimalStringN(gStringVar2, sShopData->totalCost, STR_CONV_MODE_LEFT_ALIGN, 6);
                         StringExpandPlaceholders(gStringVar4, gText_YouWantedVar1ThatllBeVar2);

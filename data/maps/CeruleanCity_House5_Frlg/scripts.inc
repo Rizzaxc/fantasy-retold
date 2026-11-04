@@ -42,14 +42,8 @@ CeruleanCity_House5_EventScript_ChooseExchangeItem::
 	case 1, CeruleanCity_House5_EventScript_EnergyRoot
 	case 2, CeruleanCity_House5_EventScript_HealPowder
 	case 3, CeruleanCity_House5_EventScript_RevivalHerb
-	case 4, CeruleanCity_House5_EventScript_Protein
-	case 5, CeruleanCity_House5_EventScript_Iron
-	case 6, CeruleanCity_House5_EventScript_Carbos
-	case 7, CeruleanCity_House5_EventScript_Calcium
-	case 8, CeruleanCity_House5_EventScript_Zinc
-	case 9, CeruleanCity_House5_EventScript_HPUp
-	case 10, CeruleanCity_House5_EventScript_PPUp
-	case 11, CeruleanCity_House5_EventScript_ExitMenu
+	case 4, CeruleanCity_House5_EventScript_PPUp
+	case 5, CeruleanCity_House5_EventScript_ExitMenu
 	case 127, CeruleanCity_House5_EventScript_ExitMenu
 	end
 
@@ -78,48 +72,6 @@ CeruleanCity_House5_EventScript_RevivalHerb::
 	bufferitemname STR_VAR_1, ITEM_REVIVAL_HERB
 	setvar VAR_0x8008, ITEM_REVIVAL_HERB
 	setvar VAR_0x8009, 300
-	goto CeruleanCity_House5_EventScript_ExchangePowderForItem
-	end
-
-CeruleanCity_House5_EventScript_Protein::
-	bufferitemname STR_VAR_1, ITEM_PROTEIN
-	setvar VAR_0x8008, ITEM_PROTEIN
-	setvar VAR_0x8009, 1000
-	goto CeruleanCity_House5_EventScript_ExchangePowderForItem
-	end
-
-CeruleanCity_House5_EventScript_Iron::
-	bufferitemname STR_VAR_1, ITEM_IRON
-	setvar VAR_0x8008, ITEM_IRON
-	setvar VAR_0x8009, 1000
-	goto CeruleanCity_House5_EventScript_ExchangePowderForItem
-	end
-
-CeruleanCity_House5_EventScript_Carbos::
-	bufferitemname STR_VAR_1, ITEM_CARBOS
-	setvar VAR_0x8008, ITEM_CARBOS
-	setvar VAR_0x8009, 1000
-	goto CeruleanCity_House5_EventScript_ExchangePowderForItem
-	end
-
-CeruleanCity_House5_EventScript_Calcium::
-	bufferitemname STR_VAR_1, ITEM_CALCIUM
-	setvar VAR_0x8008, ITEM_CALCIUM
-	setvar VAR_0x8009, 1000
-	goto CeruleanCity_House5_EventScript_ExchangePowderForItem
-	end
-
-CeruleanCity_House5_EventScript_Zinc::
-	bufferitemname STR_VAR_1, ITEM_ZINC
-	setvar VAR_0x8008, ITEM_ZINC
-	setvar VAR_0x8009, 1000
-	goto CeruleanCity_House5_EventScript_ExchangePowderForItem
-	end
-
-CeruleanCity_House5_EventScript_HPUp::
-	bufferitemname STR_VAR_1, ITEM_HP_UP
-	setvar VAR_0x8008, ITEM_HP_UP
-	setvar VAR_0x8009, 1000
 	goto CeruleanCity_House5_EventScript_ExchangePowderForItem
 	end
 

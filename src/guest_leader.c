@@ -10,6 +10,7 @@
 #include "string_util.h"
 #include "trainer_see.h"
 #include "trainer_util.h"
+#include "constants/event_objects.h"
 #include "constants/guest_leader.h"
 #include "constants/hold_effects.h"
 #include "constants/items.h"
@@ -37,6 +38,7 @@ struct GuestLeader
 {
     u16 trainerId;
     u16 beatenFlag;
+    u16 gfxId; // overworld sprite for the gym entrance (design.md §2)
     enum Type type;
     enum Item tm; // given on top of the home rewards; ITEM_NONE gives nothing
     const u8 *intro;
@@ -57,6 +59,7 @@ static const struct GuestLeader sGuestLeaders[] =
     {
         .trainerId = TRAINER_GUEST_BROCK,
         .beatenFlag = FLAG_GUEST_BEATEN_BROCK,
+        .gfxId = OBJ_EVENT_GFX_BROCK,
         .type = TYPE_ROCK,
         .tm = ITEM_NONE,
         .intro = COMPOUND_STRING("BROCK: I'm BROCK of PEWTER CITY!\pMy rock-hard willpower came all the\nway from KANTO to test you!"),
@@ -66,6 +69,7 @@ static const struct GuestLeader sGuestLeaders[] =
     {
         .trainerId = TRAINER_GUEST_MISTY,
         .beatenFlag = FLAG_GUEST_BEATEN_MISTY,
+        .gfxId = OBJ_EVENT_GFX_MISTY,
         .type = TYPE_WATER,
         .tm = ITEM_NONE,
         .intro = COMPOUND_STRING("MISTY: I'm MISTY, CERULEAN's\nGYM LEADER!\pMy policy is an all-out offensive\nwith WATER-type POKéMON!"),
@@ -75,6 +79,7 @@ static const struct GuestLeader sGuestLeaders[] =
     {
         .trainerId = TRAINER_GUEST_LT_SURGE,
         .beatenFlag = FLAG_GUEST_BEATEN_LT_SURGE,
+        .gfxId = OBJ_EVENT_GFX_LT_SURGE,
         .type = TYPE_ELECTRIC,
         .tm = ITEM_NONE,
         .intro = COMPOUND_STRING("LT. SURGE: Hey, kid! Lightning\nstrikes twice in this GYM today!\pI'll zap you like I did my\nenemies in war!"),
@@ -84,6 +89,7 @@ static const struct GuestLeader sGuestLeaders[] =
     {
         .trainerId = TRAINER_GUEST_ERIKA,
         .beatenFlag = FLAG_GUEST_BEATEN_ERIKA,
+        .gfxId = OBJ_EVENT_GFX_ERIKA,
         .type = TYPE_GRASS,
         .tm = ITEM_NONE,
         .intro = COMPOUND_STRING("ERIKA: Oh, how lovely… I'm ERIKA\nof CELADON CITY.\pI study the art of flower\narranging. Shall we battle?"),
@@ -93,6 +99,7 @@ static const struct GuestLeader sGuestLeaders[] =
     {
         .trainerId = TRAINER_GUEST_KOGA,
         .beatenFlag = FLAG_GUEST_BEATEN_KOGA,
+        .gfxId = OBJ_EVENT_GFX_KOGA,
         .type = TYPE_POISON,
         .tm = ITEM_NONE,
         .intro = COMPOUND_STRING("KOGA: Fwahahaha! A mere child\ndares challenge me?\pI, KOGA of FUCHSIA, shall show you\nthe true terror of a ninja!"),
@@ -102,6 +109,7 @@ static const struct GuestLeader sGuestLeaders[] =
     {
         .trainerId = TRAINER_GUEST_SABRINA,
         .beatenFlag = FLAG_GUEST_BEATEN_SABRINA,
+        .gfxId = OBJ_EVENT_GFX_SABRINA,
         .type = TYPE_PSYCHIC,
         .tm = ITEM_NONE,
         .intro = COMPOUND_STRING("SABRINA: I am SABRINA of SAFFRON.\nI foresaw your arrival.\pI also foresee your defeat."),
@@ -111,6 +119,7 @@ static const struct GuestLeader sGuestLeaders[] =
     {
         .trainerId = TRAINER_GUEST_BLAINE,
         .beatenFlag = FLAG_GUEST_BEATEN_BLAINE,
+        .gfxId = OBJ_EVENT_GFX_BLAINE,
         .type = TYPE_FIRE,
         .tm = ITEM_NONE,
         .intro = COMPOUND_STRING("BLAINE: Hah! I am BLAINE, the\nhotheaded quiz master of CINNABAR!\pMy fiery POKéMON will incinerate\nall challengers!"),
@@ -120,6 +129,7 @@ static const struct GuestLeader sGuestLeaders[] =
     {
         .trainerId = TRAINER_GUEST_GIOVANNI,
         .beatenFlag = FLAG_GUEST_BEATEN_GIOVANNI,
+        .gfxId = OBJ_EVENT_GFX_GIOVANNI,
         .type = TYPE_GROUND,
         .tm = ITEM_NONE,
         .intro = COMPOUND_STRING("GIOVANNI: So you are the trainer\nHOENN is talking about.\pI am GIOVANNI of VIRIDIAN.\nShow me what you're made of."),
@@ -457,6 +467,12 @@ bool8 GuestLeader_NeedsTwoMons(void)
 void GuestLeader_BufferIntro(void)
 {
     StringExpandPlaceholders(gStringVar4, sGuestLeaders[GetStoredGuest()].intro);
+}
+
+// Points VAR_OBJ_GFX_ID_0 at the guest's overworld sprite, for the gym's hidden guest object (design.md §2).
+void GuestLeader_SetObjectGfx(void)
+{
+    VarSet(VAR_OBJ_GFX_ID_0, sGuestLeaders[GetStoredGuest()].gfxId);
 }
 
 // Sets up the battle for `dotrainerbattle`. VAR_0x8005 = GUEST_BATTLE_*.

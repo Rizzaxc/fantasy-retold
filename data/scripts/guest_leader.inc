@@ -8,6 +8,7 @@ Common_EventScript_GuestLeader::
 	lock
 	faceplayer
 	msgbox gText_GuestLeaderArrives, MSGBOX_DEFAULT
+	call_if_set FLAG_TEMP_HIDE_GUEST_LEADER, Common_EventScript_GuestLeaderEnter
 	special GuestLeader_BufferIntro
 	msgbox gStringVar4, MSGBOX_DEFAULT
 	specialvar VAR_0x8009, GuestLeader_RollFormat
@@ -17,6 +18,28 @@ Common_EventScript_GuestLeader::
 	case GUEST_FORMAT_TAG, Common_EventScript_GuestLeaderTag
 	case GUEST_FORMAT_DOUBLES, Common_EventScript_GuestLeaderDoubles
 	goto Common_EventScript_GuestLeaderSolo
+
+@ The guest walks into the gym (design.md §2, Overworld). Each gym hides its guest object with
+@ FLAG_TEMP_HIDE_GUEST_LEADER on transition, so this runs once per visit; a guest already out (talking to the leader
+@ again after a BLOCKED release) is skipped. Each gym's entrance script places the object, spawns it, walks it to its
+@ spot and leaves it facing the player, who stays faced that way through the battles.
+Common_EventScript_GuestLeaderEnter::
+	closemessage
+	hidefollower
+	special GuestLeader_SetObjectGfx
+	clearflag FLAG_TEMP_HIDE_GUEST_LEADER
+	call_if_eq VAR_0x8008, 4, LavaridgeTown_Gym_1F_EventScript_GuestLeaderEnter
+	call_if_eq VAR_0x8008, 5, PetalburgCity_Gym_EventScript_GuestLeaderEnter
+	call_if_eq VAR_0x8008, 6, FortreeCity_Gym_EventScript_GuestLeaderEnter
+	call_if_eq VAR_0x8008, 7, MossdeepCity_Gym_EventScript_GuestLeaderEnter
+	call_if_eq VAR_0x8008, 8, SootopolisCity_Gym_1F_EventScript_GuestLeaderEnter
+	return
+
+@ Shared tail of every entrance: the guest turns to the player with a "!".
+Common_Movement_GuestLeaderArrive::
+	face_player
+	emote_exclamation_mark
+	step_end
 
 @ Guest first, then the home leader, with no heal in between.
 Common_EventScript_GuestLeaderTag::

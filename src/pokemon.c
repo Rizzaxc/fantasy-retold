@@ -4531,6 +4531,13 @@ enum Species GetEvolutionTargetSpecies(struct Pokemon *mon, enum EvolutionMode m
                 if (evolutions[i].param == evolutionItem)
                     conditionsMet = TRUE;
                 break;
+            // Fantasy Retold: the Linking Cord also does trade evolutions, held-item ones included (the item must
+            // already be held and is used up, as by a trade). Trade-partner evolutions fail with no partner.
+            // design.md §2, Reusable TMs (Linking Cord)
+            case EVO_TRADE:
+                if (evolutionItem == ITEM_LINKING_CORD)
+                    conditionsMet = TRUE;
+                break;
             }
 
             if (conditionsMet && DoesMonMeetAdditionalConditions(mon, evolutions[i].params, NULL, PARTY_SIZE, canStopEvo, evoState))

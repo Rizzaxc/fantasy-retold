@@ -269,6 +269,9 @@ u32 GetItemHoldEffectParam(enum Item itemId);
 const u8 *GetItemDescription(enum Item itemId);
 u8 GetItemImportance(enum Item itemId);
 u8 GetItemConsumability(enum Item itemId);
+// Fantasy Retold: TMs are never used up and the player owns at most one of each (design.md §2, Reusable TMs)
+bool32 IsReusableTM(enum Item itemId);
+bool32 PlayerOwnsItem(enum Item itemId);
 enum Pocket GetItemPocket(enum Item itemId);
 enum ItemType GetItemType(enum Item itemId);
 ItemUseFunc GetItemFieldFunc(enum Item itemId);

@@ -2,11 +2,22 @@
 .set AMOUNT, VAR_0x8001
 
 Std_ObtainItem::
+	@ Fantasy Retold: an owned TM becomes a random evolution item (design.md §2, Reusable TMs)
+	specialvar VAR_RESULT, ObtainItem_FilterTM
+	call_if_eq VAR_RESULT, TRUE, EventScript_AlreadyHaveTM
 	copyvar VAR_0x8006, ITEMID
 	additem ITEMID, AMOUNT
 	copyvar VAR_0x8007, VAR_RESULT
 	call EventScript_ObtainItemMessage
 	return
+
+EventScript_AlreadyHaveTM::
+	msgbox Text_AlreadyHaveTM, MSGBOX_DEFAULT
+	return
+
+Text_AlreadyHaveTM:
+	.string "Oh, you already have {STR_VAR_1}?\n"
+	.string "Then take this {STR_VAR_2} instead!$"
 
 EventScript_ObtainItemMessage::
 	bufferitemnameplural STR_VAR_2, ITEMID, AMOUNT
@@ -107,6 +118,7 @@ Std_FindItem::
 	lock
 	faceplayer
 	waitse
+	special ObtainItem_FilterTM
 	copyvar VAR_0x8006, ITEMID
 	copyvar VAR_0x8004, ITEMID
 	copyvar VAR_0x8005, AMOUNT

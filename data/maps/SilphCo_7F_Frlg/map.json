@@ -339,7 +339,7 @@
       "x": 22,
       "y": 11,
       "elevation": 0,
-      "item": "ITEM_ZINC",
+      "item": "ITEM_RARE_CANDY",
       "flag": "FLAG_HIDDEN_ITEM_SILPH_CO_7F_ZINC",
       "quantity": 1,
       "underfoot": false

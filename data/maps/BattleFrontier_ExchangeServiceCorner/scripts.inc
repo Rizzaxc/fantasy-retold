@@ -196,13 +196,17 @@ BattleFrontier_ExchangeServiceCorner_EventScript_BlastoiseDoll::
 	setitemandprice DECOR_BLASTOISE_DOLL, 256
 	goto BattleFrontier_ExchangeServiceCorner_EventScript_PurchaseDecor2
 
+@ Fantasy Retold: vitamins are retired (design.md §2, Retired Items), so this counter is closed
 BattleFrontier_ExchangeServiceCorner_EventScript_VitaminClerk::
 	lock
 	faceplayer
-	setvar VAR_TEMP_2, EXCHANGE_CORNER_VITAMIN_CLERK
-	call BattleFrontier_ExchangeServiceCorner_EventScript_ClerkWelcome
-	goto BattleFrontier_ExchangeServiceCorner_EventScript_ChooseVitamin
+	msgbox BattleFrontier_ExchangeServiceCorner_Text_VitaminsGone, MSGBOX_DEFAULT
+	release
 	end
+
+BattleFrontier_ExchangeServiceCorner_Text_VitaminsGone:
+	.string "I'm sorry, we no longer carry\n"
+	.string "vitamins here.$"
 
 BattleFrontier_ExchangeServiceCorner_EventScript_ChooseVitamin::
 	setvar VAR_0x8004, SCROLL_MULTI_BF_EXCHANGE_CORNER_VITAMIN_VENDOR

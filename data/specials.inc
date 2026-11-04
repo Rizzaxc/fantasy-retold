@@ -688,7 +688,14 @@ gSpecials::
 	def_special GuestLeader_GetState
 	def_special GuestLeader_BufferNames
 	def_special GuestLeader_BufferIntro
+	def_special GuestLeader_SetObjectGfx
 	def_special GuestLeader_RollFormat
 	def_special GuestLeader_NeedsTwoMons
 	def_special GuestLeader_ConfigureBattle
 	def_special GuestLeader_OnWin
+	def_special ObtainItem_FilterTM
+	def_special GameCornerPrize_Restock
+	def_special GameCornerPrize_BufferRow
+	def_special GameCornerPrize_BufferOffer
+	def_special GameCornerPrize_GiveEgg
+	def_special GameCornerPrize_SetSold

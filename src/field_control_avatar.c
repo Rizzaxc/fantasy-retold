@@ -44,6 +44,7 @@
 #include "constants/event_objects.h"
 #include "constants/field_poison.h"
 #include "constants/layouts.h"
+#include "reusable_tm.h"
 #include "constants/metatile_behaviors.h"
 #include "constants/songs.h"
 #include "constants/trainer_hill.h"
@@ -476,6 +477,13 @@ static const u8 *GetInteractedBackgroundEventScript(struct MapPosition *position
         if (gimmickItem != ITEM_NONE)
         {
             gSpecialVar_0x8005 = gimmickItem;
+            gSpecialVar_0x8009 = 1;
+        }
+        // An owned TM gives a random evolution item instead (design.md §2, Reusable TMs).
+        enum Item filteredItem = FilterObtainedItem(gSpecialVar_0x8005);
+        if (filteredItem != gSpecialVar_0x8005)
+        {
+            gSpecialVar_0x8005 = filteredItem;
             gSpecialVar_0x8009 = 1;
         }
         return EventScript_HiddenItemScript;

@@ -56,8 +56,8 @@ Common_EventScript_GymRewardNoRoomForEgg::
 	goto Common_EventScript_GymRewardChoose
 
 gText_GymRewardOffer::
-	.string "You may choose one of\n"
-	.string "these rewards.$"
+	.string "You also get to choose\n"
+	.string "one of these rewards.\n"
 
 gText_GymRewardChoiceHeldItem::
 	.string "{STR_VAR_1}$"

@@ -21,4 +21,8 @@
 #define MART_TMS_PER_MART 5
 #define MART_TM_PRICE     5000
 
+// ...and 3 evolution items, fixed per save the same way (design.md §2, Mart TMs)
+#define MART_EVO_ITEMS_PER_MART 3
+#define MART_EVO_ITEM_PRICE     5000
+
 #endif // GUARD_CONSTANTS_MART_TMS_H

@@ -280,12 +280,13 @@ static const u16 sFloorLayouts[MAX_TRAINER_TOWER_FLOORS][NUM_TOWER_CHALLENGE_TYP
 };
 
 static const u16 sPrizeList[] = {
-    ITEM_HP_UP,
-    ITEM_PROTEIN,
-    ITEM_IRON,
-    ITEM_CARBOS,
-    ITEM_CALCIUM,
-    ITEM_ZINC,
+    // Fantasy Retold: vitamins are retired (design.md §2, Retired Items)
+    ITEM_RARE_CANDY,
+    ITEM_PP_UP,
+    ITEM_PP_MAX,
+    ITEM_NUGGET,
+    ITEM_BIG_PEARL,
+    ITEM_STAR_PIECE,
     ITEM_BRIGHT_POWDER,
     ITEM_WHITE_HERB,
     ITEM_MENTAL_HERB,

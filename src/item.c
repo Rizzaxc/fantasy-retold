@@ -16,6 +16,8 @@
 #include "battle_pyramid_bag.h"
 #include "graphics.h"
 #include "shop_criteria.h"
+#include "pokemon.h"
+#include "pokemon_storage_system.h"
 #include "constants/battle.h"
 #include "constants/items.h"
 #include "constants/moves.h"
@@ -191,7 +193,7 @@ u8 *CopyItemNameHandlePlural(enum Item itemId, u8 *dst, u32 quantity)
 
 bool32 IsBagPocketNonEmpty(enum Pocket pocketId)
 {
-    u8 i;
+    u32 i;
 
     for (i = 0; i < gBagPockets[pocketId].capacity; i++)
     {
@@ -869,6 +871,46 @@ const u8 *GetItemDescription(enum Item itemId)
 u8 GetItemImportance(enum Item itemId)
 {
     return gItemsInfo[SanitizeItemId(itemId)].importance;
+}
+
+// Fantasy Retold: design.md §2, Reusable TMs. HMs are key items and never consumed anyway.
+bool32 IsReusableTM(enum Item itemId)
+{
+    u32 index = GetItemTMHMIndex(itemId);
+    return index != 0 && index <= NUM_TECHNICAL_MACHINES;
+}
+
+// Fantasy Retold: in the bag or the PC, or held by any party, boxed or daycare Pokemon (design.md §2, Reusable TMs)
+bool32 PlayerOwnsItem(enum Item itemId)
+{
+    u32 i, j;
+
+    if (itemId == ITEM_NONE)
+        return FALSE;
+    if (CheckBagHasItem(itemId, 1) || CheckPCHasItem(itemId, 1))
+        return TRUE;
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) != SPECIES_NONE
+         && GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM) == itemId)
+            return TRUE;
+    }
+    for (i = 0; i < TOTAL_BOXES_COUNT; i++)
+    {
+        for (j = 0; j < IN_BOX_COUNT; j++)
+        {
+            // An empty slot holds ITEM_NONE, so the held item alone is enough (one decrypt per mon)
+            if (GetBoxMonDataAt(i, j, MON_DATA_HELD_ITEM) == itemId)
+                return TRUE;
+        }
+    }
+    for (i = 0; i < DAYCARE_MON_COUNT; i++)
+    {
+        if (GetBoxMonData(&gSaveBlock1Ptr->daycare.mons[i].mon, MON_DATA_SPECIES) != SPECIES_NONE
+         && GetBoxMonData(&gSaveBlock1Ptr->daycare.mons[i].mon, MON_DATA_HELD_ITEM) == itemId)
+            return TRUE;
+    }
+    return FALSE;
 }
 
 u8 GetItemConsumability(enum Item itemId)

@@ -3,6 +3,7 @@ LavaridgeTown_Gym_1F_MapScripts::
 	.byte 0
 
 LavaridgeTown_Gym_1F_OnTransition:
+	setflag FLAG_TEMP_HIDE_GUEST_LEADER @ guest leader entrance, design.md §2
 	call LavaridgeTown_Gym_1F_EventScript_SetTrainerTempVars
 	call LavaridgeTown_Gym_1F_EventScript_CheckBuryTrainers
 	end
@@ -406,3 +407,48 @@ LavaridgeTown_Gym_1F_Text_FlanneryRematchNeedTwoMons:
 	.string "that can battle?\p"
 	.string "I hate to say this, but when you come\n"
 	.string "see me, bring at least two POKéMON.$"
+
+@ Fantasy Retold: guest leader entrance (design.md §2, Overworld). Called by Common_EventScript_GuestLeaderEnter.
+@ The guest erupts from the ash vent below Flannery's dais (12,12) and walks up beside her.
+LavaridgeTown_Gym_1F_EventScript_GuestLeaderEnter::
+	getplayerxy VAR_0x8004, VAR_0x8006
+	playse SE_LAVARIDGE_FALL_WARP
+	setfieldeffectargument 0, 19 @ 12 + MAP_OFFSET
+	setfieldeffectargument 1, 19 @ 12 + MAP_OFFSET
+	setfieldeffectargument 2, 0
+	setfieldeffectargument 3, 2
+	dofieldeffect FLDEFF_ASH_PUFF
+	addobject LOCALID_LAVARIDGE_GYM_GUEST_LEADER
+	applymovement LOCALID_LAVARIDGE_GYM_GUEST_LEADER, LavaridgeTown_Gym_1F_Movement_GuestLeaderErupt
+	waitmovement 0
+	waitfieldeffect FLDEFF_ASH_PUFF
+	goto_if_ne VAR_0x8004, 12, LavaridgeTown_Gym_1F_EventScript_GuestLeaderToA
+	goto_if_ne VAR_0x8006, 9, LavaridgeTown_Gym_1F_EventScript_GuestLeaderToA
+	applymovement LOCALID_LAVARIDGE_GYM_GUEST_LEADER, LavaridgeTown_Gym_1F_Movement_GuestLeaderToB
+	goto LavaridgeTown_Gym_1F_EventScript_GuestLeaderArrive
+LavaridgeTown_Gym_1F_EventScript_GuestLeaderToA::
+	applymovement LOCALID_LAVARIDGE_GYM_GUEST_LEADER, LavaridgeTown_Gym_1F_Movement_GuestLeaderToA
+LavaridgeTown_Gym_1F_EventScript_GuestLeaderArrive::
+	waitmovement 0
+	applymovement LOCALID_LAVARIDGE_GYM_GUEST_LEADER, Common_Movement_GuestLeaderArrive
+	waitmovement 0
+	return
+
+LavaridgeTown_Gym_1F_Movement_GuestLeaderErupt:
+	jump_in_place_up
+	delay_8
+	step_end
+
+LavaridgeTown_Gym_1F_Movement_GuestLeaderToA:
+	walk_up
+	walk_up
+	walk_up
+	step_end
+
+LavaridgeTown_Gym_1F_Movement_GuestLeaderToB:
+	walk_up
+	walk_right
+	walk_right
+	walk_up
+	walk_up
+	step_end

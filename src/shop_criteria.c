@@ -23,7 +23,8 @@ void TryBuildDynamicShopItemList(const u16 **ogItemList, u16 *resultingTotal)
     {
         enum Item item = sDynamicShopItemListRef[idx];
 
-        if (IsItemShopCriteriaFulfilled(item))
+        // Fantasy Retold: an owned TM is never sold again (design.md §2, Reusable TMs)
+        if (IsItemShopCriteriaFulfilled(item) && !(IsReusableTM(item) && PlayerOwnsItem(item)))
         {
             list[overallIdx] = item;
             overallIdx++;

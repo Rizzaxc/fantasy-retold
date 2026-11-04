@@ -255,7 +255,7 @@
       "x": 5,
       "y": 8,
       "elevation": 0,
-      "item": "ITEM_CALCIUM",
+      "item": "ITEM_RARE_CANDY",
       "flag": "FLAG_HIDDEN_ITEM_SILPH_CO_9F_CALCIUM",
       "quantity": 1,
       "underfoot": false

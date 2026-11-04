@@ -479,6 +479,8 @@ static bool32 ShouldConsumeTmItem(enum Move move)
         return FALSE;
     if (I_REUSABLE_TMS || P_ENABLE_ALL_TM_MOVES)
         return FALSE;
+    if (IsReusableTM(GetTMHMItemIdFromMoveId(move))) // Fantasy Retold: design.md §2, Reusable TMs
+        return FALSE;
     return TRUE;
 }
 

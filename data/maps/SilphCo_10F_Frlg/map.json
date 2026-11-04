@@ -184,7 +184,7 @@
       "x": 9,
       "y": 9,
       "elevation": 0,
-      "item": "ITEM_HP_UP",
+      "item": "ITEM_RARE_CANDY",
       "flag": "FLAG_HIDDEN_ITEM_SILPH_CO_10F_HP_UP",
       "quantity": 1,
       "underfoot": false

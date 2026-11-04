@@ -152,7 +152,7 @@
       "x": 37,
       "y": 1,
       "elevation": 3,
-      "item": "ITEM_MAX_REPEL",
+      "item": "ITEM_RARE_CANDY",
       "flag": "FLAG_HIDDEN_ITEM_VICTORY_ROAD_B2F_MAX_REPEL"
     }
   ]

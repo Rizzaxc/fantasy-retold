@@ -3,5 +3,6 @@
 
 // Badges + rival battles + Elite Four clears; shops restock when it changes. Shared with the Game Corner stock.
 u32 GetEggShopMilestones(void);
+enum Species PickEggShopPowerhouseSpecies(void);
 
 #endif // GUARD_EGG_SHOP_H

@@ -127,12 +127,13 @@ static void (*const sArenaFunctions[])(void) =
 
 static const u16 sShortStreakPrizeItems[] =
 {
-    ITEM_HP_UP,
-    ITEM_PROTEIN,
-    ITEM_IRON,
-    ITEM_CALCIUM,
-    ITEM_CARBOS,
-    ITEM_ZINC,
+    // Fantasy Retold: vitamins are retired (design.md §2, Retired Items)
+    ITEM_RARE_CANDY,
+    ITEM_PP_UP,
+    ITEM_PP_MAX,
+    ITEM_NUGGET,
+    ITEM_BIG_PEARL,
+    ITEM_STAR_PIECE,
 };
 
 static const u16 sLongStreakPrizeItems[] =

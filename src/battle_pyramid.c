@@ -814,7 +814,8 @@ static void (*const sBattlePyramidFunctions[])(void) =
     [BATTLE_PYRAMID_FUNC_RESTORE_PARTY]     = RestorePyramidPlayerParty,
 };
 
-static const u16 sShortStreakRewardItems[] = {ITEM_HP_UP, ITEM_PROTEIN, ITEM_IRON, ITEM_CALCIUM, ITEM_CARBOS, ITEM_ZINC};
+// Fantasy Retold: vitamins are retired (design.md §2, Retired Items)
+static const u16 sShortStreakRewardItems[] = {ITEM_RARE_CANDY, ITEM_PP_UP, ITEM_PP_MAX, ITEM_NUGGET, ITEM_BIG_PEARL, ITEM_STAR_PIECE};
 static const u16 sLongStreakRewardItems[] = {ITEM_BRIGHT_POWDER, ITEM_WHITE_HERB, ITEM_QUICK_CLAW, ITEM_LEFTOVERS, ITEM_MENTAL_HERB, ITEM_KINGS_ROCK, ITEM_FOCUS_BAND, ITEM_SCOPE_LENS, ITEM_CHOICE_BAND};
 
 static const u8 sBorderedSquareIds[][4] =
