@@ -11,7 +11,8 @@ Common_EventScript_EggShopChoose::
 	special EggShop_BufferMenu
 	message gText_EggShopWhichOne
 	waitmessage
-	dynmultichoice 29, 1, FALSE, 4, 0, DYN_MULTICHOICE_CB_NONE, gText_EggShopRow1, gText_EggShopRow2, gText_EggShopRow3, gText_EggShopChoiceCancel
+	@ Below the money box, left-aligned with it
+	dynmultichoice 0, 4, FALSE, 4, 0, DYN_MULTICHOICE_CB_NONE, gText_EggShopRow1, gText_EggShopRow2, gText_EggShopRow3, gText_EggShopChoiceCancel
 	goto_if_ge VAR_RESULT, 3, Common_EventScript_EggShopLeave
 	copyvar VAR_0x8004, VAR_RESULT
 	specialvar VAR_RESULT, EggShop_BufferOffer

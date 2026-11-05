@@ -78,7 +78,7 @@
 #define FLAG_GAUNTLET_REWARD_7    0x38
 #define FLAG_GAUNTLET_REWARD_8    0x39
 #define FLAG_RECEIVED_PARADOX_GIFT    0x3A // Fantasy Retold: Lanette's paradox gift (design.md §2, Lanette's Paradox Lab)
-#define FLAG_UNUSED_0x03B    0x3B // Unused Flag
+#define FLAG_GAME_CORNER_PRIZES_LOCKED    0x3B // Fantasy Retold: prize rows held, no restock (design.md §2, Game Corner Prizes)
 #define FLAG_UNUSED_0x03C    0x3C // Unused Flag
 #define FLAG_UNUSED_0x03D    0x3D // Unused Flag
 #define FLAG_UNUSED_0x03E    0x3E // Unused Flag

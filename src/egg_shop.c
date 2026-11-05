@@ -9,6 +9,7 @@
 #include "random.h"
 #include "script_pokemon_util.h"
 #include "string_util.h"
+#include "text.h"
 #include "constants/characters.h"
 #include "constants/game_stat.h"
 #include "constants/opponents.h"
@@ -37,9 +38,9 @@ enum EggShopTier
 
 static const u32 sEggShopPrices[EGG_SHOP_TIER_COUNT] =
 {
-    [EGG_SHOP_STARTER]    = 30000,
-    [EGG_SHOP_STRONG]     = 60000,
-    [EGG_SHOP_POWERHOUSE] = 120000,
+    [EGG_SHOP_STARTER]    = 20000,
+    [EGG_SHOP_STRONG]     = 40000,
+    [EGG_SHOP_POWERHOUSE] = 80000,
 };
 
 static const u8 sText_SoldOut[] = _("SOLD OUT");
@@ -419,16 +420,37 @@ u16 EggShop_Restock(void)
 }
 
 // Buffers the three menu rows ("<REGION> <TIER> EGG" or "SOLD OUT") in STR_VAR_1-3.
+// Rows in STR_VAR_1-3: "<REGION> <TIER> EGG", then its price in a column after the widest name; or SOLD OUT.
 void EggShop_BufferMenu(void)
 {
     u8 *const rows[EGG_SHOP_SLOTS] = {gStringVar1, gStringVar2, gStringVar3};
+    u32 priceX = 0;
 
     for (u32 slot = 0; slot < EGG_SHOP_SLOTS; slot++)
     {
         if (IsEggShopSlotInStock(slot))
+        {
             BufferEggShopSlotName(rows[slot], slot);
+            priceX = max(priceX, (u32)GetStringWidth(FONT_NORMAL, rows[slot], 0));
+        }
         else
+        {
             StringCopy(rows[slot], sText_SoldOut);
+        }
+    }
+    priceX += 8;
+    for (u32 slot = 0; slot < EGG_SHOP_SLOTS; slot++)
+    {
+        u8 *end;
+
+        if (!IsEggShopSlotInStock(slot))
+            continue;
+        end = rows[slot] + StringLength(rows[slot]);
+        *end++ = EXT_CTRL_CODE_BEGIN;
+        *end++ = EXT_CTRL_CODE_CLEAR_TO;
+        *end++ = priceX;
+        end = StringCopy(end, COMPOUND_STRING("¥"));
+        ConvertIntToDecimalStringN(end, sEggShopPrices[GetEggShopSlotTier(slot)], STR_CONV_MODE_LEFT_ALIGN, 6);
     }
 }
 

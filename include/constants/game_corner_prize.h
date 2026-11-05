@@ -5,6 +5,10 @@
 
 #define GAME_CORNER_PRIZE_ROWS 5
 
+// Prize menu rows after the prizes
+#define GAME_CORNER_PRIZE_MENU_LOCK   GAME_CORNER_PRIZE_ROWS
+#define GAME_CORNER_PRIZE_MENU_CANCEL (GAME_CORNER_PRIZE_ROWS + 1)
+
 // Row categories, each rolled evenly
 #define GAME_CORNER_PRIZE_SPECIES_ITEM 0
 #define GAME_CORNER_PRIZE_HELD_ITEM    1

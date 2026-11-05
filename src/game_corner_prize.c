@@ -7,13 +7,16 @@
 #include "random.h"
 #include "script_pokemon_util.h"
 #include "string_util.h"
+#include "text.h"
+#include "constants/characters.h"
 #include "constants/game_corner_prize.h"
 #include "constants/items.h"
 #include "constants/species.h"
 
 // Fantasy Retold: design.md §2, Game Corner Prizes. Five rows, each rolled as a category (evenly), then an item or a
 // species. They restock every day and after every badge / rival battle / Elite Four clear (the egg shop milestones).
-// Each row is one var: category in bits 14-15, item or species id below; 0 = sold.
+// Each row is one var: category in bits 14-15, item or species id below; 0 = sold. While the player has locked them
+// (FLAG_GAME_CORNER_PRIZES_LOCKED) the rows never restock.
 
 #define PRIZE_CATEGORY_SHIFT 14
 #define PRIZE_ID_MASK        ((1 << PRIZE_CATEGORY_SHIFT) - 1)
@@ -85,6 +88,8 @@ void GameCornerPrize_Restock(void)
 {
     u16 key = GetEggShopMilestones() + 1;
 
+    if (FlagGet(FLAG_GAME_CORNER_PRIZES_LOCKED))
+        return;
     if (FlagGet(FLAG_DAILY_GAME_CORNER_PRIZES) && VarGet(VAR_GAME_CORNER_PRIZE_KEY) == key)
         return;
     for (u32 row = 0; row < GAME_CORNER_PRIZE_ROWS; row++)
@@ -93,18 +98,45 @@ void GameCornerPrize_Restock(void)
     FlagSet(FLAG_DAILY_GAME_CORNER_PRIZES);
 }
 
-// Row VAR_0x8005's label in STR_VAR_2, for dynmultipush.
+// A row's prize name ("<SPECIES> EGG" for an Egg); the row must not be sold.
+static u8 *BufferPrizeName(u8 *dest, u16 value)
+{
+    u32 id = value & PRIZE_ID_MASK;
+
+    if ((value >> PRIZE_CATEGORY_SHIFT) == GAME_CORNER_PRIZE_EGG)
+        return StringCopy(StringCopy(dest, GetSpeciesName(id)), COMPOUND_STRING(" EGG"));
+    CopyItemName(id, dest);
+    return dest + StringLength(dest);
+}
+
+// Row VAR_0x8005's label in STR_VAR_2, for dynmultipush: the prize, then its coin price in a column after the
+// widest prize name of all rows (so the rows line up); or SOLD OUT.
 void GameCornerPrize_BufferRow(void)
 {
     u16 value = VarGet(sPrizeVars[GetPrizeRow()]);
-    u32 id = value & PRIZE_ID_MASK;
+    u8 name[32];
+    u32 priceX = 0;
+    u8 *end;
 
     if (value == 0)
+    {
         StringCopy(gStringVar2, COMPOUND_STRING("SOLD OUT"));
-    else if ((value >> PRIZE_CATEGORY_SHIFT) == GAME_CORNER_PRIZE_EGG)
-        StringCopy(StringCopy(gStringVar2, GetSpeciesName(id)), COMPOUND_STRING(" EGG"));
-    else
-        CopyItemName(id, gStringVar2);
+        return;
+    }
+    for (u32 row = 0; row < GAME_CORNER_PRIZE_ROWS; row++)
+    {
+        u16 rowValue = VarGet(sPrizeVars[row]);
+
+        if (rowValue == 0)
+            continue;
+        BufferPrizeName(name, rowValue);
+        priceX = max(priceX, (u32)GetStringWidth(FONT_NORMAL, name, 0));
+    }
+    end = BufferPrizeName(gStringVar2, value);
+    *end++ = EXT_CTRL_CODE_BEGIN;
+    *end++ = EXT_CTRL_CODE_CLEAR_TO;
+    *end++ = priceX + 8;
+    ConvertIntToDecimalStringN(end, sPrizeCoins[value >> PRIZE_CATEGORY_SHIFT], STR_CONV_MODE_LEFT_ALIGN, 4);
 }
 
 // Row VAR_0x8005: name in STR_VAR_1, coin price in VAR_0x8006, item id in VAR_0x8007 (an Egg: ITEM_NONE).

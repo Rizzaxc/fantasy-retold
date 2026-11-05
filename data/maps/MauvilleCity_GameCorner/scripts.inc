@@ -278,7 +278,8 @@ MauvilleCity_GameCorner_EventScript_ChooseTMPrizeMessage::
 	goto MauvilleCity_GameCorner_EventScript_ChoosePrize
 
 @ Fantasy Retold: five prize rows (species item / held item / stat item / Powerhouse Egg) replace the TMs,
-@ restocked daily and after every badge, rival battle and Elite Four clear (design.md §2, Game Corner Prizes).
+@ restocked daily and after every badge, rival battle and Elite Four clear unless the player locks them
+@ (design.md §2, Game Corner Prizes).
 @ VAR_0x8005 = row, VAR_0x8006 = price, VAR_0x8007 = item (ITEM_NONE for an Egg).
 MauvilleCity_GameCorner_EventScript_ChoosePrize::
 	message MauvilleCity_GameCorner_Text_WhichPrize
@@ -289,8 +290,11 @@ MauvilleCity_GameCorner_EventScript_PushPrizeRow::
 	dynmultipush gText_HyperTrainingStatRow, VAR_0x8005
 	addvar VAR_0x8005, 1
 	goto_if_lt VAR_0x8005, GAME_CORNER_PRIZE_ROWS, MauvilleCity_GameCorner_EventScript_PushPrizeRow
-	dynmultipush gText_EggShopChoiceCancel, GAME_CORNER_PRIZE_ROWS
+	call_if_unset FLAG_GAME_CORNER_PRIZES_LOCKED, MauvilleCity_GameCorner_EventScript_PushLockPrizesRow
+	call_if_set FLAG_GAME_CORNER_PRIZES_LOCKED, MauvilleCity_GameCorner_EventScript_PushUnlockPrizesRow
+	dynmultipush gText_EggShopChoiceCancel, GAME_CORNER_PRIZE_MENU_CANCEL
 	dynmultistack 15, 1, FALSE, 6, FALSE, 0, DYN_MULTICHOICE_CB_NONE
+	goto_if_eq VAR_RESULT, GAME_CORNER_PRIZE_MENU_LOCK, MauvilleCity_GameCorner_EventScript_TogglePrizeLock
 	goto_if_ge VAR_RESULT, GAME_CORNER_PRIZE_ROWS, MauvilleCity_GameCorner_EventScript_CancelTMSelect
 	copyvar VAR_0x8005, VAR_RESULT
 	specialvar VAR_0x8008, GameCornerPrize_BufferOffer
@@ -309,6 +313,29 @@ MauvilleCity_GameCorner_EventScript_PushPrizeRow::
 	updatecoinsbox
 	playse SE_SHOP
 	msgbox MauvilleCity_GameCorner_Text_HereYouGo, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_ChoosePrize
+	end
+
+MauvilleCity_GameCorner_EventScript_PushLockPrizesRow::
+	dynmultipush MauvilleCity_GameCorner_Text_LockPrizesRow, GAME_CORNER_PRIZE_MENU_LOCK
+	return
+
+MauvilleCity_GameCorner_EventScript_PushUnlockPrizesRow::
+	dynmultipush MauvilleCity_GameCorner_Text_UnlockPrizesRow, GAME_CORNER_PRIZE_MENU_LOCK
+	return
+
+@ Locked rows keep their stock (sold rows stay sold) until unlocked; a refresh that came due meanwhile happens on
+@ the next visit after unlocking.
+MauvilleCity_GameCorner_EventScript_TogglePrizeLock::
+	goto_if_set FLAG_GAME_CORNER_PRIZES_LOCKED, MauvilleCity_GameCorner_EventScript_UnlockPrizes
+	setflag FLAG_GAME_CORNER_PRIZES_LOCKED
+	msgbox MauvilleCity_GameCorner_Text_PrizesLocked, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_ChoosePrize
+	end
+
+MauvilleCity_GameCorner_EventScript_UnlockPrizes::
+	clearflag FLAG_GAME_CORNER_PRIZES_LOCKED
+	msgbox MauvilleCity_GameCorner_Text_PrizesUnlocked, MSGBOX_DEFAULT
 	goto MauvilleCity_GameCorner_EventScript_ChoosePrize
 	end
 
@@ -654,6 +681,20 @@ MauvilleCity_GameCorner_Text_WhichPrize:
 MauvilleCity_GameCorner_Text_PrizeForCoins:
 	.string "So your choice is {STR_VAR_1}?\n"
 	.string "That's {STR_VAR_2} COINS.$"
+
+MauvilleCity_GameCorner_Text_LockPrizesRow:
+	.string "LOCK PRIZES$"
+
+MauvilleCity_GameCorner_Text_UnlockPrizesRow:
+	.string "UNLOCK PRIZES$"
+
+MauvilleCity_GameCorner_Text_PrizesLocked:
+	.string "Got it. I'll hold these prizes\n"
+	.string "for you until you say otherwise.$"
+
+MauvilleCity_GameCorner_Text_PrizesUnlocked:
+	.string "All right. New prizes will come\n"
+	.string "in as usual again.$"
 
 MauvilleCity_GameCorner_Text_EggSentToPC:
 	.string "Your party is full, so the EGG\n"

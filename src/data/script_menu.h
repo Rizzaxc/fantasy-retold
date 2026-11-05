@@ -265,11 +265,12 @@ static const struct MenuAction MultichoiceList_UnusedAshVendor[] =
 
 static const struct MenuAction MultichoiceList_GameCornerDolls[] =
 {
-    {COMPOUND_STRING("TREECKO DOLL 1,000 COINS")},
-    {COMPOUND_STRING("TORCHIC DOLL 1,000 COINS")},
-    {COMPOUND_STRING("MUDKIP DOLL   1,000 COINS")},
-    {COMPOUND_STRING("MEGA STONE    4,000 COINS")},
-    {COMPOUND_STRING("Z-CRYSTAL     3,000 COINS")},
+    // Fantasy Retold: coin prices in a column, formatted like the prize rows (design.md §2, Game Corner Prizes)
+    {COMPOUND_STRING("TREECKO DOLL{CLEAR_TO 77}1000")},
+    {COMPOUND_STRING("TORCHIC DOLL{CLEAR_TO 77}1000")},
+    {COMPOUND_STRING("MUDKIP DOLL{CLEAR_TO 77}1000")},
+    {COMPOUND_STRING("MEGA STONE{CLEAR_TO 77}4000")},
+    {COMPOUND_STRING("Z-CRYSTAL{CLEAR_TO 77}3000")},
     {gText_Exit},
 };
 
