@@ -2100,4 +2100,14 @@ extern const u8 gText_Boy[];
 extern const u8 gText_Girl[];
 
 
+// Game Corner card games
+extern const u8 gText_Bust[];
+extern const u8 gText_YouLose[];
+extern const u8 gText_YouWin[];
+extern const u8 gText_Push[];
+extern const u8 gText_BlackJack[];
+extern const u8 gText_Betting[];
+extern const u8 gText_NoBetting[];
+extern const u8 gText_NoMoney[];
+
 #endif // GUARD_STRINGS_H

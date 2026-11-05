@@ -1,0 +1,6 @@
+#ifndef GUARD_GAME_CORNER_VIDEO_POKER_H
+#define GUARD_GAME_CORNER_VIDEO_POKER_H
+
+void StartVideoPoker(void);
+
+#endif // GUARD_GAME_CORNER_VIDEO_POKER_H

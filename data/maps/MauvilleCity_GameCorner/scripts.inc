@@ -816,3 +816,278 @@ MauvilleCity_GameCorner_Text_CantPlayWithNoCoinCase:
 	.string "You can't play if you don't have\n"
 	.string "a COIN CASE.$"
 
+
+@ Fantasy Retold: Game Corner minigames (design.md §2, Game Corner Minigames).
+@ Machines and NPCs from heyopc/pokeemerald-gamecorner-expansion's room.
+
+MauvilleCity_GameCorner_EventScript_Blackjack::
+	lockall
+	checkitem ITEM_COIN_CASE
+	goto_if_eq VAR_RESULT, FALSE, MauvilleCity_GameCorner_EventScript_NoCoinCase
+	checkcoins VAR_TEMP_2
+	goto_if_lt VAR_TEMP_2, GC_CARD_STAKE_MIN, MauvilleCity_GameCorner_EventScript_CardNotEnoughCoins
+	msgbox MauvilleCity_GameCorner_Text_Blackjack, MSGBOX_YESNO
+	closemessage
+	goto_if_eq VAR_RESULT, NO, MauvilleCity_GameCorner_EventScript_MinigameCancel
+	playbgm MUS_GAME_CORNER, FALSE
+	special StartBlackJack
+	waitstate
+	savebgm MUS_DUMMY
+	fadedefaultbgm
+	releaseall
+	end
+
+MauvilleCity_GameCorner_EventScript_VideoPoker::
+	lockall
+	checkitem ITEM_COIN_CASE
+	goto_if_eq VAR_RESULT, FALSE, MauvilleCity_GameCorner_EventScript_NoCoinCase
+	checkcoins VAR_TEMP_2
+	goto_if_lt VAR_TEMP_2, GC_CARD_STAKE_MIN, MauvilleCity_GameCorner_EventScript_CardNotEnoughCoins
+	msgbox MauvilleCity_GameCorner_Text_VideoPoker, MSGBOX_YESNO
+	closemessage
+	goto_if_eq VAR_RESULT, NO, MauvilleCity_GameCorner_EventScript_MinigameCancel
+	playbgm MUS_GAME_CORNER, FALSE
+	special StartVideoPoker
+	waitstate
+	savebgm MUS_DUMMY
+	fadedefaultbgm
+	releaseall
+	end
+
+MauvilleCity_GameCorner_EventScript_CardNotEnoughCoins::
+	buffernumberstring STR_VAR_1, GC_CARD_STAKE_MIN
+	msgbox MauvilleCity_GameCorner_Text_CardNotEnoughCoins, MSGBOX_DEFAULT
+	releaseall
+	end
+
+MauvilleCity_GameCorner_EventScript_Snake::
+	lockall
+	setvar VAR_0x8004, GC_ARCADE_SNAKE
+	goto MauvilleCity_GameCorner_EventScript_Arcade
+
+MauvilleCity_GameCorner_EventScript_FlappyBird::
+	lockall
+	setvar VAR_0x8004, GC_ARCADE_FLAPPY
+	goto MauvilleCity_GameCorner_EventScript_Arcade
+
+MauvilleCity_GameCorner_EventScript_BlockStacker::
+	lockall
+	setvar VAR_0x8004, GC_ARCADE_BLOCK_STACKER
+	goto MauvilleCity_GameCorner_EventScript_Arcade
+
+@ VAR_0x8004 = GC_ARCADE_*
+MauvilleCity_GameCorner_EventScript_Arcade::
+	checkitem ITEM_COIN_CASE
+	goto_if_eq VAR_RESULT, FALSE, MauvilleCity_GameCorner_EventScript_NoCoinCase
+	switch VAR_0x8004
+	case GC_ARCADE_SNAKE, MauvilleCity_GameCorner_EventScript_ArcadeNameSnake
+	case GC_ARCADE_FLAPPY, MauvilleCity_GameCorner_EventScript_ArcadeNameFlappy
+	bufferstring STR_VAR_2, MauvilleCity_GameCorner_Text_NameBlockStacker
+	goto MauvilleCity_GameCorner_EventScript_ArcadeAsk
+
+MauvilleCity_GameCorner_EventScript_ArcadeNameSnake::
+	bufferstring STR_VAR_2, MauvilleCity_GameCorner_Text_NameSnake
+	goto MauvilleCity_GameCorner_EventScript_ArcadeAsk
+
+MauvilleCity_GameCorner_EventScript_ArcadeNameFlappy::
+	bufferstring STR_VAR_2, MauvilleCity_GameCorner_Text_NameFlappy
+	goto MauvilleCity_GameCorner_EventScript_ArcadeAsk
+
+MauvilleCity_GameCorner_EventScript_ArcadeAsk::
+	buffernumberstring STR_VAR_1, GC_ARCADE_ENTRY_FEE
+	checkcoins VAR_TEMP_2
+	goto_if_lt VAR_TEMP_2, GC_ARCADE_ENTRY_FEE, MauvilleCity_GameCorner_EventScript_ArcadeNotEnoughCoins
+	showcoinsbox 1, 1
+	msgbox MauvilleCity_GameCorner_Text_ArcadeAsk, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, MauvilleCity_GameCorner_EventScript_ArcadeCancel
+	removecoins GC_ARCADE_ENTRY_FEE
+	updatecoinsbox
+	playse SE_SHOP
+	delay 40
+	hidecoinsbox
+	closemessage
+	setvar VAR_GAME_CORNER_WINNINGS, 0
+	switch VAR_0x8004
+	case GC_ARCADE_SNAKE, MauvilleCity_GameCorner_EventScript_ArcadeStartSnake
+	case GC_ARCADE_FLAPPY, MauvilleCity_GameCorner_EventScript_ArcadeStartFlappy
+	playbgm MUS_GC_BLOCK_STACKER, FALSE
+	special StartBlockStacker
+	goto MauvilleCity_GameCorner_EventScript_ArcadePayout
+
+MauvilleCity_GameCorner_EventScript_ArcadeStartSnake::
+	playbgm MUS_NONE, FALSE
+	special StartSnake
+	goto MauvilleCity_GameCorner_EventScript_ArcadePayout
+
+MauvilleCity_GameCorner_EventScript_ArcadeStartFlappy::
+	playbgm MUS_NONE, FALSE
+	special StartFlappyBird
+	goto MauvilleCity_GameCorner_EventScript_ArcadePayout
+
+MauvilleCity_GameCorner_EventScript_ArcadePayout::
+	waitstate
+	savebgm MUS_DUMMY
+	fadedefaultbgm
+	goto_if_eq VAR_GAME_CORNER_WINNINGS, 0, MauvilleCity_GameCorner_EventScript_MinigameCancel
+	showcoinsbox 1, 1
+	buffernumberstring STR_VAR_1, VAR_GAME_CORNER_WINNINGS
+	msgbox MauvilleCity_GameCorner_Text_ArcadeWon, MSGBOX_DEFAULT
+	addcoins VAR_GAME_CORNER_WINNINGS
+	setvar VAR_GAME_CORNER_WINNINGS, 0
+	updatecoinsbox
+	playse SE_SHOP
+	delay 40
+	hidecoinsbox
+	closemessage
+	releaseall
+	end
+
+MauvilleCity_GameCorner_EventScript_ArcadeNotEnoughCoins::
+	msgbox MauvilleCity_GameCorner_Text_ArcadeNotEnoughCoins, MSGBOX_DEFAULT
+	releaseall
+	end
+
+MauvilleCity_GameCorner_EventScript_ArcadeCancel::
+	hidecoinsbox
+	closemessage
+	releaseall
+	end
+
+MauvilleCity_GameCorner_EventScript_MinigameCancel::
+	closemessage
+	releaseall
+	end
+
+MauvilleCity_GameCorner_EventScript_OutOfOrder::
+	msgbox MauvilleCity_GameCorner_Text_OutOfOrder, MSGBOX_SIGN
+	end
+
+MauvilleCity_GameCorner_EventScript_Dealer::
+	lock
+	faceplayer
+	msgbox MauvilleCity_GameCorner_Text_Dealer, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
+	end
+
+MauvilleCity_GameCorner_EventScript_Dealer2::
+	lock
+	faceplayer
+	msgbox MauvilleCity_GameCorner_Text_Dealer2, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
+	end
+
+MauvilleCity_GameCorner_EventScript_PokerDealer1::
+	lock
+	faceplayer
+	msgbox MauvilleCity_GameCorner_Text_PokerDealer1, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
+	end
+
+MauvilleCity_GameCorner_EventScript_PokerDealer2::
+	lock
+	faceplayer
+	msgbox MauvilleCity_GameCorner_Text_PokerDealer2, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
+	end
+
+MauvilleCity_GameCorner_EventScript_Fisherman::
+	lock
+	faceplayer
+	msgbox MauvilleCity_GameCorner_Text_Fisherman, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
+	end
+
+MauvilleCity_GameCorner_EventScript_Hiker::
+	lock
+	faceplayer
+	msgbox MauvilleCity_GameCorner_Text_Hiker, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
+	end
+
+MauvilleCity_GameCorner_EventScript_Employee::
+	lock
+	faceplayer
+	msgbox MauvilleCity_GameCorner_Text_Employee, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
+	end
+
+MauvilleCity_GameCorner_EventScript_Bouncer::
+	lock
+	faceplayer
+	msgbox MauvilleCity_GameCorner_Text_Bouncer, MSGBOX_DEFAULT
+	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
+	end
+
+MauvilleCity_GameCorner_Text_Blackjack:
+	.string "It's a BLACKJACK TABLE!\n"
+	.string "Want to play?$"
+
+MauvilleCity_GameCorner_Text_VideoPoker:
+	.string "It's a VIDEO POKER machine!\n"
+	.string "Want to play?$"
+
+MauvilleCity_GameCorner_Text_CardNotEnoughCoins:
+	.string "The table minimum is\n"
+	.string "{STR_VAR_1} COINS…$"
+
+MauvilleCity_GameCorner_Text_NameSnake:
+	.string "ONIX$"
+
+MauvilleCity_GameCorner_Text_NameFlappy:
+	.string "FLUTTERFREE$"
+
+MauvilleCity_GameCorner_Text_NameBlockStacker:
+	.string "BLOCK BUILDER$"
+
+MauvilleCity_GameCorner_Text_ArcadeAsk:
+	.string "It's {STR_VAR_2}!\n"
+	.string "Play for {STR_VAR_1} COINS?$"
+
+MauvilleCity_GameCorner_Text_ArcadeNotEnoughCoins:
+	.string "It's {STR_VAR_2}!\p"
+	.string "It costs {STR_VAR_1} COINS.\n"
+	.string "You don't have enough…$"
+
+MauvilleCity_GameCorner_Text_ArcadeWon:
+	.string "You won\n"
+	.string "{STR_VAR_1} COINS!$"
+
+MauvilleCity_GameCorner_Text_OutOfOrder:
+	.string "“OUT OF ORDER”\n"
+	.string "A sign is taped to the machine.$"
+
+MauvilleCity_GameCorner_Text_Dealer:
+	.string "Welcome to the BLACKJACK table!\p"
+	.string "Wins pay 3 to 2 here, and a\n"
+	.string "BLACKJACK pays double!$"
+
+MauvilleCity_GameCorner_Text_Dealer2:
+	.string "Bets run from 100 to 500 COINS.\n"
+	.string "Good luck!$"
+
+MauvilleCity_GameCorner_Text_PokerDealer1:
+	.string "VIDEO POKER is simple.\p"
+	.string "Hold the cards you like, draw\n"
+	.string "the rest. JACKS or better pay!$"
+
+MauvilleCity_GameCorner_Text_PokerDealer2:
+	.string "A ROYAL FLUSH pays 250 times\n"
+	.string "your bet! Well… up to 9,999.$"
+
+MauvilleCity_GameCorner_Text_Fisherman:
+	.string "I come here for the food.\p"
+	.string "It's no CELADON CAFE…\n"
+	.string "But it'll do.$"
+
+MauvilleCity_GameCorner_Text_Hiker:
+	.string "Gah! I blew it all on that\n"
+	.string "ONIX game.\p"
+	.string "The arcade machines cost 100\n"
+	.string "COINS a go. Better be good!$"
+
+MauvilleCity_GameCorner_Text_Employee:
+	.string "I'm on the lookout for cheaters.\n"
+	.string "Nobody likes a cheater!$"
+
+MauvilleCity_GameCorner_Text_Bouncer:
+	.string "Enjoy the GAME CORNER!$"

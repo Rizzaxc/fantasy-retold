@@ -699,3 +699,8 @@ gSpecials::
 	def_special GameCornerPrize_BufferOffer
 	def_special GameCornerPrize_GiveEgg
 	def_special GameCornerPrize_SetSold
+	def_special StartBlackJack
+	def_special StartSnake
+	def_special StartFlappyBird
+	def_special StartBlockStacker
+	def_special StartVideoPoker

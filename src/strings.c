@@ -1119,3 +1119,13 @@ const u8 gText_Volcanobadge[] = _("VOLCANOBADGE");
 const u8 gText_Earthbadge[] = _("EARTHBADGE");
 const u8 gText_OakImportantToGetToKnowPokemonThroughly[] = _("OAK: It's important to get to know\nyour POKéMON thoroughly.\p");
 const u8 gText_OakThisIsListOfPokemon[] = _("This is a list of your POKéMON,\n{PLAYER}.\pOpen this to check the skills\nand moves of your POKéMON.\pYou also choose POKéMON here if\nyou want to use an item on one.{PAUSE_UNTIL_PRESS}");
+
+// Game Corner card games (design.md §2, Game Corner Minigames)
+const u8 gText_Bust[] = _("BUST!");
+const u8 gText_YouLose[] = _("You lose!");
+const u8 gText_YouWin[] = _("You win!");
+const u8 gText_Push[] = _("PUSH!");
+const u8 gText_BlackJack[] = _("BLACKJACK!");
+const u8 gText_Betting[] = _("Your current\nbet is {STR_VAR_1} COINS.");
+const u8 gText_NoBetting[] = _("Your current\nbet is 0 COINS.");
+const u8 gText_NoMoney[] = _("You do not have\nenough COINS.");

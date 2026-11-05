@@ -314,6 +314,39 @@ The Mauville prize counter that sold 5 TMs (they would clash with § Reusable TM
 * **Lock.** Under the 5 rows (above CANCEL) the menu has **LOCK PRIZES**, which holds the current rows: no daily or milestone refresh until the player picks **UNLOCK PRIZES** (the same row). Bought rows stay `SOLD OUT` while locked. Unlocking doesn't reroll on the spot; if a refresh came due while locked, the rows reroll the next time the counter is opened. The Mega Stone / Z-Crystal stock (§ Mega Ring / Z-Ring) is not affected.
 * **Engine.** `src/game_corner_prize.c` + `include/constants/game_corner_prize.h`, script `MauvilleCity_GameCorner_EventScript_ChoosePrize` (reached from the old TM counter, `..._PrizeCornerTMs`; a `dynmultipush` loop). Rows: `VAR_GAME_CORNER_PRIZE_1`–`_5` (the unused town-state vars 0x4052, 0x4055, 0x4056, 0x4059, 0x405B): category in bits 14–15, item / species below, 0 = sold. `VAR_GAME_CORNER_PRIZE_KEY` (0x405C) = milestones + 1; `FLAG_DAILY_GAME_CORNER_PRIZES` (the old daily 0x920) is set when stocked and cleared by `ClearDailyFlags`. Lock: `FLAG_GAME_CORNER_PRIZES_LOCKED` (the old unused 0x3B), toggled by menu row `GAME_CORNER_PRIZE_MENU_LOCK` (`..._TogglePrizeLock`); `GameCornerPrize_Restock` returns early while it is set. Specials (row in `VAR_0x8005`): `GameCornerPrize_Restock`, `_BufferRow` (`STR_VAR_2`; coins after an `EXT_CTRL_CODE_CLEAR_TO` column set by the widest unsold row), `_BufferOffer` (name in `STR_VAR_1`, coins in `VAR_0x8006`, item in `VAR_0x8007`; returns `GAME_CORNER_OFFER_*`), `_GiveEgg`, `_SetSold`. Pools: `RollGymRewardHeldItem` / `RollGymRewardStatItem` (`gym_reward.c`), `PickEggShopPowerhouseSpecies` (`egg_shop.c`).
 
+### Game Corner Minigames
+
+The Mauville Game Corner is a bigger room with five minigames next to the slots and roulette. They are tuned so the games can be **farmed for coins**, the card games especially, and pay into the prize counters above. Four games are ported from [heyopc/pokeemerald-gamecorner-expansion](https://github.com/heyopc/pokeemerald-gamecorner-expansion) (vanilla pokeemerald; Snake is based on Viperio's): Blackjack, Snake ("ONIX"), Flappy Bird ("FLUTTERFREE") and Block Stacker ("BLOCK BUILDER"). Video Poker is our own, built on Blackjack's cards. Every game needs the Coin Case.
+
+**Farming target.** With competent play, a card game earns about **3–4k coins an hour at a 100 stake** and about **15k an hour at 500** (a 3,000-coin prize every ~10–15 min), with bigger swings at higher stakes. The arcade games earn about half that and depend on skill. Wins clamp at 9,999 coins.
+
+* **Blackjack.** The stake is **100–500 in steps of 50** (the ±50 buttons; the first press bets 100), capped by the coins held.
+  * *Payouts:* a win pays **3:2**, also on a doubled hand. A natural blackjack pays **2:1**. A push returns the stake. Insurance (half the stake) pays 2:1.
+  * *Edge:* simulated **+22.5%** for the player with basic strategy (400k hands; vanilla rules give −1.5%).
+  * *Upstream changes:* upstream paid a natural *less* than a normal win, and insurance 1:1.
+* **Video Poker** (Jacks or Better). Pick a stake (**100–500 by 50**, ↑↓), A deals 5 cards, ←→ + A hold cards, START draws once.
+  * *Pay table* (× stake, stake included): Royal Flush 250, Straight Flush 60, Four of a Kind 30, Full House 12, Flush 8, Straight 6, Three of a Kind 5, Two Pair 2, Jacks or Better 1. A-2-3-4-5 counts as a straight.
+  * *Edge:* about **+21%** with a simple hold strategy (300k hands; the standard 9/6 table gives −2.6%).
+* **Arcade** (Snake, Flappy Bird, Block Stacker). The entry fee is **100 coins**, and the payout is shown after the run:
+
+  | Game | Payout | Break-even |
+  |---|---|---|
+  | Snake | **10 coins per berry** (99 berries max) | 10 berries |
+  | Flappy Bird | **10 coins per pipe**; the hi-score is saved | 10 pipes |
+  | Block Stacker | row 6 **150**, row 7 **500** (cash out or continue), top row **1,500** | row 6 |
+
+  Upstream charged 25 and paid 2 per point / 50–250–1,000.
+* **Room.** Upstream's 30×22 layout and tileset, including the animated lights. Their machines for games we didn't port (pinball, Plinko, Voltorb Flip, Derby, gacha) say *"OUT OF ORDER"*, except the two Voltorb Flip tables, which run Video Poker. Their prize counters are ours: the TM counter runs the 5 prize rows (§ Game Corner Prizes), and the second counter sells the dolls and the Mega Stone / Z-Crystal stock (§ Mega Ring / Z-Ring). Their flavour NPCs (dealers, bouncer, fisherman, hiker, employee) are kept with our own lines. Their bouncer ID-check scene, juice ladies and gacha / derby / Plinko NPCs are dropped.
+* **Engine.**
+  * *Sources:* `src/game_corner_blackjack.c`, `src/snake.c`, `src/flappybird.c` and `src/block_stacker.c` (ported), plus `src/game_corner_video_poker.c` (ours).
+  * *Shared cards:* `src/game_corner_cards.c` / `include/game_corner_cards.h` hold the 52 card graphics, the back, the palette, `GameCornerCards_LoadGfx`, `_CreateSprite` and `_Shuffle`. Card id = suit × 13 + rank, rank 0 = '2' … 12 = Ace.
+  * *Specials:* `StartBlackJack`, `StartVideoPoker`, `StartSnake`, `StartFlappyBird` and `StartBlockStacker`, each followed by `waitstate`.
+  * *Coins:* the card games move coins themselves. The arcade games leave their payout in **`VAR_GAME_CORNER_WINNINGS`** (0x4064, the old unused `VAR_ROUTE105_STATE`), which the map script adds (`MauvilleCity_GameCorner_EventScript_Arcade`, game id in `VAR_0x8004` = `GC_ARCADE_*`). Flappy's hi-score is **`VAR_FLAPPY_HISCORE`** (0x4065, the old `VAR_ROUTE106_STATE`).
+  * *Blackjack state:* upstream kept the in-play state in seven save vars and three flags. That state is now fields of its heap struct.
+  * *Tunables:* every stake, payout and fee is in `include/constants/game_corner_minigames.h`.
+  * *Music:* Block Stacker plays **`MUS_GC_BLOCK_STACKER`** (610, appended after the phonemes). This is upstream's track, which had overwritten `MUS_RG_CREDITS`; we keep Kanto's song. It uses voicegroup `gc_block_stacker` (upstream's modified voicegroup149) and 5 samples (`sound/direct_sound_samples/pinball_*.wav`, converted from upstream's AIFF).
+  * *Map and tileset:* the light animation is `InitTilesetAnim_MauvilleGameCorner` (`tileset_anims.c`). The texts and scripts are in `data/maps/MauvilleCity_GameCorner/scripts.inc`.
+
 ### Lab Research Trade
 
 Prof. Birch's **Aide** in the Littleroot lab runs a 2-for-1 trade: the player lends him **two party Pokémon** for research and gets **one** stronger, foreign Pokémon back.
@@ -393,6 +426,7 @@ Battle constants are in `combat.md` §13.
 | TMs        | Reusable, one copy each | not consumed, can't be sold / tossed; an owned TM from a spot or gift → random classic evolution item |
 | Bag        | Pocket slots | Items 400, Balls 28, Berries 68, TM/HM 64; secret bases kept: 3 |
 | Game Corner | 5 prize rows | species item 2,000 / held item 3,000 / stat item 3,000 / Powerhouse Egg 4,000 coins, category even; restock daily + per badge / rival / E4 clear |
+| Game Corner | Minigames | Blackjack / Video Poker: stake 100–500 by 50; Blackjack win 3:2, natural 2:1 (~+22% EV); Poker pays 250/60/30/12/8/6/5/2/1 (~+21%); arcade (Snake, Flappy, Block Stacker) 100 coins a play: 10 per berry / pipe, Stacker 150 / 500 / 1,500 |
 | Lab trade  | 2 party Pokémon → 1 reward       | Lv5 first-stage, non-Hoenn, non-legendary; line shares a rolled input type; line BST > both inputs; IVs best of 2 per stat; 1 per badge / E4 clear; typed from the 4th; Rare Candy if no reward |
 | Paradox Lab | Lanette, after badge 5 | gift once: Lv10, 1 of 14 non-legendary Paradoxes, random nature / IVs; conversion: free, unlimited, exact canon source → Paradox, keeps level / nature / EVs / IVs, wipes moves + Signature Move; Booster Energy with every Quark Drive mon |
 
