@@ -26,6 +26,13 @@
 #define GC_POKER_PAY_TWO_PAIR       2
 #define GC_POKER_PAY_JACKS_OR_BETTER 1
 
+// Tien Len, in half-stakes: 4th pays 1st a stake and 3rd pays 2nd half a stake
+// (bet 100: 1st gets 200 back, 2nd 150, 3rd 50, 4th 0). An instant win counts
+// everyone else as last, each paying the first-place amount. Chops and stuck
+// cards pay from the pocket: black 2 = 1, red 2 = 2, bomb = 2.
+#define GC_TIEN_LEN_FIRST_PAY_HALVES  2
+#define GC_TIEN_LEN_SECOND_PAY_HALVES 1
+
 // Arcade games: entry fee, and what a run pays.
 #define GC_ARCADE_ENTRY_FEE        100
 #define GC_SNAKE_COINS_PER_BERRY   10

@@ -854,6 +854,23 @@ MauvilleCity_GameCorner_EventScript_VideoPoker::
 	releaseall
 	end
 
+MauvilleCity_GameCorner_EventScript_TienLen::
+	lockall
+	checkitem ITEM_COIN_CASE
+	goto_if_eq VAR_RESULT, FALSE, MauvilleCity_GameCorner_EventScript_NoCoinCase
+	checkcoins VAR_TEMP_2
+	goto_if_lt VAR_TEMP_2, GC_CARD_STAKE_MIN, MauvilleCity_GameCorner_EventScript_CardNotEnoughCoins
+	msgbox MauvilleCity_GameCorner_Text_TienLen, MSGBOX_YESNO
+	closemessage
+	goto_if_eq VAR_RESULT, NO, MauvilleCity_GameCorner_EventScript_MinigameCancel
+	playbgm MUS_GAME_CORNER, FALSE
+	special StartTienLen
+	waitstate
+	savebgm MUS_DUMMY
+	fadedefaultbgm
+	releaseall
+	end
+
 MauvilleCity_GameCorner_EventScript_CardNotEnoughCoins::
 	buffernumberstring STR_VAR_1, GC_CARD_STAKE_MIN
 	msgbox MauvilleCity_GameCorner_Text_CardNotEnoughCoins, MSGBOX_DEFAULT
@@ -969,10 +986,10 @@ MauvilleCity_GameCorner_EventScript_Dealer::
 	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
 	end
 
-MauvilleCity_GameCorner_EventScript_Dealer2::
+MauvilleCity_GameCorner_EventScript_TienLenDealer::
 	lock
 	faceplayer
-	msgbox MauvilleCity_GameCorner_Text_Dealer2, MSGBOX_DEFAULT
+	msgbox MauvilleCity_GameCorner_Text_TienLenDealer, MSGBOX_DEFAULT
 	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
 	end
 
@@ -1018,6 +1035,10 @@ MauvilleCity_GameCorner_EventScript_Bouncer::
 	goto MauvilleCity_GameCorner_EventScript_NPCReturnToSlots
 	end
 
+MauvilleCity_GameCorner_Text_TienLen:
+	.string "It's a TIEN LEN table!\n"
+	.string "Want to play?$"
+
 MauvilleCity_GameCorner_Text_Blackjack:
 	.string "It's a BLACKJACK TABLE!\n"
 	.string "Want to play?$"
@@ -1061,9 +1082,11 @@ MauvilleCity_GameCorner_Text_Dealer:
 	.string "Wins pay 3 to 2 here, and a\n"
 	.string "BLACKJACK pays double!$"
 
-MauvilleCity_GameCorner_Text_Dealer2:
-	.string "Bets run from 100 to 500 COINS.\n"
-	.string "Good luck!$"
+MauvilleCity_GameCorner_Text_TienLenDealer:
+	.string "Welcome to the TIEN LEN table!\p"
+	.string "Go out first and you double your\n"
+	.string "bet. CHOP someone's 2s for a bonus,\l"
+	.string "but get chopped and it costs you!$"
 
 MauvilleCity_GameCorner_Text_PokerDealer1:
 	.string "VIDEO POKER is simple.\p"

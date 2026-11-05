@@ -1,0 +1,6 @@
+#ifndef GUARD_GAME_CORNER_TIEN_LEN_H
+#define GUARD_GAME_CORNER_TIEN_LEN_H
+
+void StartTienLen(void);
+
+#endif // GUARD_GAME_CORNER_TIEN_LEN_H

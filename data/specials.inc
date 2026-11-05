@@ -704,3 +704,4 @@ gSpecials::
 	def_special StartFlappyBird
 	def_special StartBlockStacker
 	def_special StartVideoPoker
+	def_special StartTienLen
