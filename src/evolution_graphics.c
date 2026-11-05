@@ -443,7 +443,9 @@ static void Task_Sparkles_SprayAndFlash(u8 taskId)
                 CreateSparkle_Spray(i);
             break;
         case 32:
-            BeginNormalPaletteFade(0xFFFF041C, 0x10, 0x10, 0, RGB_WHITE); // was 0xFFF9001C in R/S
+            // Fantasy Retold: retry next frame if another fade is still running, else the mon stays white
+            if (!BeginNormalPaletteFade(0xFFFF041C, 0x10, 0x10, 0, RGB_WHITE))
+                return;
             break;
         }
         gTasks[taskId].tTimer++;
@@ -494,7 +496,9 @@ static void Task_Sparkles_SprayAndFlashTrade(u8 taskId)
                 CreateSparkle_Spray(i);
             break;
         case 32:
-            BeginNormalPaletteFade(0xFFFF0400, 0x10, 0x10, 0, RGB_WHITE); // was 0xFFFF0001 in R/S
+            // Fantasy Retold: retry next frame if another fade is still running, else the mon stays white
+            if (!BeginNormalPaletteFade(0xFFFF0400, 0x10, 0x10, 0, RGB_WHITE))
+                return;
             break;
         }
         gTasks[taskId].tTimer++;

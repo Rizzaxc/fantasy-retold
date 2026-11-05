@@ -1463,7 +1463,10 @@ void BoxMonToMon(const struct BoxPokemon *src, struct Pokemon *dest)
 {
     u32 value = 0;
     dest->box = *src;
-    dest->status = GetBoxMonData(&dest->box, MON_DATA_STATUS);
+    // Fantasy Retold: storage (PC, daycare) cures status, like vanilla, so a mon taken out of a box has none
+    // (design.md). The box's compressed status can't hold the status rails' levels anyway.
+    value = STATUS1_NONE;
+    SetMonData(dest, MON_DATA_STATUS, &value);
     dest->hp = 0;
     dest->maxHP = 0;
     value = MAIL_NONE;
@@ -3579,16 +3582,26 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, enum Item item, u8 partyIndex, 
             }
 
             // Cure status
-            if ((itemEffect[i] & ITEM3_SLEEP) && HealStatusConditions(mon, STATUS1_SLEEP, battler) == 0)
-                retVal = FALSE;
-            if ((itemEffect[i] & ITEM3_POISON) && HealStatusConditions(mon, STATUS1_PSN_ANY | STATUS1_TOXIC_COUNTER, battler) == 0)
-                retVal = FALSE;
-            if ((itemEffect[i] & ITEM3_BURN) && HealStatusConditions(mon, STATUS1_BURN, battler) == 0)
-                retVal = FALSE;
-            if ((itemEffect[i] & ITEM3_FREEZE) && HealStatusConditions(mon, STATUS1_ICY_ANY, battler) == 0)
-                retVal = FALSE;
-            if ((itemEffect[i] & ITEM3_PARALYSIS) && HealStatusConditions(mon, STATUS1_PARALYSIS, battler) == 0)
-                retVal = FALSE;
+            // Fantasy Retold: a full cure is one call, so it also takes the Confusion line and, in battle, cures
+            // each rail once (a Lv3 keeps its Lv1, combat.md §6); the single-line cures are the other items.
+            if ((itemEffect[i] & ITEM3_STATUS_ALL) == ITEM3_STATUS_ALL)
+            {
+                if (HealStatusConditions(mon, STATUS1_ANY | STATUS1_TOXIC_COUNTER, battler) == 0)
+                    retVal = FALSE;
+            }
+            else
+            {
+                if ((itemEffect[i] & ITEM3_SLEEP) && HealStatusConditions(mon, STATUS1_SLEEP, battler) == 0)
+                    retVal = FALSE;
+                if ((itemEffect[i] & ITEM3_POISON) && HealStatusConditions(mon, STATUS1_PSN_ANY | STATUS1_TOXIC_COUNTER, battler) == 0)
+                    retVal = FALSE;
+                if ((itemEffect[i] & ITEM3_BURN) && HealStatusConditions(mon, STATUS1_BURN, battler) == 0)
+                    retVal = FALSE;
+                if ((itemEffect[i] & ITEM3_FREEZE) && HealStatusConditions(mon, STATUS1_ICY_ANY, battler) == 0)
+                    retVal = FALSE;
+                if ((itemEffect[i] & ITEM3_PARALYSIS) && HealStatusConditions(mon, STATUS1_PARALYSIS, battler) == 0)
+                    retVal = FALSE;
+            }
             break;
 
         // Handle ITEM4 effects (Change HP/Atk EVs, HP heal, PP heal, PP up, Revive, and evolution stones)
@@ -3938,12 +3951,45 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, enum Item item, u8 partyIndex, 
 bool8 HealStatusConditions(struct Pokemon *mon, u32 healMask, enum BattlerId battler)
 {
     u32 status = GetMonData(mon, MON_DATA_STATUS, 0);
+    struct StatusRailEntry *rails = GetPartyMonStatusRails(mon);
 
     PREPARE_MON_NICK_BUFFER(gBattleTextBuff1, battler, gBattlerPartyIndexes[battler]);
 
-    if (status & healMask)
+    // Fantasy Retold: in battle the rails are the status (combat.md §6). Cure them (a Lv3 drops to a volatile
+    // Lv1, like every cure), then rebuild the battler's status1 view and the party status from them.
+    if (rails != NULL)
     {
-        if (status & STATUS1_PARALYSIS)
+        u32 railMask = GetStatusRailMaskFromStatus1(healMask);
+
+        if (!HasStatusRailEntries(rails, railMask))
+            return TRUE;
+        gBattleCommunication[MULTISTRING_CHOOSER] = GetStatusRailEntriesCureMessage(rails, railMask);
+        if ((railMask & STATUS_RAIL_BIT(RAIL_SLEEP)) && rails[RAIL_SLEEP].level != 0 && battler != MAX_BATTLERS_COUNT)
+        {
+            struct Pokemon *party = GetBattlerParty(battler);
+
+            for (u32 i = 0; i < PARTY_SIZE; i++)
+            {
+                if (&party[i] == mon)
+                {
+                    TryDeactivateSleepClause(battler, i);
+                    break;
+                }
+            }
+        }
+        CurePartyStatusRailsMask(rails, railMask);
+        if (battler != MAX_BATTLERS_COUNT)
+            SyncStatusRailBridge(battler);
+        status = EncodeStatusRails(rails);
+        SetMonData(mon, MON_DATA_STATUS, &status);
+        return FALSE;
+    }
+
+    // Out of battle: a party mon's Shocked / Stupefied / Frightened live only in STATUS1_SAVED_* bits, so they
+    // count as something to cure too.
+    if (status & (healMask | GetStatusRailSavedBitsToCure(healMask)))
+    {
+        if (status & (STATUS1_PARALYSIS | STATUS1_SAVED_ELECTRIC))
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_PARALYSIS;
         else if (status & STATUS1_POISON || status & STATUS1_TOXIC_POISON)
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_POISON;
@@ -3957,23 +4003,6 @@ bool8 HealStatusConditions(struct Pokemon *mon, u32 healMask, enum BattlerId bat
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FROSTBITE;
         status &= ~(healMask | GetStatusRailSavedBitsToCure(healMask));
         SetMonData(mon, MON_DATA_STATUS, &status);
-        if (gMain.inBattle && battler != MAX_BATTLERS_COUNT)
-        {
-            gBattleMons[battler].status1 &= ~healMask;
-            if ((healMask & STATUS1_SLEEP))
-            {
-                struct Pokemon *party = GetBattlerParty(battler);
-
-                for (u32 i = 0; i < PARTY_SIZE; i++)
-                {
-                    if (&party[i] == mon)
-                    {
-                        TryDeactivateSleepClause(battler, i);
-                        break;
-                    }
-                }
-            }
-        }
         return FALSE;
     }
     else

@@ -4998,9 +4998,12 @@ u32 AbilityBattleEffects(enum AbilityEffect caseID, enum BattlerId battler, enum
                 if ((gBattleStruct->gimmick.toActivate & (1u << battler)) && gBattleStruct->gimmick.usableGimmick[battler] != GIMMICK_NONE)
                     gBattleStruct->gimmick.toActivate &= ~(1u << battler);
 
-                struct Volatiles *vol = &gBattleMons[battler].volatiles;
-                if (vol->confusionTimer > 0 && vol->confusionTimer != PERMANENT_VOLATILE)
-                    vol->confusionTimer--;
+                // Fantasy Retold: a turn off the Confusion rail's count (status1 / confusionTimer are its view).
+                if (GetStatusRailLevel(battler, RAIL_CONFUSION) != 0 && GetStatusRailCounter(battler, RAIL_CONFUSION) > 1)
+                {
+                    SetStatusRailCounter(battler, RAIL_CONFUSION, GetStatusRailCounter(battler, RAIL_CONFUSION) - 1);
+                    SyncStatusRailBridge(battler);
+                }
 
                 BtlController_EmitSpriteInvisibility(battler, B_COMM_TO_CONTROLLER, TRUE);
                 MarkBattlerForControllerExec(battler);
@@ -10765,6 +10768,16 @@ ARM_FUNC u32 GetBattlerVolatile(enum BattlerId battler, enum Volatile _volatile)
 // Primarily used for the debug menu and scripts. Outside of it explicit references are preferred
 void SetMonVolatile(enum BattlerId battler, enum Volatile _volatile, u32 newValue)
 {
+    // Fantasy Retold: confusion lives on its rail; confusionTimer is only the rail's view (combat.md §6).
+    if (_volatile == VOLATILE_CONFUSION)
+    {
+        if (newValue == 0)
+            ClearStatusRail(battler, RAIL_CONFUSION);
+        else
+            RaiseStatusRailTo(battler, RAIL_CONFUSION, 1, 0);
+        return;
+    }
+
     switch (_volatile)
     {
         VOLATILE_DEFINITIONS(UNPACK_VOLATILE_SETTERS)
@@ -10782,11 +10795,13 @@ bool32 ItemHealMonVolatile(enum BattlerId battler, enum Item itemId)
 {
     bool32 statusChanged = FALSE;
     const u8 *effect = GetItemEffect(itemId);
-    if (effect[3] & ITEM3_STATUS_ALL)
+    // Fantasy Retold: only a full cure (Full Heal-type) lands here; a single-line status item has nothing
+    // volatile to heal. The status lines (Confusion included) are cured on the rails by HealStatusConditions,
+    // which BS_ItemCureStatus calls next (combat.md §6).
+    if ((effect[3] & ITEM3_STATUS_ALL) == ITEM3_STATUS_ALL)
     {
-        statusChanged = (gBattleMons[battler].volatiles.infatuation || gBattleMons[battler].volatiles.confusionTimer > 0);
+        statusChanged = gBattleMons[battler].volatiles.infatuation;
         gBattleMons[battler].volatiles.infatuation = 0;
-        CureAllStatusRails(battler, FALSE); // Fantasy Retold: Lv3 drops to Lv1, the rest clear (combat.md §6)
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_CONFUSION;
     }
     else if (effect[0] & ITEM0_INFATUATION)
@@ -10797,8 +10812,7 @@ bool32 ItemHealMonVolatile(enum BattlerId battler, enum Item itemId)
     }
     else if (effect[3] & ITEM3_CONFUSION)
     {
-        statusChanged = (gBattleMons[battler].volatiles.confusionTimer > 0);
-        gBattleMons[battler].volatiles.confusionTimer = 0;
+        statusChanged = CureStatusRails(battler, STATUS_RAIL_BIT(RAIL_CONFUSION)); // Fantasy Retold: the rail
         gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_CONFUSION;
     }
 

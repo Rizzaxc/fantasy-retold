@@ -7,6 +7,7 @@
 #include "battle_switch_in.h"
 #include "battle_controllers.h"
 #include "config_changes.h"
+#include "status_rail.h"
 #include "constants/battle.h"
 #include "constants/moves.h"
 
@@ -356,12 +357,12 @@ static bool32 TryHazardsOnSwitchIn(enum BattlerId battler, enum Ability ability,
             if (gSideTimers[GetBattlerSide(battler)].toxicSpikesAmount >= 2)
             {
                 gBattlescriptCurrInstr = BattleScript_ToxicSpikesBadlyPoisoned;
-                gBattleMons[battler].status1 |= STATUS1_TOXIC_POISON;
+                RaiseStatusRailTo(battler, RAIL_POISON, 2, 0); // Fantasy Retold: Toxic (combat.md §6)
             }
             else
             {
                 gBattlescriptCurrInstr = BattleScript_ToxicSpikesPoisoned;
-                gBattleMons[battler].status1 |= STATUS1_POISON;
+                RaiseStatusRailTo(battler, RAIL_POISON, 1, 0); // Fantasy Retold: a volatile Poison x1
             }
 
             BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[battler].status1), &gBattleMons[battler].status1);

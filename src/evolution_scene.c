@@ -533,6 +533,17 @@ void TradeEvolutionScene(struct Pokemon *mon, enum Species postEvoSpecies, u8 pr
     SetMainCallback2(CB2_TradeEvolutionSceneUpdate);
 }
 
+// Fantasy Retold: the white flash (EvolutionSparkles_SprayAndFlash) only fades the evolved Pokémon back to its
+// colours if no other palette fade is running at that moment; when it is skipped, the sprite stayed a white
+// silhouette for the rest of the scene. Its real palette is still in the unfaded buffer (the sprite cycle only
+// whitens the faded one), so copy it back once the flash is over.
+static void RestorePostEvoMonPalette(void)
+{
+    u32 palOffset = OBJ_PLTT_ID(gSprites[sEvoStructPtr->postEvoSpriteId].oam.paletteNum);
+
+    CpuCopy16(&gPlttBufferUnfaded[palOffset], &gPlttBufferFaded[palOffset], PLTT_SIZE_4BPP);
+}
+
 static void CB2_EvolutionSceneUpdate(void)
 {
     AnimateSprites();
@@ -921,6 +932,7 @@ static void Task_EvolutionScene(u8 taskId)
     case EVOSTATE_EVO_MON_ANIM:
         if (!gPaletteFade.active)
         {
+            RestorePostEvoMonPalette();
             EvoScene_DoMonAnimAndCry(sEvoStructPtr->postEvoSpriteId, gTasks[taskId].tPostEvoSpecies);
             gTasks[taskId].tState++;
         }
@@ -1367,6 +1379,7 @@ static void Task_TradeEvolutionScene(u8 taskId)
         {
             // Restore bg, do mon anim/cry
             Free(sBgAnimPal);
+            RestorePostEvoMonPalette();
             EvoScene_DoMonAnimAndCry(sEvoStructPtr->postEvoSpriteId, gTasks[taskId].tPostEvoSpecies);
             memcpy(&gPlttBufferUnfaded[BG_PLTT_ID(2)], sEvoStructPtr->savedPalette, sizeof(sEvoStructPtr->savedPalette));
             gTasks[taskId].tState++;

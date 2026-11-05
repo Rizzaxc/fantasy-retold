@@ -114,11 +114,12 @@ static enum CancelerResult CancelerChillyReception(struct BattleCalcValues *cv)
     return CANCELER_RESULT_SUCCESS;
 }
 
-static void DefrostBattler(enum BattlerId battler, u32 status)
+// Fantasy Retold: thawing ends the whole Chill line on the rail (combat.md §6); status1 is only its view.
+static void DefrostBattler(enum BattlerId battler)
 {
     GetBattlerPartyState(battler)->freezeTurns = 0;
     gBattleScripting.battler = battler;
-    gBattleMons[battler].status1 &= ~status;
+    ClearStatusRail(battler, RAIL_CHILL);
     RequestNonVolatileChange(battler);
 }
 
@@ -131,7 +132,7 @@ static enum CancelerResult CancelerAsleepOrFrozen(struct BattleCalcValues *cv)
         if (GetConfig(B_UPROAR) < GEN_5 && UproarWakeUpCheck(cv->battlerAtk))
         {
             TryDeactivateSleepClause(cv->battlerAtk, gBattlerPartyIndexes[cv->battlerAtk]);
-            gBattleMons[cv->battlerAtk].status1 &= ~STATUS1_SLEEP;
+            ClearStatusRail(cv->battlerAtk, RAIL_SLEEP); // Fantasy Retold
             gBattleMons[cv->battlerAtk].volatiles.nightmare = FALSE;
             gEffectBattler = cv->battlerAtk;
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_WOKE_UP_UPROAR;
@@ -381,7 +382,6 @@ static enum CancelerResult CancelerConfused(struct BattleCalcValues *cv)
     u32 confusionLevel;
 
     gBattleStruct->battlerState[cv->battlerAtk].stupefiedRedirect = FALSE;
-    ReconcileStatusRailsFromBridge(cv->battlerAtk);
     confusionLevel = GetStatusRailLevel(cv->battlerAtk, RAIL_CONFUSION);
 
     if (confusionLevel != 0)
@@ -631,7 +631,7 @@ static enum CancelerResult CancelerThaw(struct BattleCalcValues *cv)
         {
             if (!IsMoveEffectRemoveSpeciesType(cv->move, MOVE_EFFECT_REMOVE_ARG_TYPE, TYPE_FIRE) || IS_BATTLER_OF_TYPE(cv->battlerAtk, TYPE_FIRE))
             {
-                DefrostBattler(cv->battlerAtk, STATUS1_FREEZE);
+                DefrostBattler(cv->battlerAtk);
                 result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
                 BattleScriptCall(BattleScript_BattlerDefrosted);
                 gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_DEFROSTED_BY_MOVE;
@@ -645,7 +645,7 @@ static enum CancelerResult CancelerThaw(struct BattleCalcValues *cv)
         {
             if (!IsMoveEffectRemoveSpeciesType(cv->move, MOVE_EFFECT_REMOVE_ARG_TYPE, TYPE_FIRE) || IS_BATTLER_OF_TYPE(cv->battlerAtk, TYPE_FIRE))
             {
-                DefrostBattler(cv->battlerAtk, STATUS1_FROSTBITE);
+                DefrostBattler(cv->battlerAtk);
                 result = CANCELER_RESULT_RUN_SCRIPT_AND_INCREMENT;
                 BattleScriptCall(BattleScript_BattlerFrostbiteHealed);
                 gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_FROSTBITE_HEALED_BY_MOVE;
@@ -3561,7 +3561,7 @@ static enum MoveEndResult MoveEndBeakBlast(struct BattleCalcValues *cv)
      && IsMoveMakingContact(cv->battlerAtk, cv->battlerDef, cv->abilities[cv->battlerAtk], cv->holdEffects[cv->battlerAtk], cv->move)
      && CanBeBurned(cv->battlerAtk, cv->battlerAtk, cv->abilities[cv->battlerAtk]))
     {
-        gBattleMons[cv->battlerAtk].status1 = STATUS1_BURN;
+        ApplyStatusRail(cv->battlerAtk, RAIL_BURN, 1); // Fantasy Retold: a contact burn, Lv1 (combat.md §6)
         BtlController_EmitSetMonData(cv->battlerAtk, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[cv->battlerAtk].status1), &gBattleMons[cv->battlerAtk].status1);
         MarkBattlerForControllerExec(cv->battlerAtk);
         BattleScriptCall(BattleScript_BeakBlastBurn);
@@ -4241,7 +4241,7 @@ static enum MoveEndResult MoveEndDefrost(struct BattleCalcValues *cv)
 
         if ((CanFireMoveThawTarget(cv->move, GetBattleMoveType(cv->move)) || CanBurnHitThaw(cv->move)) && gBattleMons[battler].status1 & STATUS1_FREEZE)
         {
-            DefrostBattler(battler, gBattleMons[battler].status1);
+            DefrostBattler(battler);
             BattleScriptCall(battleScript);
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_DEFROSTED;
             return MOVEEND_RESULT_RUN_SCRIPT;
@@ -4249,7 +4249,7 @@ static enum MoveEndResult MoveEndDefrost(struct BattleCalcValues *cv)
         else if (IsBattlerAlive(cv->battlerAtk)
               && CanMoveThawTarget(cv->abilities[cv->battlerAtk], cv->move))
         {
-            DefrostBattler(battler, gBattleMons[battler].status1);
+            DefrostBattler(battler);
             BattleScriptCall(battleScript);
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_DEFROSTED;
             return MOVEEND_RESULT_RUN_SCRIPT;
@@ -5340,7 +5340,7 @@ static enum MoveEndResult MoveEndRampage(struct BattleCalcValues *cv)
         if (CanBeConfused(cv->battlerAtk, cv->battlerAtk))
         {
             gBattleScripting.battler = cv->battlerAtk;
-            gBattleMons[cv->battlerAtk].volatiles.confusionTimer = RandomUniform(RNG_CONFUSION_TURNS, 2, B_CONFUSION_TURNS); // 2-5 turns
+            RaiseStatusRailTo(cv->battlerAtk, RAIL_CONFUSION, 1, 0); // Fantasy Retold: Confused on the rail
             BattleScriptCall(BattleScript_ConfusionAfterRampage);
             result = MOVEEND_RESULT_BREAK;
         }
@@ -5366,7 +5366,7 @@ static enum MoveEndResult MoveEndConfusionAfterSkyDrop(struct BattleCalcValues *
         if (CanBeConfused(cv->battlerDef, cv->battlerDef))
         {
             gBattleScripting.battler = cv->battlerDef;
-            gBattleMons[cv->battlerDef].volatiles.confusionTimer = RandomUniform(RNG_CONFUSION_TURNS, 2, B_CONFUSION_TURNS); // 2-5 turns
+            RaiseStatusRailTo(cv->battlerDef, RAIL_CONFUSION, 1, 0); // Fantasy Retold: Confused on the rail
             BattleScriptCall(BattleScript_ConfusionAfterRampage);
             result = MOVEEND_RESULT_BREAK;
         }
@@ -5868,7 +5868,7 @@ static enum MoveResult StatChangeBeforeChange(struct BattleCalcValues *cv)
                 gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_CURED_FROSTBITE;
 
             gBattleScripting.battler = cv->battlerAtk;
-            gBattleMons[gBattlerAttacker].status1 = 0;
+            CureStatusRails(cv->battlerAtk, STATUS_RAILS_NON_VOLATILE); // Fantasy Retold: a generic cure (combat.md §6)
             BtlController_EmitSetMonData(cv->battlerAtk, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[cv->battlerAtk].status1), &gBattleMons[cv->battlerAtk].status1);
             MarkBattlerForControllerExec(cv->battlerAtk);
             BattleScriptCall(BattleScript_TakeHeart);

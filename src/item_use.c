@@ -38,6 +38,7 @@
 #include "pokemon.h"
 #include "script.h"
 #include "sound.h"
+#include "status_rail.h"
 #include "strings.h"
 #include "string_util.h"
 #include "task.h"
@@ -1172,7 +1173,7 @@ void ItemUseInBattle_PartyMenuChooseMove(u8 taskId)
 static bool32 IteamHealsMonVolatile(enum BattlerId battler, enum Item itemId)
 {
     const u8 *effect = GetItemEffect(itemId);
-    if (effect[3] & ITEM3_STATUS_ALL)
+    if ((effect[3] & ITEM3_STATUS_ALL) == ITEM3_STATUS_ALL) // Fantasy Retold: full cures only (ItemHealMonVolatile)
         return (gBattleMons[battler].volatiles.infatuation || gBattleMons[battler].volatiles.confusionTimer > 0);
     else if (effect[0] & ITEM0_INFATUATION)
         return gBattleMons[battler].volatiles.infatuation;
@@ -1189,6 +1190,15 @@ static bool32 SelectedMonHasVolatile(enum Item itemId)
     else if (gBattleTypeFlags & (BATTLE_TYPE_DOUBLE | BATTLE_TYPE_MULTI) && gPartyMenu.slotId == 1)
         return IteamHealsMonVolatile(2, itemId);
     return FALSE;
+}
+
+// Fantasy Retold: the status a cure item checks (combat.md §6): the rails' encoding (in battle, from the rails),
+// so the saved Lv2+ levels with no vanilla bit (Shocked, Stupefied, ...) count as something to cure.
+static u32 GetMonStatusForCure(struct Pokemon *mon)
+{
+    struct StatusRailEntry *rails = GetPartyMonStatusRails(mon);
+
+    return rails != NULL ? EncodeStatusRails(rails) : GetMonData(mon, MON_DATA_STATUS);
 }
 
 // Returns whether an item can be used in battle and sets the fail text.
@@ -1282,13 +1292,13 @@ bool32 CannotUseItemsInBattle(enum Item itemId, struct Pokemon *mon)
             cannotUse = TRUE;
         break;
     case EFFECT_ITEM_CURE_STATUS:
-        if (!((GetMonData(mon, MON_DATA_STATUS) & GetItemStatus1Mask(itemId))
+        if (!((GetMonStatusForCure(mon) & (GetItemStatus1Mask(itemId) | GetStatusRailSavedBitsToCure(GetItemStatus1Mask(itemId))))
             || SelectedMonHasVolatile(itemId)))
             cannotUse = TRUE;
         break;
     case EFFECT_ITEM_HEAL_AND_CURE_STATUS:
         if ((hp == 0 || hp == GetMonData(mon, MON_DATA_MAX_HP))
-            && !((GetMonData(mon, MON_DATA_STATUS) & GetItemStatus1Mask(itemId))
+            && !((GetMonStatusForCure(mon) & (GetItemStatus1Mask(itemId) | GetStatusRailSavedBitsToCure(GetItemStatus1Mask(itemId))))
             || SelectedMonHasVolatile(itemId)))
             cannotUse = TRUE;
         break;

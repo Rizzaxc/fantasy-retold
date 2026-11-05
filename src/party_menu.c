@@ -63,6 +63,8 @@
 #include "sound.h"
 #include "sprite.h"
 #include "start_menu.h"
+#include "status_rail.h"
+#include "status_rail_icons.h"
 #include "string_util.h"
 #include "strings.h"
 #include "task.h"
@@ -141,6 +143,7 @@ enum {
     TAG_POKEBALL = 1200,
     TAG_POKEBALL_SMALL,
     TAG_STATUS_ICONS,
+    TAG_STATUS_RAIL_FLAGS, // Fantasy Retold: the status-line flag (a healthbox status cell), tiles and palette
 };
 
 #define TAG_HELD_ITEM 55120
@@ -203,6 +206,7 @@ struct PartyMenuBox
     u8 itemSpriteId;
     u8 pokeballSpriteId;
     u8 statusSpriteId;
+    u8 railFlagSpriteId; // Fantasy Retold: the status flag (design.md, Status Outside Battle)
 };
 
 // EWRAM vars
@@ -996,6 +1000,7 @@ static void LoadPartyMenuBoxes(enum PartyMenuLayout layout)
         sPartyMenuBoxes[i].itemSpriteId = SPRITE_NONE;
         sPartyMenuBoxes[i].pokeballSpriteId = SPRITE_NONE;
         sPartyMenuBoxes[i].statusSpriteId = SPRITE_NONE;
+        sPartyMenuBoxes[i].railFlagSpriteId = SPRITE_NONE;
     }
 
     // The first party mon goes in the left column
@@ -2313,11 +2318,14 @@ static void ResetHPTaskData(u8 taskId, u8 caseId, u32 hp)
 #undef tPartyId
 #undef tStartHP
 
+// Fantasy Retold: the vanilla ailment for a status (the party / summary screens draw the status rails instead,
+// design.md Status Outside Battle; this stays for vanilla readers such as Battle Pike). The party status holds
+// the rails' encoding (combat.md §6): Shocked has only STATUS1_SAVED_ELECTRIC, so it counts as PAR.
 u8 GetAilmentFromStatus(u32 status)
 {
     if (status & STATUS1_PSN_ANY)
         return AILMENT_PSN;
-    if (status & STATUS1_PARALYSIS)
+    if (status & (STATUS1_PARALYSIS | STATUS1_SAVED_ELECTRIC))
         return AILMENT_PRZ;
     if (status & STATUS1_SLEEP)
         return AILMENT_SLP;
@@ -2336,7 +2344,11 @@ u8 GetMonAilment(struct Pokemon *mon)
 
     if (GetMonData(mon, MON_DATA_HP) == 0)
         return AILMENT_FNT;
-    ailment = GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS));
+    // Fantasy Retold: in battle the mon's rails are its status (combat.md §6).
+    if (GetPartyMonStatusRails(mon) != NULL)
+        ailment = GetAilmentFromStatus(EncodeStatusRails(GetPartyMonStatusRails(mon)));
+    else
+        ailment = GetAilmentFromStatus(GetMonData(mon, MON_DATA_STATUS));
     if (ailment != AILMENT_NONE)
         return ailment;
     if (ShouldPokemonShowActivePokerus(mon))
@@ -3483,6 +3495,8 @@ static void MovePartyMenuBoxSprites(struct PartyMenuBox *menuBox, s16 offset)
     gSprites[menuBox->itemSpriteId].x2 += offset * 8;
     gSprites[menuBox->monSpriteId].x2 += offset * 8;
     gSprites[menuBox->statusSpriteId].x2 += offset * 8;
+    if (menuBox->railFlagSpriteId != SPRITE_NONE)
+        gSprites[menuBox->railFlagSpriteId].x2 += offset * 8;
 }
 
 static void SlidePartyMenuBoxSpritesOneStep(u8 taskId)
@@ -3606,6 +3620,8 @@ static void SwitchPartyMon(void)
     SwitchMenuBoxSprites(&menuBoxes[0]->itemSpriteId, &menuBoxes[1]->itemSpriteId);
     SwitchMenuBoxSprites(&menuBoxes[0]->monSpriteId, &menuBoxes[1]->monSpriteId);
     SwitchMenuBoxSprites(&menuBoxes[0]->statusSpriteId, &menuBoxes[1]->statusSpriteId);
+    if (menuBoxes[0]->railFlagSpriteId != SPRITE_NONE && menuBoxes[1]->railFlagSpriteId != SPRITE_NONE)
+        SwitchMenuBoxSprites(&menuBoxes[0]->railFlagSpriteId, &menuBoxes[1]->railFlagSpriteId);
 }
 
 // Finish switching mons or using Softboiled
@@ -4856,11 +4872,101 @@ static void LoadPartyMenuPokeballGfx(void)
     LoadSpritePalette(&sSpritePalette_MenuPokeball);
 }
 
+// Fantasy Retold: the party screen's status flag (design.md, Status Outside Battle). The vanilla icon sprite only
+// shows FNT now; a status shows as one cell of the battle healthbox's status column (status_rail_icons.c), for
+// the mon's first active line, with its stage pips. Each flag sprite is 16x16 with its own 4 tiles (frame = the
+// box it was made for), drawn at runtime on the healthbox palette.
+static const struct OamData sOamData_StatusRailFlag =
+{
+    .affineMode = ST_OAM_AFFINE_OFF,
+    .objMode = ST_OAM_OBJ_NORMAL,
+    .shape = SPRITE_SHAPE(16x16),
+    .size = SPRITE_SIZE(16x16),
+    .priority = 1,
+};
+
+static const union AnimCmd sAnim_StatusRailFlag0[] = { ANIMCMD_FRAME(0, 0), ANIMCMD_END };
+static const union AnimCmd sAnim_StatusRailFlag1[] = { ANIMCMD_FRAME(4, 0), ANIMCMD_END };
+static const union AnimCmd sAnim_StatusRailFlag2[] = { ANIMCMD_FRAME(8, 0), ANIMCMD_END };
+static const union AnimCmd sAnim_StatusRailFlag3[] = { ANIMCMD_FRAME(12, 0), ANIMCMD_END };
+static const union AnimCmd sAnim_StatusRailFlag4[] = { ANIMCMD_FRAME(16, 0), ANIMCMD_END };
+static const union AnimCmd sAnim_StatusRailFlag5[] = { ANIMCMD_FRAME(20, 0), ANIMCMD_END };
+static const union AnimCmd *const sAnims_StatusRailFlag[PARTY_SIZE] =
+{
+    sAnim_StatusRailFlag0, sAnim_StatusRailFlag1, sAnim_StatusRailFlag2,
+    sAnim_StatusRailFlag3, sAnim_StatusRailFlag4, sAnim_StatusRailFlag5,
+};
+
+static const struct SpriteTemplate sSpriteTemplate_StatusRailFlag =
+{
+    .tileTag = TAG_STATUS_RAIL_FLAGS,
+    .paletteTag = TAG_STATUS_RAIL_FLAGS,
+    .oam = &sOamData_StatusRailFlag,
+    .anims = sAnims_StatusRailFlag,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCallbackDummy,
+};
+
+#define STATUS_RAIL_FLAG_TILES_SIZE (PARTY_SIZE * 4 * TILE_SIZE_4BPP)
+
+static void LoadStatusRailFlagGfx(void)
+{
+    struct SpritePalette palette = {gBattleInterface_BallStatusBarPal, TAG_STATUS_RAIL_FLAGS};
+    struct SpriteSheet sheet = {NULL, STATUS_RAIL_FLAG_TILES_SIZE, TAG_STATUS_RAIL_FLAGS};
+    void *blank = AllocZeroed(STATUS_RAIL_FLAG_TILES_SIZE);
+
+    sheet.data = blank;
+    LoadSpriteSheet(&sheet); // copied to VRAM at once; the cells are drawn there per sprite
+    Free(blank);
+    LoadSpritePalette(&palette);
+}
+
+static void CreatePartyMonStatusRailFlagSprite(struct PartyMenuBox *menuBox)
+{
+    u32 frame = menuBox - sPartyMenuBoxes;
+
+    menuBox->railFlagSpriteId = CreateSprite(&sSpriteTemplate_StatusRailFlag, menuBox->spriteCoords[4], menuBox->spriteCoords[5], 0);
+    if (menuBox->railFlagSpriteId == MAX_SPRITES)
+    {
+        menuBox->railFlagSpriteId = SPRITE_NONE;
+        return;
+    }
+    StartSpriteAnim(&gSprites[menuBox->railFlagSpriteId], frame < PARTY_SIZE ? frame : 0);
+    gSprites[menuBox->railFlagSpriteId].invisible = TRUE;
+}
+
+// Draws the flag for the mon's first active status line, or hides it. Returns TRUE if it is shown.
+static bool32 UpdatePartyMonStatusRailFlag(struct Pokemon *mon, struct PartyMenuBox *menuBox)
+{
+    struct Sprite *sprite;
+    u8 stages[STATUS_ICON_LINE_COUNT];
+    u32 line, *tiles;
+
+    if (menuBox->railFlagSpriteId == SPRITE_NONE)
+        return FALSE;
+    sprite = &gSprites[menuBox->railFlagSpriteId];
+    GetMonStatusIconStages(mon, stages);
+    line = GetFirstStatusIconLine(stages);
+    if (line == STATUS_ICON_LINE_COUNT)
+    {
+        sprite->invisible = TRUE;
+        return FALSE;
+    }
+    // tileNum only follows the anim on the next frame, so address the sprite's frame in the sheet directly.
+    tiles = (u32 *)(OBJ_VRAM0 + (GetSpriteTileStartByTag(TAG_STATUS_RAIL_FLAGS) + sprite->anims[sprite->animNum][0].frame.imageValue) * TILE_SIZE_4BPP);
+    CpuFill32(0, tiles, 4 * TILE_SIZE_4BPP);
+    DrawStatusIconCell(tiles, 2, 2, 3, line, stages[line]);
+    sprite->invisible = FALSE;
+    return TRUE;
+}
+
 static void CreatePartyMonStatusSprite(struct Pokemon *mon, struct PartyMenuBox *menuBox)
 {
     if (GetMonData(mon, MON_DATA_SPECIES) != SPECIES_NONE)
     {
         menuBox->statusSpriteId = CreateSprite(&gSpriteTemplate_StatusIcons, menuBox->spriteCoords[4], menuBox->spriteCoords[5], 0);
+        CreatePartyMonStatusRailFlagSprite(menuBox);
         SetPartyMonAilmentGfx(mon, menuBox);
     }
 }
@@ -4877,7 +4983,20 @@ static void CreatePartyMonStatusSpriteParameterized(enum Species species, u8 sta
 
 static void SetPartyMonAilmentGfx(struct Pokemon *mon, struct PartyMenuBox *menuBox)
 {
-    UpdatePartyMonAilmentGfx(GetMonAilment(mon), menuBox);
+    u8 ailment = GetMonAilment(mon);
+
+    // Fantasy Retold: a status shows as the rail flag; the vanilla icon is left for FNT (and PKRS, hidden).
+    if (ailment == AILMENT_FNT)
+    {
+        if (menuBox->railFlagSpriteId != SPRITE_NONE)
+            gSprites[menuBox->railFlagSpriteId].invisible = TRUE;
+    }
+    else
+    {
+        UpdatePartyMonStatusRailFlag(mon, menuBox);
+        ailment = AILMENT_NONE;
+    }
+    UpdatePartyMonAilmentGfx(ailment, menuBox);
 }
 
 static void UpdatePartyMonAilmentGfx(u8 status, struct PartyMenuBox *menuBox)
@@ -4918,6 +5037,7 @@ void LoadPartyMenuAilmentGfx(void)
 {
     LoadCompressedSpriteSheet(&sSpriteSheet_StatusIcons);
     LoadSpritePalette(&sSpritePalette_StatusIcons);
+    LoadStatusRailFlagGfx();
 }
 
 void CB2_ShowPartyMenuForItemUse(void)

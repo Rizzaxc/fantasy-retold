@@ -2056,7 +2056,7 @@ static void Cmd_cleareffectsonfaint(void)
         enum BattlerId battler = GetBattlerForBattleScript(cmd->battler);
         if (!(gBattleTypeFlags & BATTLE_TYPE_ARENA) || !IsBattlerAlive(battler))
         {
-            gBattleMons[battler].status1 = 0;
+            WipeStatusRails(battler, STATUS_RAILS_ALL); // Fantasy Retold: the rails, not status1 (combat.md §6)
             BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[battler].status1), &gBattleMons[battler].status1);
             MarkBattlerForControllerExec(battler);
         }
@@ -3337,7 +3337,6 @@ static void Cmd_getswitchedmondata(void)
     gBattleStruct->batonPassConfusionLevel = 0;
     if (battler == gBattlerAttacker && GetMoveEffect(gCurrentMove) == EFFECT_BATON_PASS)
     {
-        ReconcileStatusRailsFromBridge(battler);
         gBattleStruct->batonPassConfusionLevel = GetStatusRailLevel(battler, RAIL_CONFUSION);
         gBattleStruct->batonPassConfusionCounter = GetStatusRailCounter(battler, RAIL_CONFUSION);
         ClearStatusRail(battler, RAIL_CONFUSION);
@@ -3347,6 +3346,11 @@ static void Cmd_getswitchedmondata(void)
     // (Lv2+ stays banked in PartyState and is restored on the mon's next switch-in). Done here while
     // gBattlerPartyIndexes still resolves to the outgoing mon, before it is reassigned below.
     ClearVolatileStatusRails(battler);
+    // The benched mon's party status shows its rails (party screen, AI), saved levels included.
+    {
+        u32 status = EncodeStatusRails(GetBattlerPartyState(battler)->rails);
+        SetMonData(GetBattlerMon(battler), MON_DATA_STATUS, &status);
+    }
 
     gBattlerPartyIndexes[battler] = gBattleStruct->monToSwitchIntoId[battler];
 
@@ -5454,7 +5458,10 @@ static void Cmd_trysetrest(void)
         else
             gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_REST;
 
-        gBattleMons[gBattlerTarget].status1 = STATUS1_SLEEP_TURN(3);
+        // Fantasy Retold: Rest wipes every other line at every level, Confusion included (it persists like the
+        // rest here), and puts the Sleep line at Asleep with a fresh count (combat.md §6).
+        WipeStatusRails(gBattlerTarget, STATUS_RAILS_ALL & ~STATUS_RAIL_BIT(RAIL_SLEEP));
+        RaiseStatusRailTo(gBattlerTarget, RAIL_SLEEP, 2, 0);
         BtlController_EmitSetMonData(gBattlerTarget, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[gBattlerTarget].status1), &gBattleMons[gBattlerTarget].status1);
         MarkBattlerForControllerExec(gBattlerTarget);
         gBattlescriptCurrInstr = cmd->nextInstr;
@@ -7076,7 +7083,6 @@ static void Cmd_curestatuswithmove(void)
 {
     CMD_ARGS(const u8 *failInstr);
 
-    ReconcileStatusRailsFromBridge(gBattlerAttacker);
     if (HasAnyStatusRail(gBattlerAttacker, REFRESH_RAILS))
     {
         enum StatusRail rail;
@@ -7976,7 +7982,7 @@ static void FinalizeCapture(void)
     if (ballId == BALL_HEAL)
     {
         MonRestorePP(caughtMon);
-        HealStatusConditions(caughtMon, STATUS1_ANY, gBattlerTarget);
+        WipeStatusRails(gBattlerTarget, STATUS_RAILS_ALL); // Fantasy Retold: a full heal of the rails
         gBattleMons[gBattlerTarget].hp = gBattleMons[gBattlerTarget].maxHP;
         SetMonData(caughtMon, MON_DATA_HP, &gBattleMons[gBattlerTarget].hp);
     }
@@ -7984,6 +7990,13 @@ static void FinalizeCapture(void)
     {
         u32 friendship = (B_FRIEND_BALL_MODIFIER >= GEN_8 ? 150 : 200);
         SetMonData(caughtMon, MON_DATA_FRIENDSHIP, &friendship);
+    }
+
+    // Fantasy Retold: the caught mon leaves the battle like a party mon: its rails become its status (Lv2+
+    // only, combat.md §6).
+    {
+        u32 status = PackStatusRails(GetBattlerPartyState(gBattlerTarget)->rails);
+        SetMonData(caughtMon, MON_DATA_STATUS, &status);
     }
 }
 
@@ -8556,7 +8569,14 @@ static void Cmd_givecaughtmon(void)
 
         // Copy changedSpecies to allow caught mon to revert to its original species.
         if (emptySlot != PARTY_SIZE)
+        {
             gBattleStruct->partyState[B_SIDE_PLAYER][emptySlot].changedSpecies = GetBattlerPartyState(GetCatchingBattler())->changedSpecies;
+            // Fantasy Retold: the slot's rails are still the empty ones from battle start, and the battle end
+            // packs the player party from its rails (combat.md §6), which would wipe the status FinalizeCapture
+            // gave the caught mon. Give the slot that status's rails.
+            UnpackStatusRails(GetMonData(&gParties[B_TRAINER_PLAYER][emptySlot], MON_DATA_STATUS),
+                              gBattleStruct->partyState[B_TRAINER_PLAYER][emptySlot].rails);
+        }
 
         gBattleResults.caughtMonSpecies = GetMonData(caughtMon, MON_DATA_SPECIES);
         GetMonData(caughtMon, MON_DATA_NICKNAME, gBattleResults.caughtMonNick);
@@ -8817,7 +8837,7 @@ static void Cmd_removeattackerstatus1(void)
 {
     CMD_ARGS();
 
-    gBattleMons[gBattlerAttacker].status1 = 0;
+    WipeStatusRails(gBattlerAttacker, STATUS_RAILS_NON_VOLATILE); // Fantasy Retold
     gBattlescriptCurrInstr = cmd->nextInstr;
 }
 
@@ -9531,28 +9551,13 @@ void BS_ItemCureStatus(void)
         targetBattler = GetPartnerBattler(gBattlerAttacker);
     }
 
-    // Heal Status1 conditions.
+    // Heal Status1 conditions. Fantasy Retold: HealStatusConditions cures the mon's rails, on the field or
+    // benched (a full cure leaves a Lv1 behind for each Lv3 line, combat.md §6).
     if (!HealStatusConditions(&party[gBattleStruct->itemPartyIndex[gBattlerAttacker]], GetItemStatus1Mask(gLastUsedItem), targetBattler))
     {
         statusChanged = TRUE;
-        if (GetItemStatus1Mask(gLastUsedItem) & STATUS1_SLEEP)
+        if ((GetItemStatus1Mask(gLastUsedItem) & STATUS1_SLEEP) && targetBattler != MAX_BATTLERS_COUNT)
             gBattleMons[targetBattler].volatiles.nightmare = FALSE;
-    }
-
-    // Fantasy Retold: a full cure leaves a Lv1 behind for each Lv3 line (combat.md §6). On the field
-    // ItemHealMonVolatile already cured the rails; put back the mirror HealStatusConditions just cleared.
-    if (GetItemEffect(gLastUsedItem)[3] & ITEM3_STATUS_ALL)
-    {
-        if (targetBattler != MAX_BATTLERS_COUNT)
-        {
-            SyncStatusRailBridge(targetBattler);
-            SetMonData(&party[gBattleStruct->itemPartyIndex[gBattlerAttacker]], MON_DATA_STATUS, &gBattleMons[targetBattler].status1);
-        }
-        else
-        {
-            if (CurePartyStatusRails(gBattleStruct->partyState[GetBattlerTrainer(gBattlerAttacker)][gBattleStruct->itemPartyIndex[gBattlerAttacker]].rails, FALSE))
-                statusChanged = TRUE;
-        }
     }
 
     if (!statusChanged)
@@ -10143,35 +10148,6 @@ void BS_JumpIfCommanderActive(void)
         gBattlescriptCurrInstr = cmd->nextInstr;
 }
 
-static void UpdatePokeFlutePartyStatus(struct Pokemon* party, enum BattlerPosition position)
-{
-    s32 i;
-    enum BattlerId battler;
-    u32 monToCheck, status;
-    enum Species species;
-    u16 abilityNum;
-    monToCheck = 0;
-    for (i = 0; i < PARTY_SIZE; i++)
-    {
-        species = GetMonData(&party[i], MON_DATA_SPECIES_OR_EGG);
-        abilityNum = GetMonData(&party[i], MON_DATA_ABILITY_NUM);
-        status = GetMonData(&party[i], MON_DATA_STATUS);
-        if (species != SPECIES_NONE
-            && species != SPECIES_EGG
-            && status & AILMENT_FNT
-            && GetAbilityBySpecies(species, abilityNum) != ABILITY_SOUNDPROOF)
-            monToCheck |= (1 << i);
-    }
-    if (monToCheck)
-    {
-        battler = GetBattlerAtPosition(position);
-        status = 0;
-        BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, monToCheck, 4, &status);
-        MarkBattlerForControllerExec(battler);
-        gBattleCommunication[MULTISTRING_CHOOSER] = 1;
-    }
-}
-
 void BS_CheckPokeFlute(void)
 {
     NATIVE_ARGS();
@@ -10181,15 +10157,33 @@ void BS_CheckPokeFlute(void)
     {
         if (GetBattlerAbility(i) != ABILITY_SOUNDPROOF)
         {
-            gBattleMons[i].status1 &= ~STATUS1_SLEEP;
+            ClearStatusRail(i, RAIL_SLEEP); // Fantasy Retold: the rail, not status1 (combat.md §6)
             gBattleMons[i].volatiles.nightmare = FALSE;
+            BtlController_EmitSetMonData(i, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[i].status1), &gBattleMons[i].status1);
+            MarkBattlerForControllerExec(i);
         }
     }
 
-    for (enum BattlerPosition position = B_POSITION_PLAYER_LEFT; position < MAX_POSITION_COUNT; position++)
+    // Fantasy Retold: the benched mons' Sleep lines (their party status follows the rails).
+    for (enum BattleTrainer trainer = B_TRAINER_PLAYER; trainer < MAX_BATTLE_TRAINERS; trainer++)
     {
-        enum BattleTrainer trainer = GetBattlerTrainer(GetBattlerAtPosition(position));
-        UpdatePokeFlutePartyStatus(gParties[trainer], position);
+        struct Pokemon *party = GetTrainerParty(trainer);
+
+        for (u32 partySlot = 0; partySlot < PARTY_SIZE; partySlot++)
+        {
+            struct StatusRailEntry *rails = gBattleStruct->partyState[trainer][partySlot].rails;
+            enum Species species = GetMonData(&party[partySlot], MON_DATA_SPECIES_OR_EGG);
+            u32 status;
+
+            if (species == SPECIES_NONE || species == SPECIES_EGG || rails[RAIL_SLEEP].level == 0
+             || GetAbilityBySpecies(species, GetMonData(&party[partySlot], MON_DATA_ABILITY_NUM)) == ABILITY_SOUNDPROOF)
+                continue;
+            rails[RAIL_SLEEP].level = 0;
+            rails[RAIL_SLEEP].counter = 0;
+            status = EncodeStatusRails(rails);
+            SetMonData(&party[partySlot], MON_DATA_STATUS, &status);
+            gBattleCommunication[MULTISTRING_CHOOSER] = 1;
+        }
     }
 
     gBattlescriptCurrInstr = cmd->nextInstr;
@@ -10357,7 +10351,7 @@ void BS_TrySetConfusion(void)
 
     if (CanBeConfused(gBattlerAttacker, gBattlerTarget))
     {
-        gBattleMons[gBattlerTarget].volatiles.confusionTimer = RandomUniform(RNG_CONFUSION_TURNS, 2, B_CONFUSION_TURNS); // 2-5 turns
+        RaiseStatusRailTo(gBattlerTarget, RAIL_CONFUSION, 1, 0); // Fantasy Retold: Confused on the rail
         gBattleCommunication[MULTIUSE_STATE] = 1;
         gEffectBattler = gBattlerTarget;
         gBattlescriptCurrInstr = cmd->nextInstr;
@@ -11093,7 +11087,7 @@ void BS_ClearStatus(void)
 {
     NATIVE_ARGS(u8 battler);
     enum BattlerId battler = GetBattlerForBattleScript(cmd->battler);
-    gBattleMons[battler].status1 = 0;
+    WipeStatusRails(battler, STATUS_RAILS_NON_VOLATILE); // Fantasy Retold: every level (Healing Wish, affection)
     BtlController_EmitSetMonData(
         battler,
         B_COMM_TO_CONTROLLER,
@@ -11423,7 +11417,6 @@ void BS_TryPsychoShift(void)
     bool32 sleepClauseBlocked = FALSE;
     u32 i;
 
-    ReconcileStatusRailsFromBridge(gBattlerAttacker);
     for (i = 0; i < ARRAY_COUNT(sLines); i++)
     {
         enum StatusRail rail = sLines[i].rail;
@@ -11484,7 +11477,6 @@ void BS_FRJumpIfAnyStatusRail(void)
     NATIVE_ARGS(u8 battler, const u8 *jumpInstr);
     enum BattlerId battler = GetBattlerForBattleScript(cmd->battler);
 
-    ReconcileStatusRailsFromBridge(battler);
     if (HasAnyStatusRail(battler, STATUS_RAILS_NON_VOLATILE))
         gBattlescriptCurrInstr = cmd->jumpInstr;
     else
@@ -11497,7 +11489,6 @@ void BS_CureStatus(void)
     enum BattlerId battler = GetBattlerForBattleScript(cmd->battler);
 
     // Fantasy Retold: every non-volatile line, Lv3 -> volatile Lv1 (combat.md §6).
-    ReconcileStatusRailsFromBridge(battler);
     if (gBattleMons[battler].status1 & STATUS1_SLEEP)
         TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
     gBattleCommunication[MULTISTRING_CHOOSER] = GetStatusRailCureMessage(battler, STATUS_RAILS_NON_VOLATILE);
@@ -12264,7 +12255,7 @@ void BS_TryWakeBattlersUproar(void)
         if (IsBattlerAlive(battler) && gBattleMons[battler].status1 & STATUS1_SLEEP && !hasSoundproof)
         {
             TryDeactivateSleepClause(battler, gBattlerPartyIndexes[battler]);
-            gBattleMons[battler].status1 = 0;
+            ClearStatusRail(battler, RAIL_SLEEP); // Fantasy Retold: only the Sleep line wakes
             gEffectBattler = battler;
             BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[battler].status1), &gBattleMons[battler].status1);
             MarkBattlerForControllerExec(battler);

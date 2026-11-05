@@ -3110,6 +3110,13 @@ static void TradeMons(u8 playerPartyIdx, u8 partnerPartyIdx)
 
     SWAP(*playerMon, *partnerMon, sTradeAnim->tempMon);
 
+    // Fantasy Retold: a traded Pokémon arrives (and leaves) with no status, like vanilla (design.md).
+    {
+        u32 status = 0;
+        SetMonData(playerMon, MON_DATA_STATUS, &status);
+        SetMonData(partnerMon, MON_DATA_STATUS, &status);
+    }
+
     // By default, a Pokémon received from a trade will have 70 Friendship.
     // Eggs use Friendship to track egg cycles, so don't set this on Eggs.
     friendship = 70;

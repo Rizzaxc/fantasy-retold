@@ -503,7 +503,6 @@ static bool32 HandleEndTurnLeechSeed(enum BattlerId battler)
         s32 drainAmount = GetNonDynamaxMaxHP(drainedBattler) / 8;
         s32 healAmount = GetDrainedBigRootHp(receiverBattler, drainAmount);
 
-        ReconcileStatusRailsFromBridge(receiverBattler);
         if (GetStatusRailLevel(receiverBattler, RAIL_POISON) != 0)
         {
             gBattleScripting.battler = receiverBattler;
@@ -544,10 +543,7 @@ static bool32 HandleEndTurnPoison(enum BattlerId battler)
     if (!IsBattlerPresent(battler))
         return FALSE;
 
-    // Fantasy Retold: Poison -> Toxic rail (combat.md §6). Keep the rail in sync with anything that
-    // wrote status1 directly (Toxic Orb/Spikes, Synchronize, cures, a mon entering already poisoned),
-    // then drive the tick off the rail level.
-    ReconcileStatusRailsFromBridge(battler);
+    // Fantasy Retold: Poison -> Toxic rail (combat.md §6): the tick is driven off the rail level.
     poisonLevel = GetStatusRailLevel(battler, RAIL_POISON);
 
     if (poisonLevel == 0)
@@ -627,7 +623,6 @@ static bool32 HandleEndTurnBurn(enum BattlerId battler)
     {
         s32 burnDamage = GetNonDynamaxMaxHP(battler) / ((GetConfig(B_BURN_DAMAGE) >= GEN_7 || GetConfig(B_BURN_DAMAGE) == GEN_1) ? 16 : 8);
         // Fantasy Retold: Burn stacks (combat.md §6) — one tick per stack.
-        ReconcileStatusRailsFromBridge(battler);
         burnDamage *= max(GetStatusRailLevel(battler, RAIL_BURN), 1);
         if (ability == ABILITY_HEATPROOF)
         {
@@ -1064,19 +1059,8 @@ static bool32 HandleEndTurnYawn(enum BattlerId battler)
             }
             else
             {
-                if (GetConfig(B_SLEEP_TURNS) >= GEN_CHAMPIONS)
-                {
-                    if (Random() % 3 == 0)
-                        gBattleMons[battler].status1 |= STATUS1_SLEEP_TURN(2);
-                    else
-                        gBattleMons[battler].status1 |= STATUS1_SLEEP_TURN(3);
-                }
-                else if (GetConfig(B_SLEEP_TURNS) >= GEN_5)
-                    gBattleMons[battler].status1 |= (RandomUniform(RNG_SLEEP_TURNS, 2, 4));
-                else if (GetConfig(B_SLEEP_TURNS) >= GEN_3)
-                    gBattleMons[battler].status1 |= (RandomUniform(RNG_SLEEP_TURNS, 2, 5));
-                else
-                    gBattleMons[battler].status1 |= (RandomUniform(RNG_SLEEP_TURNS, 2, 8));
+                // Fantasy Retold: Drowsy -> Asleep on the rail (combat.md §6), which starts the sleep count.
+                RaiseStatusRailTo(battler, RAIL_SLEEP, 2, 0);
 
                 CancelMultiTurnMoves(battler);
                 TryActivateSleepClause(battler, gBattlerPartyIndexes[battler]);
@@ -1391,11 +1375,11 @@ static bool32 HandleEndTurnThirdEventBlock(enum BattlerId battler)
                 if ((gBattleMons[gEffectBattler].status1 & STATUS1_SLEEP)
                  && !hasSoundproof)
                 {
-                    gBattleMons[gEffectBattler].status1 &= ~STATUS1_SLEEP;
+                    ClearStatusRail(gEffectBattler, RAIL_SLEEP); // Fantasy Retold: the rail, not status1 (combat.md §6)
                     gBattleMons[gEffectBattler].volatiles.nightmare = FALSE;
                     gBattleCommunication[MULTISTRING_CHOOSER] = 1;
                     BattleScriptCall(BattleScript_MonWokeUpInUproar);
-                    BtlController_EmitSetMonData(gEffectBattler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, 4, &gBattleMons[gBattlerAttacker].status1);
+                    BtlController_EmitSetMonData(gEffectBattler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, 4, &gBattleMons[gEffectBattler].status1);
                     MarkBattlerForControllerExec(gEffectBattler);
                     effect = TRUE;
                     break;

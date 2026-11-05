@@ -2877,6 +2877,9 @@ static void BattleStartClearSetData(void)
         gBattleStruct->monCausingSleepClause[B_SIDE_OPPONENT].partyIndex = PARTY_SIZE;
         gBattleStruct->monCausingSleepClause[B_SIDE_OPPONENT].trainer = MAX_BATTLE_TRAINERS;
     }
+
+    // Fantasy Retold: every party mon's status rails come from its party status, once, here (combat.md §6).
+    InitBattleStatusRails();
 }
 
 #define UNPACK_VOLATILE_BATON_PASSABLES(_enum, _fieldName, _typeMaxValue, ...) __VA_OPT__(if ((FIRST(__VA_ARGS__)) & V_BATON_PASSABLE) gBattleMons[battler].volatiles._fieldName = volatilesCopy->_fieldName;)
@@ -2980,16 +2983,8 @@ void SwitchInClearSetData(enum BattlerId battler, struct Volatiles *volatilesCop
         gBattleStruct->moveUsedLastTurn[battler] = MOVE_NONE;
         gBattleStruct->moveUsedThisTurn[battler] = MOVE_NONE;
 
-        // Fantasy Retold: status rails (combat.md §6). The rail in PartyState is authoritative and persists
-        // across switches (Lv2+; Lv1 was dropped on switch-out). On a mon's first send-out (storedStamina
-        // still 0) seed the rail from its incoming status1 so an overworld-inflicted status carries in; on
-        // any later send-out the rail overwrites the status1 mirror so the persisted level is restored.
-        if (partyState->storedStamina == 0)
-        {
-            gBattleMons[battler].volatiles.confusionTimer = 0; // still the previous occupant's; reset below anyway
-            ReconcileStatusRailsFromBridge(battler);
-            SeedStatusRailsFromSavedStatus(battler);
-        }
+        // Fantasy Retold: status rails (combat.md §6). The incoming mon's rails (unpacked from its party
+        // status at battle start, or kept from its last stint) rebuild the status1 view copied in from the party.
         SyncStatusRailBridge(battler);
     }
 
@@ -3195,6 +3190,7 @@ static void DoBattleIntro(void)
                 gBattleMons[battler].ability = GetAbilityBySpecies(gBattleMons[battler].species, gBattleMons[battler].abilityNum);
                 gBattleStruct->battlerState[battler].hpOnSwitchout = gBattleMons[battler].hp;
                 memset(&gBattleMons[battler].volatiles, 0, sizeof(struct Volatiles));
+                SyncStatusRailBridge(battler); // Fantasy Retold: status1 / confusion are the rails' view, not the party's encoding
                 for (i = 0; i < NUM_BATTLE_STATS; i++)
                     gBattleMons[battler].statStages[i] = DEFAULT_STAT_STAGE;
                 #if TESTING
@@ -3454,15 +3450,6 @@ static void DoBattleIntro(void)
                 // Fantasy Retold: initialize Stamina as early as possible so no code path
                 // can observe the AllocZeroed default of 0 (which triggers exhaustion auto-crit).
                 gBattleStruct->battlerState[battler].currentStamina = GetBaseStamina(battler);
-                // Fantasy Retold: the opening send-outs never pass through SwitchInClearSetData, so seed their
-                // status rails from the incoming party status here (combat.md §6, After battle). Without this a
-                // lead's rails stay empty and the after-battle write wipes its persisted Lv2+ lines.
-                if (!(gAbsentBattlerFlags & (1u << battler)))
-                {
-                    ReconcileStatusRailsFromBridge(battler);
-                    SeedStatusRailsFromSavedStatus(battler);
-                    SyncStatusRailBridge(battler);
-                }
             }
 
 #define UNPACK_STARTING_STATUS_TO_BATTLE(_enum, _fieldName, ...) gStartingStatuses._fieldName = (statusesOpponentA._fieldName || statusesOpponentB._fieldName || gStartingStatuses._fieldName);
@@ -5544,12 +5531,15 @@ static void HandleEndTurn_FinishBattle(void)
             if (!changedForm && B_RECALCULATE_STATS >= GEN_5)
                 CalculateMonStats(&gParties[B_TRAINER_PLAYER][i]);
 
-            // Fantasy Retold: Lv1 status lines are volatile, so the battle ending drops them; Lv2+ stays on the
-            // party (combat.md §6).
-            if (gBattleStruct->partyState[B_TRAINER_PLAYER][i].sentOut
-             && GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_HP) != 0)
+            // Fantasy Retold: pack every party mon's rails back into its party status (combat.md §6, After
+            // battle). Lv1 lines are volatile, so the battle ending drops them; Lv2+ stays on the party. Done
+            // for the whole party, not only the mons that were sent out, so a cure that reached a benched mon's
+            // rails (Heal Bell, an item) sticks.
+            if (GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE)
             {
-                u32 status = GetStatusRailPartyStatusAfterBattle(gBattleStruct->partyState[B_TRAINER_PLAYER][i].rails);
+                u32 status = (GetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_HP) != 0)
+                           ? PackStatusRails(gBattleStruct->partyState[B_TRAINER_PLAYER][i].rails)
+                           : 0;
                 SetMonData(&gParties[B_TRAINER_PLAYER][i], MON_DATA_STATUS, &status);
             }
         }

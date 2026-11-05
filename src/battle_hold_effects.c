@@ -109,7 +109,7 @@ static enum ItemEffect TryBerserkGene(enum BattlerId battler)
         return ITEM_NO_EFFECT;
 
     if (CanBeConfused(battler, battler))
-        gBattleMons[battler].volatiles.confusionTimer = PERMANENT_VOLATILE;
+        RaiseStatusRailTo(battler, RAIL_CONFUSION, 1, 0); // Fantasy Retold: Confused on the rail (combat.md §6)
 
     SetStatChange(battler, STAT_ATK, 2);
     BattleScriptCall(BattleScript_BerserkGene);

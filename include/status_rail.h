@@ -2,14 +2,17 @@
 #define GUARD_STATUS_RAIL_H
 
 // Fantasy Retold: multi-stage status "rails" (combat.md §6). See enum StatusRail (constants/battle.h)
-// and struct StatusRailEntry (battle.h). Rail state lives in struct PartyState and is the source of
-// truth for rail mechanics (level, per-rail counter, Lv1-volatile / Lv2+-persistent lifetime). The
-// legacy STATUS1_* bits (and volatiles.confusionTimer) are kept as a mirror (SyncStatusRailBridge) so
-// existing animations / messages / AI / cures keep working. Unlike vanilla, several lines can be active
-// at once, so several STATUS1_* bits can be set together.
+// and struct StatusRailEntry (battle.h). Rail state lives in struct PartyState and is the only source of
+// truth for status in battle (level, per-rail counter, Lv1-volatile / Lv2+-persistent lifetime). Every
+// party mon's rails are unpacked from its party status at battle start (InitBattleStatusRails) and packed
+// back after battle (PackStatusRails).
 //
-// Every function that changes a rail first reconciles from the mirror (so a status written straight to
-// status1 by vanilla code, e.g. Toxic Orb, Rest or a cure, is picked up) and then syncs back.
+// The legacy STATUS1_* bits (and volatiles.confusionTimer) are a read-only view: SyncStatusRailBridge
+// rebuilds them from the rails after every change, and nothing reads them back into the rails. So code
+// must never write gBattleMons[].status1 / confusionTimer directly: change the rail instead. Unlike
+// vanilla, several lines can be active at once, so several STATUS1_* bits can be set together.
+
+struct Pokemon;
 
 #define STATUS_RAIL_BIT(rail)        (1u << (rail))
 #define STATUS_RAILS_ALL             ((1u << NUM_STATUS_RAILS) - 1)
@@ -39,29 +42,43 @@ u8 LowerStatusRail(enum BattlerId battler, enum StatusRail rail);
 void ClearStatusRail(enum BattlerId battler, enum StatusRail rail);
 void ClearAllStatusRails(enum BattlerId battler);
 
+// Wipe the lines in railMask at every level (Rest, Take Heart, Healing Wish, fainting, ...).
+void WipeStatusRails(enum BattlerId battler, u32 railMask);
+
 // Full cures (Full Heal, Heal Bell, Natural Cure): every rail below Lv3 clears, a Lv3 drops to Lv1. That Lv1 is
 // volatile as usual, except with keepOnSwitch (Natural Cure, which cures on switch-out): then it survives that
 // switch-out. The party form works on a benched mon's rails.
 void CureAllStatusRails(enum BattlerId battler, bool32 keepOnSwitch);
 bool32 CurePartyStatusRails(struct StatusRailEntry *rails, bool32 keepOnSwitch); // TRUE if any line was active
+// An item cure on a party mon's rails (CureStatusRails' rule for the lines in railMask). TRUE if any was active.
+bool32 CurePartyStatusRailsMask(struct StatusRailEntry *rails, u32 railMask);
+bool32 HasStatusRailEntries(const struct StatusRailEntry *rails, u32 railMask);
 // Other status cures (Shed Skin, Hydration, Healer, Purify, Jungle Healing, Smelling Salts, ...): the lines in
 // railMask clear below Lv3, a Lv3 drops to a volatile Lv1. Returns TRUE if any of them was active.
 bool32 CureStatusRails(enum BattlerId battler, u32 railMask);
 bool32 HasAnyStatusRail(enum BattlerId battler, u32 railMask);
 // B_MSG_CURED_* for the first active line in railMask (B_MSG_CURED_PROBLEM for Soaked alone).
 u32 GetStatusRailCureMessage(enum BattlerId battler, u32 railMask);
+u32 GetStatusRailEntriesCureMessage(const struct StatusRailEntry *rails, u32 railMask);
 // "Has a status" for Guts, Facade, Hex, catch bonuses, ...: Lv2+ of any line, or Soaked.
 bool32 HasStatusRailCondition(enum BattlerId battler);
 // The same for the lines behind some vanilla status1 bits (Lv2+ of those lines; STATUS1_ANY = any line or Soaked).
 bool32 HasStatusRailConditionForStatus1(enum BattlerId battler, u32 status1Mask);
 enum StatusRail GetStatusRailFromStatus1(u32 status1);
-// The party status1 to keep after battle: the mirror and saved-level bits of the Lv2+ lines (Lv1 drops).
-u32 GetStatusRailPartyStatusAfterBattle(const struct StatusRailEntry *rails);
-// The STATUS1_SAVED_* bits a cure with healMask (the vanilla bits it clears) also takes off a party mon's status.
+// The rails a vanilla status1 cure mask stands for (STATUS1_ANY = every line).
+u32 GetStatusRailMaskFromStatus1(u32 status1Mask);
+
+// Party status encoding (combat.md §6): the vanilla mirror bits (so vanilla readers out of battle and the AI
+// keep working) plus the STATUS1_SAVED_* levels of the lines no vanilla bit can hold.
+u32 EncodeStatusRails(const struct StatusRailEntry *rails); // keeps every level (in battle)
+u32 PackStatusRails(const struct StatusRailEntry *rails);   // Lv2+ only (leaving battle: Lv1 drops)
+void UnpackStatusRails(u32 status, struct StatusRailEntry *rails);
+// Battle start: every party mon's rails from its party status.
+void InitBattleStatusRails(void);
+// The rails of a party mon in the current battle, or NULL out of battle.
+struct StatusRailEntry *GetPartyMonStatusRails(struct Pokemon *mon);
+// The STATUS1_SAVED_* bits an out-of-battle cure with healMask (the vanilla bits it clears) also takes off.
 u32 GetStatusRailSavedBitsToCure(u32 healMask);
-// On a mon's first send-out: raise the rails from the STATUS1_SAVED_* bits in its incoming status1 (after
-// ReconcileStatusRailsFromBridge, before SyncStatusRailBridge strips them).
-void SeedStatusRailsFromSavedStatus(enum BattlerId battler);
 // A cleansing berry's line: only acts on Lv2+ (Lv3 drops to a volatile Lv1). Returns TRUE if it did.
 bool32 CureStatusRailWithBerry(enum BattlerId battler, enum StatusRail rail);
 
@@ -69,12 +86,8 @@ bool32 CureStatusRailWithBerry(enum BattlerId battler, enum StatusRail rail);
 // switch-out.
 void ClearVolatileStatusRails(enum BattlerId battler);
 
-// Mirror rail state into the legacy status1 bits and confusionTimer (rail -> mirror).
+// Rebuild the legacy status1 bits and confusionTimer from the rails (rail -> view; never the other way).
 void SyncStatusRailBridge(enum BattlerId battler);
-
-// Seed/clear rails from the mirror (mirror -> rail) so external setters/curers that only touch status1
-// or confusionTimer stay consistent with the rail.
-void ReconcileStatusRailsFromBridge(enum BattlerId battler);
 
 // Tell the controller about the new status1 mirror (keeps the party data in step).
 void EmitStatusRailMirror(enum BattlerId battler);

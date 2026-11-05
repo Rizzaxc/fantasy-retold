@@ -37,27 +37,12 @@
 #include "constants/items.h"
 #include "caps.h"
 #include "status_rail.h"
+#include "status_rail_icons.h"
 
 // Fantasy Retold healthbox (design.md, "Healthbox layout"). Each box is a dark corner-cut plate drawn at
 // the left of the two healthbox sprites (a 128px-wide canvas); generate_healthbox_art.py draws the static
 // plate, bar frames, Recuperate tick and EXP track, and everything else is drawn here in canvas pixels.
 // The HB_* layout values below must match that script.
-
-// Healthbox palette slots (ball_status_bar.png)
-#define HB_COLOR_PLATE   1  // plate fill; also clears text
-#define HB_COLOR_EMPTY   2  // empty gauge / status cell background
-#define HB_COLOR_INK     3  // outlines, text shadow
-#define HB_COLOR_SLATE   4  // recoverable HP loss, unlit stage pips
-#define HB_COLOR_WHITE   5  // text
-#define HB_COLOR_RED     7  // current HP and the HP bar frame, female symbol, exhausted Stamina frame
-#define HB_COLOR_GREEN   8  // Stamina
-#define HB_COLOR_PURPLE  9  // Trauma
-#define HB_COLOR_CYAN    10 // EXP
-#define HB_COLOR_ORANGE  11
-#define HB_COLOR_BLUE    12 // male symbol
-#define HB_COLOR_YELLOW  13 // Stamina at or below the Recuperate threshold
-#define HB_COLOR_SKY     14
-#define HB_COLOR_PINK    15
 
 #define HEALTHBOX_BG_INDEX HB_COLOR_PLATE
 
@@ -97,8 +82,6 @@ static const struct HealthboxLayout sHealthboxLayouts[] =
 
 // Status column: the old healthbar sprite, re-purposed as a 64x32 box beside the plate that holds one
 // cell per active status line. It grows away from the plate (left for the player, right for the opponent).
-#define HB_STATUS_CELL_W 12
-#define HB_STATUS_CELL_H 9
 #define HB_STATUS_COLUMN_GAP 2
 
 STATIC_ASSERT(!B_HP_PERCENTAGE_DISPLAY, FantasyRetoldHealthboxHasNoHpPercentage) // the plates have no room for it
@@ -528,36 +511,6 @@ static const struct SpriteTemplate sStatusSummaryBallsSpriteTemplates[2] =
 static const u8 sEmptyWhiteText_GrayHighlight[] = __("{COLOR WHITE}{BACKGROUND DARK_GRAY}{ACCENT DARK_GRAY}              ");
 static const u8 sEmptyWhiteText_TransparentHighlight[] = __("{COLOR WHITE}{BACKGROUND TRANSPARENT}{ACCENT TRANSPARENT}              ");
 
-// Fantasy Retold: the status lines of combat.md §6, in the order their cells fill the status column.
-enum HealthboxStatusLine
-{
-    HB_STATUS_SOAK,
-    HB_STATUS_CHILL,     // Chilled -> Frozen | Frostbitten
-    HB_STATUS_BURN,
-    HB_STATUS_POISON,    // Poison -> Toxic
-    HB_STATUS_ELECTRIC,  // Dazed -> Shocked -> Paralyzed
-    HB_STATUS_SLEEP,     // Drowsy -> Asleep -> Nightmare
-    HB_STATUS_CONFUSION, // Confused -> Stupefied -> Frightened
-    HB_STATUS_COUNT,
-};
-
-struct HealthboxStatusLineInfo
-{
-    u8 color;
-    u8 maxStage; // pips drawn in the cell
-    u8 glyph[7]; // 7x7 icon, one row per byte, bit 6 = leftmost pixel
-};
-
-static const struct HealthboxStatusLineInfo sHealthboxStatusLines[HB_STATUS_COUNT] =
-{
-    [HB_STATUS_SOAK]      = {HB_COLOR_SKY,    1, {0x08, 0x1C, 0x1C, 0x36, 0x2E, 0x3E, 0x1C}}, // drop
-    [HB_STATUS_CHILL]     = {HB_COLOR_CYAN,   2, {0x08, 0x2A, 0x1C, 0x7F, 0x1C, 0x2A, 0x08}}, // snowflake
-    [HB_STATUS_BURN]      = {HB_COLOR_ORANGE, 3, {0x08, 0x18, 0x1C, 0x3E, 0x36, 0x22, 0x1C}}, // flame
-    [HB_STATUS_POISON]    = {HB_COLOR_PURPLE, 2, {0x3E, 0x7F, 0x49, 0x7F, 0x36, 0x1C, 0x14}}, // skull
-    [HB_STATUS_ELECTRIC]  = {HB_COLOR_YELLOW, 3, {0x06, 0x0C, 0x1E, 0x3C, 0x0C, 0x18, 0x30}}, // bolt
-    [HB_STATUS_SLEEP]     = {HB_COLOR_BLUE,   3, {0x7F, 0x06, 0x0C, 0x18, 0x30, 0x7F, 0x00}}, // Z
-    [HB_STATUS_CONFUSION] = {HB_COLOR_PINK,   3, {0x3E, 0x41, 0x5D, 0x55, 0x51, 0x5E, 0x40}}, // swirl
-};
 
 static const struct WindowTemplate sHealthboxWindowTemplate = {
     .bg = 0,
@@ -728,122 +681,23 @@ static s32 GetHealthboxPlateTop(struct Sprite *healthbox)
     return healthbox->y + healthbox->centerToCornerVecY;
 }
 
-// Fills `stages` with the current stage (0 = none) of every status line and returns them packed 2 bits
-// per line, so the status column can tell when it needs a redraw. Every line reads its status rail
-// (combat.md §6). This runs every frame, so it only reads: a status that vanilla code wrote straight to
-// status1 / confusionTimer and that no rail has picked up yet shows at the stage that bit stands for.
-static u32 GetHealthboxStatusStages(enum BattlerId battler, u8 stages[HB_STATUS_COUNT])
+// The status column's stages (the battler's rails, combat.md §6) packed 2 bits per line, so it can tell when it
+// needs a redraw. The cells are shared with the party screen and the summary (status_rail_icons.c).
+static u32 GetHealthboxStatusStages(enum BattlerId battler, u8 stages[STATUS_ICON_LINE_COUNT])
 {
-    u32 status1 = gBattleMons[battler].status1;
-    u32 i, signature = 0;
-
-    stages[HB_STATUS_SOAK] = GetStatusRailLevel(battler, RAIL_SOAK);
-    stages[HB_STATUS_CHILL] = GetStatusRailLevel(battler, RAIL_CHILL);
-    stages[HB_STATUS_BURN] = GetStatusRailLevel(battler, RAIL_BURN);
-    stages[HB_STATUS_POISON] = GetStatusRailLevel(battler, RAIL_POISON);
-    stages[HB_STATUS_ELECTRIC] = GetStatusRailLevel(battler, RAIL_ELECTRIC);
-    stages[HB_STATUS_SLEEP] = GetStatusRailLevel(battler, RAIL_SLEEP);
-    stages[HB_STATUS_CONFUSION] = GetStatusRailLevel(battler, RAIL_CONFUSION);
-
-    if (stages[HB_STATUS_CHILL] < 2 && (status1 & STATUS1_ICY_ANY))
-        stages[HB_STATUS_CHILL] = 2;
-    if (stages[HB_STATUS_BURN] == 0 && (status1 & STATUS1_BURN))
-        stages[HB_STATUS_BURN] = 1;
-    if (stages[HB_STATUS_POISON] == 0 && (status1 & STATUS1_PSN_ANY))
-        stages[HB_STATUS_POISON] = (status1 & STATUS1_TOXIC_POISON) ? 2 : 1;
-    if (stages[HB_STATUS_ELECTRIC] < 3 && (status1 & STATUS1_PARALYSIS))
-        stages[HB_STATUS_ELECTRIC] = 3;
-    if (stages[HB_STATUS_SLEEP] < 2 && (status1 & STATUS1_SLEEP))
-        stages[HB_STATUS_SLEEP] = 2;
-    if (stages[HB_STATUS_CONFUSION] == 0 && gBattleMons[battler].volatiles.confusionTimer > 0)
-        stages[HB_STATUS_CONFUSION] = 1;
-
-    for (i = 0; i < HB_STATUS_COUNT; i++)
-        signature |= min(stages[i], 3) << (2 * i);
-    return signature;
+    return GetStatusIconStages(GetBattlerPartyState(battler)->rails, stages);
 }
 
-// Inclusive rectangle in a 64x32 sprite's tiles (8 tiles wide, 1D mapping).
-static void FillStatusColumnRect(u32 *tiles, u32 x0, u32 y0, u32 x1, u32 y1, u32 color)
-{
-    u32 x, y;
-
-    for (y = y0; y <= y1; y++)
-    {
-        for (x = x0; x <= x1; x++)
-        {
-            u32 *word = &tiles[(((y / 8) * 8) + (x / 8)) * 8 + (y % 8)];
-            u32 shift = (x % 8) * 4;
-            *word = (*word & ~(0xF << shift)) | (color << shift);
-        }
-    }
-}
-
-// A box as tall as the plate holding one cell per active status line: a 7x7 icon plus one pip per stage
-// the line can reach, lit bottom-up. Cells fill top-down, two per column; extra columns grow away from
-// the plate (left for the player, right for the opponent). No status = no box.
+// A box as tall as the plate holding one cell per active status line. Cells fill top-down, two per column;
+// extra columns grow away from the plate (left for the player, right for the opponent). No status = no box.
 static void DrawHealthboxStatusColumn(struct Sprite *sprite, enum BattlerId battler)
 {
-    const struct HealthboxLayout *layout = GetHealthboxLayout(battler);
     u32 *tiles = (u32 *)(OBJ_VRAM0 + sprite->oam.tileNum * TILE_SIZE_4BPP);
-    u8 stages[HB_STATUS_COUNT];
-    u32 i, r, count = 0;
-    u32 h = layout->plateH;
-    u32 rows = 2, cols, w, x0, top;
+    u8 stages[STATUS_ICON_LINE_COUNT];
 
     sprite->hBar_StatusSignature = GetHealthboxStatusStages(battler, stages);
-    CpuFill32(0, tiles, 32 * TILE_SIZE_4BPP);
-
-    for (i = 0; i < HB_STATUS_COUNT; i++)
-    {
-        if (stages[i] != 0)
-            count++;
-    }
-    if (count == 0)
-        return;
-
-    cols = (count + rows - 1) / rows;
-    w = cols * (HB_STATUS_CELL_W + 1) + 3;
-    x0 = IsOnPlayerSide(battler) ? 64 - w : 0;
-    top = (h - rows * (HB_STATUS_CELL_H + 1) + 1) / 2;
-
-    // Same corner-cut silhouette as the plate.
-    for (r = 0; r < h; r++)
-    {
-        u32 cut = max(0, max(2 - (s32)r, (s32)r - (s32)(h - 3)));
-        FillStatusColumnRect(tiles, x0 + cut, r, x0 + w - 1 - cut, r, HB_COLOR_INK);
-        if (r != 0 && r != h - 1)
-            FillStatusColumnRect(tiles, x0 + max(1, cut), r, x0 + w - 2 - (cut > 0 ? cut - 1 : 0), r, HB_COLOR_PLATE);
-    }
-    FillStatusColumnRect(tiles, x0 + 2, 1, x0 + w - 3, 1, HB_COLOR_SLATE);
-
-    for (i = 0, count = 0; i < HB_STATUS_COUNT; i++)
-    {
-        const struct HealthboxStatusLineInfo *line = &sHealthboxStatusLines[i];
-        u32 cx, cy, gx, gy, pip;
-
-        if (stages[i] == 0)
-            continue;
-
-        cx = x0 + 2 + (count / rows) * (HB_STATUS_CELL_W + 1);
-        cy = top + (count % rows) * (HB_STATUS_CELL_H + 1);
-        count++;
-
-        FillStatusColumnRect(tiles, cx, cy, cx + HB_STATUS_CELL_W - 1, cy + HB_STATUS_CELL_H - 1, HB_COLOR_EMPTY);
-        for (gy = 0; gy < 7; gy++)
-        {
-            for (gx = 0; gx < 7; gx++)
-            {
-                if (line->glyph[gy] & (0x40 >> gx))
-                    FillStatusColumnRect(tiles, cx + 1 + gx, cy + 1 + gy, cx + 1 + gx, cy + 1 + gy, line->color);
-            }
-        }
-        for (pip = 0; pip < line->maxStage; pip++)
-        {
-            u32 py = cy + HB_STATUS_CELL_H - 3 - pip * 3;
-            FillStatusColumnRect(tiles, cx + 9, py, cx + 10, py + 1, pip < stages[i] ? line->color : HB_COLOR_SLATE);
-        }
-    }
+    DrawStatusIconBox(tiles, 8, 4, GetHealthboxLayout(battler)->plateH, stages,
+                      IsOnPlayerSide(battler) ? STATUS_ICON_ALIGN_RIGHT : STATUS_ICON_ALIGN_LEFT);
 }
 
 // Fantasy Retold: the Stamina value the bar currently shows. It slides toward the live CurrentSta at the HP
@@ -919,7 +773,7 @@ static void SpriteCB_HealthBar(struct Sprite *sprite)
     struct Sprite *healthbox = &gSprites[sprite->hBar_HealthBoxSpriteId];
     enum BattlerId battler = healthbox->hMain_Battler;
     s32 plateLeft = healthbox->x + healthbox->centerToCornerVecX;
-    u8 stages[HB_STATUS_COUNT];
+    u8 stages[STATUS_ICON_LINE_COUNT];
 
     if (IsOnPlayerSide(battler))
         sprite->x = plateLeft - HB_STATUS_COLUMN_GAP - 64 - sprite->centerToCornerVecX;

@@ -11,6 +11,7 @@
 #include "constants/abilities.h"
 #include "random.h"
 #include "battle_scripts.h"
+#include "status_rail.h"
 #include "window.h"
 #include "constants/battle_string_ids.h"
 
@@ -179,7 +180,7 @@ u32 BattlePalace_TryEscapeStatus(enum BattlerId battler)
                 {
                     // Wake up from Uproar
                     gEffectBattler = battler;
-                    gBattleMons[battler].status1 &= ~(STATUS1_SLEEP);
+                    ClearStatusRail(battler, RAIL_SLEEP); // Fantasy Retold: the rail, not status1 (combat.md §6)
                     gBattleMons[battler].volatiles.nightmare = FALSE;
                     gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_WOKE_UP_UPROAR;
                     BattleScriptCall(BattleScript_MoveUsedWokeUp);
@@ -194,11 +195,16 @@ u32 BattlePalace_TryEscapeStatus(enum BattlerId battler)
                     else
                         toSub = 1;
 
-                    // Reduce number of sleep turns
-                    if ((gBattleMons[battler].status1 & STATUS1_SLEEP) < toSub)
-                        gBattleMons[battler].status1 &= ~(STATUS1_SLEEP);
+                    // Reduce number of sleep turns (Fantasy Retold: on the Sleep rail's count)
+                    if (GetStatusRailCounter(battler, RAIL_SLEEP) <= toSub)
+                    {
+                        ClearStatusRail(battler, RAIL_SLEEP);
+                    }
                     else
-                        gBattleMons[battler].status1 -= toSub;
+                    {
+                        SetStatusRailCounter(battler, RAIL_SLEEP, GetStatusRailCounter(battler, RAIL_SLEEP) - toSub);
+                        SyncStatusRailBridge(battler);
+                    }
 
                     if (gBattleMons[battler].status1 & STATUS1_SLEEP)
                     {
@@ -232,7 +238,7 @@ u32 BattlePalace_TryEscapeStatus(enum BattlerId battler)
                 {
                     // Unfreeze
                     GetBattlerPartyState(battler)->freezeTurns = 0;
-                    gBattleMons[battler].status1 &= ~(STATUS1_FREEZE);
+                    ClearStatusRail(battler, RAIL_CHILL); // Fantasy Retold
                     gBattleScripting.battler = battler;
                     BattleScriptCall(BattleScript_BattlerDefrosted);
                     gBattleCommunication[MULTISTRING_CHOOSER] = B_MSG_DEFROSTED;

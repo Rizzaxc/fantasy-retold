@@ -3,14 +3,17 @@
 #include "battle_controllers.h"
 #include "battle_dynamax.h"
 #include "battle_util.h"
+#include "battle_util2.h"
+#include "main.h"
+#include "pokemon.h"
 #include "random.h"
 #include "status_rail.h"
 #include "constants/battle.h"
 #include "constants/battle_script_commands.h"
 #include "constants/battle_string_ids.h"
 
-// Fantasy Retold: multi-stage status "rails" (combat.md §6). This module owns all rail state, the two-way
-// bridge to the legacy status1 bits / confusionTimer, and the numbers behind each line's effects.
+// Fantasy Retold: multi-stage status "rails" (combat.md §6). This module owns all rail state, the read-only
+// status1 / confusionTimer view built from it, and the numbers behind each line's effects.
 
 static struct StatusRailEntry *GetRail(enum BattlerId battler, enum StatusRail rail)
 {
@@ -99,7 +102,6 @@ u8 ApplyStatusRail(enum BattlerId battler, enum StatusRail rail, u8 minLevel)
     bool32 floorOnly = (minLevel & STATUS_RAIL_APPLY_FLOOR) != 0;
 
     minLevel &= ~STATUS_RAIL_APPLY_FLOOR;
-    ReconcileStatusRailsFromBridge(battler);
     oldLevel = entry->level;
 
     if (rail == RAIL_CHILL) // no direct way into Frozen / Frostbitten
@@ -126,7 +128,6 @@ u8 RaiseStatusRailTo(enum BattlerId battler, enum StatusRail rail, u8 level, u8 
 {
     struct StatusRailEntry *entry = GetRail(battler, rail);
 
-    ReconcileStatusRailsFromBridge(battler);
     if (level > GetStatusRailMaxLevel(rail))
         level = GetStatusRailMaxLevel(rail);
     if (entry->level < level)
@@ -158,7 +159,6 @@ u8 LowerStatusRail(enum BattlerId battler, enum StatusRail rail)
 {
     struct StatusRailEntry *entry = GetRail(battler, rail);
 
-    ReconcileStatusRailsFromBridge(battler);
     if (entry->level > 1)
         entry->level--;
     else
@@ -169,7 +169,6 @@ u8 LowerStatusRail(enum BattlerId battler, enum StatusRail rail)
 
 void ClearStatusRail(enum BattlerId battler, enum StatusRail rail)
 {
-    ReconcileStatusRailsFromBridge(battler);
     ResetRail(GetRail(battler, rail));
     SyncStatusRailBridge(battler);
 }
@@ -219,9 +218,25 @@ bool32 CurePartyStatusRails(struct StatusRailEntry *rails, bool32 keepOnSwitch)
     return CureStatusRailEntries(rails, STATUS_RAILS_ALL, keepOnSwitch);
 }
 
+bool32 CurePartyStatusRailsMask(struct StatusRailEntry *rails, u32 railMask)
+{
+    return CureStatusRailEntries(rails, railMask, FALSE);
+}
+
+void WipeStatusRails(enum BattlerId battler, u32 railMask)
+{
+    enum StatusRail rail;
+
+    for (rail = 0; rail < NUM_STATUS_RAILS; rail++)
+    {
+        if (railMask & STATUS_RAIL_BIT(rail))
+            ResetRail(GetRail(battler, rail));
+    }
+    SyncStatusRailBridge(battler);
+}
+
 void CureAllStatusRails(enum BattlerId battler, bool32 keepOnSwitch)
 {
-    // No reconcile: callers may already have zeroed status1, which would wipe the Lv3s this keeps.
     CurePartyStatusRails(GetBattlerPartyState(battler)->rails, keepOnSwitch);
     SyncStatusRailBridge(battler);
 }
@@ -230,7 +245,6 @@ bool32 CureStatusRails(enum BattlerId battler, u32 railMask)
 {
     bool32 cured;
 
-    ReconcileStatusRailsFromBridge(battler);
     cured = CureStatusRailEntries(GetBattlerPartyState(battler)->rails, railMask, FALSE);
     SyncStatusRailBridge(battler);
     return cured;
@@ -249,21 +263,26 @@ bool32 HasAnyStatusRail(enum BattlerId battler, u32 railMask)
 }
 
 // The cure message (B_MSG_CURED_*) for the first active line in railMask, in vanilla's order.
-u32 GetStatusRailCureMessage(enum BattlerId battler, u32 railMask)
+u32 GetStatusRailEntriesCureMessage(const struct StatusRailEntry *rails, u32 railMask)
 {
-    if ((railMask & STATUS_RAIL_BIT(RAIL_ELECTRIC)) && GetStatusRailLevel(battler, RAIL_ELECTRIC) != 0)
+    if ((railMask & STATUS_RAIL_BIT(RAIL_ELECTRIC)) && rails[RAIL_ELECTRIC].level != 0)
         return B_MSG_CURED_PARALYSIS;
-    if ((railMask & STATUS_RAIL_BIT(RAIL_POISON)) && GetStatusRailLevel(battler, RAIL_POISON) != 0)
+    if ((railMask & STATUS_RAIL_BIT(RAIL_POISON)) && rails[RAIL_POISON].level != 0)
         return B_MSG_CURED_POISON;
-    if ((railMask & STATUS_RAIL_BIT(RAIL_BURN)) && GetStatusRailLevel(battler, RAIL_BURN) != 0)
+    if ((railMask & STATUS_RAIL_BIT(RAIL_BURN)) && rails[RAIL_BURN].level != 0)
         return B_MSG_CURED_BURN;
-    if ((railMask & STATUS_RAIL_BIT(RAIL_SLEEP)) && GetStatusRailLevel(battler, RAIL_SLEEP) != 0)
+    if ((railMask & STATUS_RAIL_BIT(RAIL_SLEEP)) && rails[RAIL_SLEEP].level != 0)
         return B_MSG_CURED_SLEEP;
-    if ((railMask & STATUS_RAIL_BIT(RAIL_CHILL)) && GetStatusRailLevel(battler, RAIL_CHILL) != 0)
-        return GetStatusRailBranch(battler, RAIL_CHILL) == CHILL_BRANCH_FROSTBITTEN ? B_MSG_CURED_FROSTBITE : B_MSG_CURED_FREEZE;
-    if ((railMask & STATUS_RAIL_BIT(RAIL_CONFUSION)) && GetStatusRailLevel(battler, RAIL_CONFUSION) != 0)
+    if ((railMask & STATUS_RAIL_BIT(RAIL_CHILL)) && rails[RAIL_CHILL].level != 0)
+        return rails[RAIL_CHILL].branch == CHILL_BRANCH_FROSTBITTEN ? B_MSG_CURED_FROSTBITE : B_MSG_CURED_FREEZE;
+    if ((railMask & STATUS_RAIL_BIT(RAIL_CONFUSION)) && rails[RAIL_CONFUSION].level != 0)
         return B_MSG_CURED_CONFUSION;
     return B_MSG_CURED_PROBLEM; // Soaked only
+}
+
+u32 GetStatusRailCureMessage(enum BattlerId battler, u32 railMask)
+{
+    return GetStatusRailEntriesCureMessage(GetBattlerPartyState(battler)->rails, railMask);
 }
 
 bool32 HasStatusRailCondition(enum BattlerId battler)
@@ -309,7 +328,6 @@ bool32 HasStatusRailConditionForStatus1(enum BattlerId battler, u32 status1Mask)
 
 bool32 CureStatusRailWithBerry(enum BattlerId battler, enum StatusRail rail)
 {
-    ReconcileStatusRailsFromBridge(battler);
     if (GetRail(battler, rail)->level < 2) // berries ignore Lv1
         return FALSE;
     CureRail(GetRail(battler, rail), FALSE);
@@ -321,7 +339,6 @@ void ClearVolatileStatusRails(enum BattlerId battler)
 {
     enum StatusRail rail;
 
-    ReconcileStatusRailsFromBridge(battler);
     for (rail = 0; rail < NUM_STATUS_RAILS; rail++)
     {
         struct StatusRailEntry *entry = GetRail(battler, rail);
@@ -381,7 +398,12 @@ static u32 BuildStatusRailSavedBits(const struct StatusRailEntry *rails)
     return saved;
 }
 
-u32 GetStatusRailPartyStatusAfterBattle(const struct StatusRailEntry *rails)
+u32 EncodeStatusRails(const struct StatusRailEntry *rails)
+{
+    return BuildStatusRailMirror(rails) | BuildStatusRailSavedBits(rails);
+}
+
+u32 PackStatusRails(const struct StatusRailEntry *rails)
 {
     struct StatusRailEntry kept[NUM_STATUS_RAILS];
     enum StatusRail rail;
@@ -389,10 +411,95 @@ u32 GetStatusRailPartyStatusAfterBattle(const struct StatusRailEntry *rails)
     for (rail = 0; rail < NUM_STATUS_RAILS; rail++)
     {
         kept[rail] = rails[rail];
-        if (kept[rail].level == 1) // Lv1 is volatile: the battle ending drops it like a switch-out
+        if (kept[rail].level == 1) // Lv1 is volatile: leaving battle drops it like a switch-out
             kept[rail].level = 0;
     }
-    return BuildStatusRailMirror(kept) | BuildStatusRailSavedBits(kept);
+    return EncodeStatusRails(kept);
+}
+
+#define SAVED_LEVEL(status, mask) (((status) & (mask)) >> __builtin_ctz(mask))
+
+void UnpackStatusRails(u32 status, struct StatusRailEntry *rails)
+{
+    u32 level;
+
+    memset(rails, 0, sizeof(struct StatusRailEntry) * NUM_STATUS_RAILS);
+
+    if (status & STATUS1_TOXIC_POISON)
+    {
+        rails[RAIL_POISON].level = 2;
+        rails[RAIL_POISON].counter = (status & STATUS1_TOXIC_COUNTER) >> 8;
+    }
+    else if (status & STATUS1_POISON)
+    {
+        rails[RAIL_POISON].level = 1;
+    }
+
+    if (status & STATUS1_BURN)
+        rails[RAIL_BURN].level = max(SAVED_LEVEL(status, STATUS1_SAVED_BURN), 1);
+
+    if (status & STATUS1_ICY_ANY)
+    {
+        rails[RAIL_CHILL].level = 2;
+        rails[RAIL_CHILL].counter = CHILL_DURATION;
+        rails[RAIL_CHILL].branch = (status & STATUS1_FROSTBITE) ? CHILL_BRANCH_FROSTBITTEN : CHILL_BRANCH_FROZEN;
+    }
+
+    level = SAVED_LEVEL(status, STATUS1_SAVED_ELECTRIC);
+    if (status & STATUS1_PARALYSIS)
+        level = 3;
+    rails[RAIL_ELECTRIC].level = level;
+
+    if (status & STATUS1_SLEEP)
+    {
+        rails[RAIL_SLEEP].level = max(SAVED_LEVEL(status, STATUS1_SAVED_SLEEP), 2);
+        rails[RAIL_SLEEP].counter = status & STATUS1_SLEEP;
+    }
+
+    level = SAVED_LEVEL(status, STATUS1_SAVED_CONFUSION);
+    if (level != 0)
+    {
+        rails[RAIL_CONFUSION].level = level;
+        rails[RAIL_CONFUSION].counter = CONFUSION_DURATION; // the timer isn't kept; it restarts
+    }
+}
+
+#undef SAVED_LEVEL
+
+void InitBattleStatusRails(void)
+{
+    enum BattleTrainer trainer;
+    u32 i;
+
+    for (trainer = 0; trainer < MAX_BATTLE_TRAINERS; trainer++)
+    {
+        struct Pokemon *party = GetTrainerParty(trainer);
+
+        for (i = 0; i < PARTY_SIZE; i++)
+        {
+            u32 status = 0;
+
+            if (GetMonData(&party[i], MON_DATA_SPECIES_OR_EGG) != SPECIES_NONE)
+                status = GetMonData(&party[i], MON_DATA_STATUS);
+            UnpackStatusRails(status, gBattleStruct->partyState[trainer][i].rails);
+        }
+    }
+}
+
+struct StatusRailEntry *GetPartyMonStatusRails(struct Pokemon *mon)
+{
+    enum BattleTrainer trainer;
+
+    if (!gMain.inBattle || gBattleStruct == NULL)
+        return NULL;
+    for (trainer = 0; trainer < MAX_BATTLE_TRAINERS; trainer++)
+    {
+        struct Pokemon *party = GetTrainerParty(trainer);
+
+        if (mon >= party && mon < party + PARTY_SIZE)
+            return gBattleStruct->partyState[trainer][mon - party].rails;
+    }
+    return NULL;
 }
 
 u32 GetStatusRailSavedBitsToCure(u32 healMask)
@@ -410,30 +517,35 @@ u32 GetStatusRailSavedBitsToCure(u32 healMask)
     return saved;
 }
 
-void SeedStatusRailsFromSavedStatus(enum BattlerId battler)
+u32 GetStatusRailMaskFromStatus1(u32 status1Mask)
 {
-    struct PartyState *ps = GetBattlerPartyState(battler);
-    u32 status1 = gBattleMons[battler].status1;
-    u32 level;
+    u32 railMask = 0;
 
-    level = (status1 & STATUS1_SAVED_ELECTRIC) >> __builtin_ctz(STATUS1_SAVED_ELECTRIC);
-    if (level > ps->rails[RAIL_ELECTRIC].level)
-        ps->rails[RAIL_ELECTRIC].level = level;
+    if ((status1Mask & STATUS1_ANY) == STATUS1_ANY)
+        return STATUS_RAILS_ALL;
+    if (status1Mask & STATUS1_PSN_ANY)
+        railMask |= STATUS_RAIL_BIT(RAIL_POISON);
+    if (status1Mask & STATUS1_BURN)
+        railMask |= STATUS_RAIL_BIT(RAIL_BURN);
+    if (status1Mask & STATUS1_ICY_ANY)
+        railMask |= STATUS_RAIL_BIT(RAIL_CHILL);
+    if (status1Mask & STATUS1_PARALYSIS)
+        railMask |= STATUS_RAIL_BIT(RAIL_ELECTRIC);
+    if (status1Mask & STATUS1_SLEEP)
+        railMask |= STATUS_RAIL_BIT(RAIL_SLEEP);
+    return railMask;
+}
 
-    level = (status1 & STATUS1_SAVED_SLEEP) >> __builtin_ctz(STATUS1_SAVED_SLEEP);
-    if (level > ps->rails[RAIL_SLEEP].level && ps->rails[RAIL_SLEEP].level >= 2) // the sleep turns are still mirrored
-        ps->rails[RAIL_SLEEP].level = level;
+bool32 HasStatusRailEntries(const struct StatusRailEntry *rails, u32 railMask)
+{
+    enum StatusRail rail;
 
-    level = (status1 & STATUS1_SAVED_BURN) >> __builtin_ctz(STATUS1_SAVED_BURN);
-    if (level > ps->rails[RAIL_BURN].level && ps->rails[RAIL_BURN].level >= 1) // the burn bit is still mirrored
-        ps->rails[RAIL_BURN].level = level;
-
-    level = (status1 & STATUS1_SAVED_CONFUSION) >> __builtin_ctz(STATUS1_SAVED_CONFUSION);
-    if (level > ps->rails[RAIL_CONFUSION].level)
+    for (rail = 0; rail < NUM_STATUS_RAILS; rail++)
     {
-        ps->rails[RAIL_CONFUSION].level = level;
-        ps->rails[RAIL_CONFUSION].counter = CONFUSION_DURATION; // the timer isn't kept; it restarts
+        if ((railMask & STATUS_RAIL_BIT(rail)) && rails[rail].level != 0)
+            return TRUE;
     }
+    return FALSE;
 }
 
 void SyncStatusRailBridge(enum BattlerId battler)
@@ -449,91 +561,6 @@ void SyncStatusRailBridge(enum BattlerId battler)
         gBattleMons[battler].volatiles.confusionTimer = 0;
 }
 
-void ReconcileStatusRailsFromBridge(enum BattlerId battler)
-{
-    struct PartyState *ps = GetBattlerPartyState(battler);
-    u32 status1 = gBattleMons[battler].status1;
-    u32 confusionTimer = gBattleMons[battler].volatiles.confusionTimer;
-    struct StatusRailEntry *rail;
-
-    // Poison
-    rail = &ps->rails[RAIL_POISON];
-    if (!(status1 & STATUS1_PSN_ANY))
-    {
-        ResetRail(rail); // cured (Refresh / Natural Cure / full heal / Rest) or never applied
-    }
-    else if (status1 & STATUS1_TOXIC_POISON)
-    {
-        if (rail->level < 2) // Toxic Orb, Toxic Spikes, ...
-        {
-            rail->level = 2;
-            rail->counter = (status1 & STATUS1_TOXIC_COUNTER) >> 8;
-        }
-    }
-    else if (rail->level < 1)
-    {
-        rail->level = 1;
-    }
-
-    // Burn
-    rail = &ps->rails[RAIL_BURN];
-    if (!(status1 & STATUS1_BURN))
-        ResetRail(rail);
-    else if (rail->level == 0) // Flame Orb, Synchronize, ...
-        rail->level = 1;
-
-    // Chill (only Lv2 is mirrored, so a missing bit only clears Lv2)
-    rail = &ps->rails[RAIL_CHILL];
-    if (!(status1 & STATUS1_ICY_ANY))
-    {
-        if (rail->level >= 2) // thawed
-            ResetRail(rail);
-    }
-    else if (rail->level < 2)
-    {
-        rail->level = 2;
-        rail->counter = CHILL_DURATION;
-        rail->branch = (status1 & STATUS1_FROSTBITE) ? CHILL_BRANCH_FROSTBITTEN : CHILL_BRANCH_FROZEN;
-    }
-
-    // Electric (only Lv3 is mirrored)
-    rail = &ps->rails[RAIL_ELECTRIC];
-    if (!(status1 & STATUS1_PARALYSIS))
-    {
-        if (rail->level >= 3) // paralysis cured
-            ResetRail(rail);
-    }
-    else if (rail->level < 3)
-    {
-        rail->level = 3;
-    }
-
-    // Sleep (Lv2+ is mirrored)
-    rail = &ps->rails[RAIL_SLEEP];
-    if (!(status1 & STATUS1_SLEEP))
-    {
-        if (rail->level >= 2) // woken (Uproar, cure, ...)
-            ResetRail(rail);
-    }
-    else if (rail->level < 2) // Rest, Yawn, Effect Spore, ...
-    {
-        rail->level = 2;
-        rail->counter = min(status1 & STATUS1_SLEEP, SLEEP_DURATION);
-    }
-
-    // Confusion
-    rail = &ps->rails[RAIL_CONFUSION];
-    if (confusionTimer == 0)
-    {
-        ResetRail(rail); // Persim Berry, Own Tempo, ... (or never confused)
-    }
-    else if (rail->level == 0) // Outrage fatigue, confusing berries, ...
-    {
-        rail->level = 1;
-        rail->counter = min(confusionTimer, CONFUSION_DURATION);
-    }
-}
-
 void EmitStatusRailMirror(enum BattlerId battler)
 {
     BtlController_EmitSetMonData(battler, B_COMM_TO_CONTROLLER, REQUEST_STATUS_BATTLE, 0, sizeof(gBattleMons[battler].status1), &gBattleMons[battler].status1);
@@ -546,7 +573,6 @@ bool32 PurgeRandomLevel1StatusRail(enum BattlerId battler)
     enum StatusRail rail, candidates[NUM_STATUS_RAILS];
     u32 count = 0;
 
-    ReconcileStatusRailsFromBridge(battler);
     for (rail = 0; rail < NUM_STATUS_RAILS; rail++)
     {
         if (ps->rails[rail].level == 1)
@@ -603,7 +629,6 @@ u32 GetStatusRailIncomingAccuracyPercent(enum BattlerId battlerDef)
 // The Poison line blocks Recuperate's heal and any heal of maxHP/16 or less (Leftovers, a weak drain, ...).
 bool32 IsHealBlockedByStatusRails(enum BattlerId battler, u32 healAmount)
 {
-    ReconcileStatusRailsFromBridge(battler);
     return GetStatusRailLevel(battler, RAIL_POISON) != 0
         && healAmount <= max(GetNonDynamaxMaxHP(battler) / POISON_HEAL_BLOCK_DIVISOR, 1);
 }
@@ -652,7 +677,6 @@ u32 TickStatusRailTimers(enum BattlerId battler, bool32 earlyBird)
     static const enum StatusRail sTimedRails[] = { RAIL_SOAK, RAIL_CHILL, RAIL_SLEEP, RAIL_CONFUSION };
     u32 i, endedMask = 0;
 
-    ReconcileStatusRailsFromBridge(battler);
     for (i = 0; i < ARRAY_COUNT(sTimedRails); i++)
     {
         struct StatusRailEntry *entry = GetRail(battler, sTimedRails[i]);
@@ -688,7 +712,6 @@ u32 GetStatusRailEndedStringId(enum StatusRail rail)
 
 u32 ApplyStatusRailTypeInteraction(enum BattlerId battler, enum Type moveType)
 {
-    ReconcileStatusRailsFromBridge(battler);
 
     switch (moveType)
     {
@@ -726,7 +749,6 @@ u32 TrySoakFromHit(enum BattlerId battler, enum Type moveType)
      || !RandomPercentage(RNG_STATUS_RAIL_SOAK, SOAK_CHANCE))
         return 0;
 
-    ReconcileStatusRailsFromBridge(battler);
     if (GetStatusRailLevel(battler, RAIL_BURN) != 0) // the Soak takes a Burn stack off instead
         return LowerStatusRail(battler, RAIL_BURN) == 0 ? STRINGID_FRBURNDOUSED : STRINGID_FRBURNEASED;
     if (GetStatusRailLevel(battler, RAIL_SOAK) != 0) // already Soaked: start the count again
@@ -793,7 +815,6 @@ u32 TryCritStatusRailUpgrade(enum BattlerId battlerAtk, enum BattlerId battler, 
         return 0;
     }
 
-    ReconcileStatusRailsFromBridge(battler);
     if (GetStatusRailLevel(battler, rail) == 0 || GetStatusRailLevel(battler, rail) >= 3
      || (gBattleStruct->statusRailsAppliedByMove[battler] & STATUS_RAIL_BIT(rail))
      || !CanAdvanceStatusRail(battlerAtk, battler, rail))
@@ -831,7 +852,6 @@ bool32 TrySleepRailValve(enum BattlerId battler, enum Type moveType)
 {
     struct StatusRailEntry *entry = GetRail(battler, RAIL_SLEEP);
 
-    ReconcileStatusRailsFromBridge(battler);
     if (entry->level == 0
      || moveType == TYPE_GHOST
      || !RandomPercentage(RNG_SLEEP_VALVE, SLEEP_VALVE_CHANCE))

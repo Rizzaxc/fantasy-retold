@@ -41,6 +41,7 @@
 #include "scanline_effect.h"
 #include "sound.h"
 #include "sprite.h"
+#include "status_rail_icons.h"
 #include "string_util.h"
 #include "strings.h"
 #include "task.h"
@@ -129,6 +130,7 @@ enum BWSummarySprites
     SPRITE_ARR_ID_SHADOW,
     SPRITE_ARR_ID_BALL,
     SPRITE_ARR_ID_STATUS,
+    SPRITE_ARR_ID_STATUS_RAILS, // Fantasy Retold: the status box under the mon (before POKERUS_CURED, so page changes leave it to UpdateStatusRailBox: info page only)
     SPRITE_ARR_ID_SHINY,
     // all sprites below are considered "page-specific" and will be hidden when switching pages
     SPRITE_ARR_ID_POKERUS_CURED,
@@ -361,6 +363,8 @@ static void CreateMonMarkingsSprite(struct Pokemon *);
 static void RemoveAndCreateMonMarkingsSprite(struct Pokemon *);
 static void CreateCaughtBallSprite(struct Pokemon *);
 static void CreateSetStatusSprite(void);
+static void LoadStatusRailBoxGfx(void);
+static void UpdateStatusRailBox(void);
 static void CreateMoveSelectorSprites(u8);
 static void SpriteCB_MoveSelector(struct Sprite *);
 static void DestroyMoveSelectorSprites(u8);
@@ -804,6 +808,7 @@ static void (*const sTextPrinterTasks[])(u8 taskId) =
 #define TAG_MON_SHADOW 30010
 #define TAG_RELEARN_PROMPT 30011
 #define TAG_INNATE_PROMPT 30012 // Fantasy Retold
+#define TAG_STATUS_RAIL_BOX 30013 // Fantasy Retold: tiles and palette (the healthbox palette)
 
 static const struct OamData sOamData_CategoryIcons =
 {
@@ -2126,6 +2131,7 @@ static bool8 DecompressGraphics(void)
         break;
     case 12:
         LoadSpritePalette(&sStatusIconsSpritePalette);
+        LoadStatusRailBoxGfx();
         sMonSummaryScreen->switchCounter++;
         break;
     case 13:
@@ -2617,6 +2623,8 @@ static void ChangeSummaryPokemon(u8 taskId, s8 delta)
             {
                 SetSpriteInvisibility(SPRITE_ARR_ID_STATUS, TRUE);
             }
+            if (sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_STATUS_RAILS] != SPRITE_NONE)
+                SetSpriteInvisibility(SPRITE_ARR_ID_STATUS_RAILS, TRUE);
             sMonSummaryScreen->curMonIndex = monId;
             sMonSummaryScreen->monAnimTimer = 0;
             sMonSummaryScreen->monAnimPlayed = FALSE;
@@ -2828,6 +2836,7 @@ static void ChangePage(u8 taskId, s8 delta)
     SetTaskFuncWithFollowupFunc(taskId, PssScroll, gTasks[taskId].func);
     CreateTextPrinterTask(sMonSummaryScreen->currPageIndex);
     HidePageSpecificSprites();
+    UpdateStatusRailBox(); // Fantasy Retold: shown on the info page only
 }
 
 static void PssScroll(u8 taskId)
@@ -5593,6 +5602,82 @@ static void CreateCaughtBallSprite(struct Pokemon *mon)
     gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_BALL]].oam.priority = 1;
 }
 
+// Fantasy Retold: the mon's status lines, drawn under its sprite as the battle healthbox's status box
+// (status_rail_icons.c; design.md, Status Outside Battle). The vanilla icon by the name is left for FNT.
+#define STATUS_RAIL_BOX_X 204 // the mon sprite's x
+#define STATUS_RAIL_BOX_Y 126 // the mon sprite (64x64 at y 76) ends at 108; the box is 23px tall
+#define STATUS_RAIL_BOX_H 23  // two cell rows, like the healthbox's
+
+static const struct OamData sOamData_StatusRailBox =
+{
+    .affineMode = ST_OAM_AFFINE_OFF,
+    .objMode = ST_OAM_OBJ_NORMAL,
+    .shape = SPRITE_SHAPE(64x32),
+    .size = SPRITE_SIZE(64x32),
+    .priority = 1,
+};
+
+static const struct SpriteTemplate sSpriteTemplate_StatusRailBox =
+{
+    .tileTag = TAG_STATUS_RAIL_BOX,
+    .paletteTag = TAG_STATUS_RAIL_BOX,
+    .oam = &sOamData_StatusRailBox,
+    .anims = gDummySpriteAnimTable,
+    .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCallbackDummy,
+};
+
+static void LoadStatusRailBoxGfx(void)
+{
+    struct SpritePalette palette = {gBattleInterface_BallStatusBarPal, TAG_STATUS_RAIL_BOX};
+    struct SpriteSheet sheet = {NULL, 32 * TILE_SIZE_4BPP, TAG_STATUS_RAIL_BOX};
+    void *blank = AllocZeroed(32 * TILE_SIZE_4BPP);
+
+    sheet.data = blank;
+    LoadSpriteSheet(&sheet); // copied to VRAM at once; the box is drawn there
+    Free(blank);
+    LoadSpritePalette(&palette);
+}
+
+static void UpdateStatusRailBox(void)
+{
+    u8 *spriteId = &sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_STATUS_RAILS];
+    u8 stages[STATUS_ICON_LINE_COUNT];
+    u32 *tiles;
+
+    if (*spriteId == SPRITE_NONE)
+    {
+        *spriteId = CreateSprite(&sSpriteTemplate_StatusRailBox, STATUS_RAIL_BOX_X, STATUS_RAIL_BOX_Y, 6);
+        if (*spriteId == MAX_SPRITES)
+        {
+            *spriteId = SPRITE_NONE;
+            return;
+        }
+    }
+
+    tiles = (u32 *)(OBJ_VRAM0 + GetSpriteTileStartByTag(TAG_STATUS_RAIL_BOX) * TILE_SIZE_4BPP);
+    // The party mon itself, not the summary's copy, so in battle its live rails are read.
+    if (sMonSummaryScreen->isBoxMon)
+        GetMonStatusIconStages(&sMonSummaryScreen->currentMon, stages);
+    else
+        GetMonStatusIconStages(&sMonSummaryScreen->monList.mons[sMonSummaryScreen->curMonIndex], stages);
+    // Only on the info page (design.md, Status Outside Battle).
+    if (sMonSummaryScreen->summary.isEgg || sMonSummaryScreen->currPageIndex != PSS_PAGE_INFO
+     || DrawStatusIconBox(tiles, 8, 4, STATUS_RAIL_BOX_H, stages, STATUS_ICON_ALIGN_CENTER) == 0)
+        SetSpriteInvisibility(SPRITE_ARR_ID_STATUS_RAILS, TRUE);
+    else
+        SetSpriteInvisibility(SPRITE_ARR_ID_STATUS_RAILS, FALSE);
+}
+
+// The vanilla icon by the name: only FNT (a status shows in the status box instead).
+static u8 GetSummaryVanillaAilment(void)
+{
+    u8 ailment = GetMonAilment(&sMonSummaryScreen->currentMon);
+
+    return ailment == AILMENT_FNT ? ailment : AILMENT_NONE;
+}
+
 static void CreateSetStatusSprite(void)
 {
     u8 *spriteId = &sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_STATUS];
@@ -5601,7 +5686,8 @@ static void CreateSetStatusSprite(void)
     if (*spriteId == SPRITE_NONE)
         *spriteId = CreateSprite(&sSpriteTemplate_StatusCondition, 213, 38, 6);
 
-    statusAnim = GetMonAilment(&sMonSummaryScreen->currentMon);
+    UpdateStatusRailBox();
+    statusAnim = GetSummaryVanillaAilment();
     if (statusAnim != 0)
     {
         StartSpriteAnim(&gSprites[*spriteId], statusAnim - 1);
@@ -5615,7 +5701,9 @@ static void CreateSetStatusSprite(void)
 
 static void HandleStatusSprite(struct Pokemon *mon)
 {
-    u8 statusAnim = GetMonAilment(&sMonSummaryScreen->currentMon);
+    u8 statusAnim = GetSummaryVanillaAilment();
+
+    UpdateStatusRailBox();
     if (statusAnim != 0)
     {
         StartSpriteAnim(&gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_STATUS]], statusAnim - 1);
