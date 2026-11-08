@@ -12,7 +12,13 @@
       "Bash(python -c \"from PIL import Image; img = Image.open\\('D:/Work/fantasy-retold/graphics/battle_interface/healthbox_singles_player.png'\\); print\\(f'Size: {img.size}, Mode: {img.mode}, Palette colors: {len\\(img.getpalette\\(\\)\\)//3 if img.mode==\\\\\"P\\\\\" else \\\\\"N/A\\\\\"}'\\)\")",
       "Bash(python -c ' *)",
       "Bash(ls \"C:/Users/Admin/.claude/plans/\" 2>/dev/null || echo \"Plans directory does not exist\")",
-      "mcp__visualize__show_widget"
+      "mcp__visualize__show_widget",
+      "Bash(make modern *)",
+      "Bash(awk '{print $6,$7,$8}')",
+      "Bash(python3 .claude/skills/challenge-team/scripts/learnables.py Torkoal --has \"Clear Smog\" Roar Whirlwind \"Rapid Spin\" \"Flame Charge\" Overheat Eruption \"Will-O-Wisp\" \"Eject Button\" \"Shell Smash\" Curse \"Heat Wave\" \"Weather Ball\" \"Solar Beam\" Earthquake \"Scorching Sands\" \"Stealth Rock\" Yawn Protect \"Burning Jealousy\" \"Eruption\")",
+      "Bash(python3 .claude/skills/challenge-team/scripts/learnables.py Turtonator Torkoal Camerupt Ceruledge Scovillain Larvesta Rotom-Heat Coalossal --has \"Sunny Day\" \"Weather Ball\" \"Clear Smog\")",
+      "Bash(python3 .claude/skills/challenge-team/scripts/learnables.py Turtonator --has \"Draco Meteor\" \"Will-O-Wisp\" \"Body Press\" \"Shell Smash\" \"Flamethrower\" \"Dragon Pulse\" \"Rapid Spin\" \"Protect\" \"Scorching Sands\" \"Dragon Tail\" Roar)",
+      "Bash(python3 .claude/skills/challenge-team/scripts/learnables.py Chandelure --has \"Heat Wave\" \"Shadow Ball\" \"Will-O-Wisp\" Protect Hex \"Energy Ball\" \"Trick Room\" \"Sunny Day\" \"Overheat\")"
     ]
   }
 }

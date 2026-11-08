@@ -692,6 +692,7 @@ gSpecials::
 	def_special GuestLeader_RollFormat
 	def_special GuestLeader_NeedsTwoMons
 	def_special GuestLeader_ConfigureBattle
+	def_special GuestLeader_RollReward
 	def_special GuestLeader_OnWin
 	def_special ObtainItem_FilterTM
 	def_special GameCornerPrize_Restock

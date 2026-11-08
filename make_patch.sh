@@ -9,7 +9,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VERSION="${1:-dev}"
 CLEAN_ROM="${CLEAN_ROM:-$ROOT/Pokemon - Emerald Version (USA, Europe).gba}"
-RELEASE_ROM="${RELEASE_ROM:-$ROOT/pokeemerald-release.gba}"
+RELEASE_ROM="${RELEASE_ROM:-$ROOT/FantasyRetold-release.gba}"
 ROMPATCHER="${ROMPATCHER:-$ROOT/.cache/RomPatcher.js}"
 OUT="$ROOT/release/fantasy-retold-$VERSION.bps"
 

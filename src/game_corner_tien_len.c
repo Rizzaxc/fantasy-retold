@@ -505,10 +505,10 @@ enum
 #define TAG_TABLE_TILES  0x5B20 // + slot
 #define NOT_SHOWN        0xFE
 
-#define TABLE_Y          46
-#define HAND_Y           136
+#define TABLE_Y          46  // table cards span y 14-78
+#define HAND_Y           140 // hand starts at y 108 (96 raised); the hint band is y 80-104
 #define CARD_SPACING     16
-#define RAISE_SELECTED   10
+#define RAISE_SELECTED   8
 #define RAISE_CURSOR     4
 #define AI_DELAY         30 // AI "thinking" before it plays
 #define PLAY_PAUSE       75 // a play stays on screen this long before the next turn
@@ -538,6 +538,7 @@ struct TienLen
     u8 penaltyHalves; // chopped
     u8 stuckHalves;   // thoi: left holding 2s / bombs when last
     s32 lastNet;
+    u8 chopSeat; // chopped on the last play, TL_SEATS for none
     struct TLCombo cur;
     u8 handSpriteIds[TL_HAND_MAX];
     u8 tableSpriteIds[TL_HAND_MAX];
@@ -559,43 +560,34 @@ static const u16 sTienLenBgPal[16] =
     RGB(31, 27, 6),  // 5: yellow
     RGB(13, 4, 3),   // 6: red shadow
     RGB(17, 13, 0),  // 7: yellow shadow
+    RGB(8, 28, 8),   // 8: green
+    RGB(2, 9, 2),    // 9: green shadow
+    RGB(12, 18, 31), // 10: blue
+    RGB(3, 5, 13),   // 11: blue shadow
 };
 
 static const u8 sColor_Normal[] = {TEXT_COLOR_TRANSPARENT, 1, 2};
 static const u8 sColor_Gold[]   = {TEXT_COLOR_TRANSPARENT, 5, 7};
 static const u8 sColor_Red[]    = {TEXT_COLOR_TRANSPARENT, 4, 6};
+static const u8 sColor_Green[]  = {TEXT_COLOR_TRANSPARENT, 8, 9};
+static const u8 sColor_Blue[]   = {TEXT_COLOR_TRANSPARENT, 10, 11};
+
+static const u8 *const sSeatColors[TL_SEATS] = {sColor_Normal, sColor_Red, sColor_Green, sColor_Blue};
 
 static const u8 *const sSeatNames[TL_SEATS] =
 {
     COMPOUND_STRING("YOU"),
-    COMPOUND_STRING("MINH"),
-    COMPOUND_STRING("LINH"),
-    COMPOUND_STRING("BAO"),
+    COMPOUND_STRING("RED"),
+    COMPOUND_STRING("GREEN"),
+    COMPOUND_STRING("BLUE"),
 };
 
-static const u8 *const sComboNames[TL_TYPE_COUNT] =
-{
-    [TL_NONE]       = COMPOUND_STRING("nothing"),
-    [TL_SINGLE]     = COMPOUND_STRING("a card"),
-    [TL_PAIR]       = COMPOUND_STRING("a pair"),
-    [TL_TRIPLE]     = COMPOUND_STRING("a triple"),
-    [TL_QUAD]       = COMPOUND_STRING("four of a kind"),
-    [TL_STRAIGHT]   = COMPOUND_STRING("a run"),
-    [TL_DOUBLE_SEQ] = COMPOUND_STRING("a pair run"),
-};
 
-static const u8 sText_Played[] = _("{STR_VAR_1} played {STR_VAR_2}.");
-static const u8 sText_Chopped[] = _("{STR_VAR_1} CHOPPED with {STR_VAR_2}!");
-static const u8 sText_Passed[] = _("{STR_VAR_1} passed.");
-static const u8 sText_YourLead[] = _("Your lead.");
-static const u8 sText_YourLeadThreeSpades[] = _("Your lead. Include the 3 of SPADES.");
-static const u8 sText_YourTurn[] = _("Your turn.");
-static const u8 sText_NotAHand[] = _("That's not a valid hand.");
-static const u8 sText_DoesntBeat[] = _("That doesn't beat the table.");
-static const u8 sText_NeedThreeSpades[] = _("The first lead must hold the 3 of SPADES.");
-static const u8 sText_MustLead[] = _("You lead, so you can't pass.");
+static const u8 sText_NotAHand[] = _("Not a valid hand.");
+static const u8 sText_DoesntBeat[] = _("Doesn't beat the table.");
+static const u8 sText_NeedThreeSpades[] = _("Must include the 3 of SPADES.");
+static const u8 sText_MustLead[] = _("You lead: no passing.");
 static const u8 sText_BetLine[] = _("BET {STR_VAR_1}   COINS {STR_VAR_2}");
-static const u8 sText_IsOut[] = _("{STR_VAR_1} went out {STR_VAR_2}!");
 static const u8 sText_Result[] = _("{STR_VAR_1} won. You: {STR_VAR_2}. CHOPS +{STR_VAR_3}");
 static const u8 sText_ResultPenalty[] = _(" -");
 static const u8 sText_ResultStuck[] = _(" STUCK -");
@@ -620,9 +612,14 @@ static const u8 sText_Minus[] = _("-");
 static const u8 sText_HelpBet[] = _("{DPAD_UPDOWN}BET {A_BUTTON}DEAL {B_BUTTON}EXIT");
 static const u8 sText_HelpBroke[] = _("Not enough COINS.  {B_BUTTON}EXIT");
 static const u8 sText_HelpTurn[] = _("{A_BUTTON}PICK {START_BUTTON}PLAY {B_BUTTON}PASS");
-static const u8 sText_HelpWait[] = _("…");
-static const u8 sText_Cards[] = _("{STR_VAR_1} {STR_VAR_2}");
-static const u8 sText_Pass[] = _("PASS");
+static const u8 sText_HelpLead[] = _("{A_BUTTON}PICK {START_BUTTON}LEAD");
+static const u8 sText_HelpLeadThreeSpades[] = _("{A_BUTTON}PICK {START_BUTTON}LEAD (3 of SPADES)");
+// Seat markers: whose cards are on the table, who passed, whose turn
+static const u8 sText_MarkTable[] = _("{STAR}");
+static const u8 sText_MarkPass[] = _("{BIG_MULT_X}");
+static const u8 sText_MarkTurn[] = _("▶");
+static const u8 sText_Chop[] = _("CHOP");
+static const u8 sText_Space[] = _(" ");
 
 static const struct BgTemplate sTLBgTemplates[] =
 {
@@ -681,60 +678,100 @@ static u8 CardToValue(u8 card)
 // ------------------------------------------------------------------
 // Drawing
 
+static u8 PrintPiece(u8 windowId, u8 x, u8 y, const u8 *color, const u8 *str)
+{
+    AddTextPrinterParameterized3(windowId, FONT_SMALL, x, y, color, TEXT_SKIP_DRAW, str);
+    return x + GetStringWidth(FONT_SMALL, str, 0);
+}
+
+static void PrintCentered(u8 windowId, u8 y, const u8 *color, const u8 *str)
+{
+    s32 width = GetStringWidth(FONT_SMALL, str, 0);
+    AddTextPrinterParameterized3(windowId, FONT_SMALL, (DISPLAY_WIDTH - width) / 2, y, color, TEXT_SKIP_DRAW, str);
+}
+
+// "<marker> NAME count [CHOP]": the marker is a gold star for whoever's cards are on
+// the table, a red x for a pass, an arrow for whose turn it is.
+static void PrintSeat(u8 windowId, u8 seat, u8 x, u8 y, bool8 showCount)
+{
+    bool8 hasTable = (sTL->cur.type != TL_NONE);
+    bool8 turn = (sTL->seat == seat && (sTL->state == STATE_AI_WAIT || sTL->state == STATE_PLAYER_TURN));
+
+    if (sTL->finished[seat])
+        ;
+    else if (hasTable && sTL->curOwner == seat)
+        PrintPiece(windowId, x, y, sColor_Gold, sText_MarkTable);
+    else if (hasTable && sTL->passed[seat])
+        PrintPiece(windowId, x, y, sColor_Red, sText_MarkPass);
+    else if (turn)
+        PrintPiece(windowId, x, y, sColor_Normal, sText_MarkTurn);
+    x = PrintPiece(windowId, x + 10, y, sSeatColors[seat], sSeatNames[seat]);
+    x = PrintPiece(windowId, x, y, sColor_Normal, sText_Space);
+    if (sTL->finished[seat])
+    {
+        x = PrintPiece(windowId, x, y, sColor_Gold, sPlaceNames[sTL->place[seat]]);
+    }
+    else if (showCount)
+    {
+        ConvertIntToDecimalStringN(gStringVar2, sTL->handCount[seat], STR_CONV_MODE_LEFT_ALIGN, 2);
+        x = PrintPiece(windowId, x, y, sColor_Normal, gStringVar2);
+    }
+    if (sTL->chopSeat == seat)
+    {
+        x = PrintPiece(windowId, x, y, sColor_Normal, sText_Space);
+        PrintPiece(windowId, x, y, sColor_Red, sText_Chop);
+    }
+}
+
 static void DrawOpponents(void)
 {
-    static const u8 sSeatX[TL_SEATS] = {0, 176, 92, 4}; // right, top (center), left
-    u32 seat;
+    static const u8 sSeatX[TL_SEATS] = {0, 172, 88, 4}; // RED right, GREEN across, BLUE left
 
     FillWindowPixelBuffer(WIN_OPPONENTS, PIXEL_FILL(0));
-    for (seat = 1; seat < TL_SEATS; seat++)
+    if (sTL->state != STATE_BET && sTL->state != STATE_FADE_IN)
     {
-        const u8 *color = (sTL->state == STATE_AI_WAIT && sTL->seat == seat) ? sColor_Gold : sColor_Normal;
-        StringCopy(gStringVar1, sSeatNames[seat]);
-        if (sTL->finished[seat])
-            StringCopy(gStringVar2, sPlaceNames[sTL->place[seat]]);
-        else
-            ConvertIntToDecimalStringN(gStringVar2, sTL->handCount[seat], STR_CONV_MODE_LEFT_ALIGN, 2);
-        StringExpandPlaceholders(gStringVar4, sText_Cards);
-        AddTextPrinterParameterized3(WIN_OPPONENTS, FONT_SMALL, sSeatX[seat], 2, color, TEXT_SKIP_DRAW, gStringVar4);
-        if (sTL->passed[seat] && sTL->cur.type != TL_NONE)
-            AddTextPrinterParameterized3(WIN_OPPONENTS, FONT_SMALL, sSeatX[seat] + 40, 2, sColor_Red, TEXT_SKIP_DRAW, sText_Pass);
+        u32 seat;
+        for (seat = 1; seat < TL_SEATS; seat++)
+            PrintSeat(WIN_OPPONENTS, seat, sSeatX[seat], 2, TRUE);
     }
     CopyWindowToVram(WIN_OPPONENTS, COPYWIN_FULL);
 }
 
+// The band between the table and the hand: the player's own marker on the left and
+// the input hint (or a red error) in the middle; bet / result screens use two lines.
 static void DrawStatus(void)
 {
-    const u8 *help;
-
     FillWindowPixelBuffer(WIN_STATUS, PIXEL_FILL(0));
     switch (sTL->state)
     {
+    case STATE_FADE_IN:
+        break;
     case STATE_BET:
         ConvertIntToDecimalStringN(gStringVar1, sTL->stake, STR_CONV_MODE_LEFT_ALIGN, 3);
         ConvertIntToDecimalStringN(gStringVar2, GetCoins(), STR_CONV_MODE_LEFT_ALIGN, 4);
         StringExpandPlaceholders(gStringVar4, sText_BetLine);
-        help = (GetCoins() >= GC_CARD_STAKE_MIN) ? sText_HelpBet : sText_HelpBroke;
+        PrintCentered(WIN_STATUS, 0, sColor_Normal, gStringVar4);
+        PrintCentered(WIN_STATUS, 12, sColor_Gold, (GetCoins() >= GC_CARD_STAKE_MIN) ? sText_HelpBet : sText_HelpBroke);
         break;
     case STATE_RESULT:
-        StringCopy(gStringVar4, sStatus);
+        if (sStatus != NULL)
+            PrintCentered(WIN_STATUS, 0, sColor_Normal, sStatus);
         StringCopy(gStringVar1, sTL->lastNet < 0 ? sText_Minus : sText_Plus);
         ConvertIntToDecimalStringN(gStringVar2, sTL->lastNet < 0 ? -sTL->lastNet : sTL->lastNet, STR_CONV_MODE_LEFT_ALIGN, 5);
         StringAppend(gStringVar1, gStringVar2);
-        StringExpandPlaceholders(gStringVar3, (GetCoins() >= GC_CARD_STAKE_MIN) ? sText_PaidLine : sText_PaidLineBroke);
-        help = gStringVar3;
-        break;
-    case STATE_PLAYER_TURN:
-        StringCopy(gStringVar4, sStatus);
-        help = sText_HelpTurn;
+        StringExpandPlaceholders(gStringVar4, (GetCoins() >= GC_CARD_STAKE_MIN) ? sText_PaidLine : sText_PaidLineBroke);
+        PrintCentered(WIN_STATUS, 12, sColor_Gold, gStringVar4);
         break;
     default:
-        StringCopy(gStringVar4, sStatus);
-        help = sText_HelpWait;
+        PrintSeat(WIN_STATUS, TL_PLAYER, 4, 0, FALSE);
+        if (sStatus != NULL)
+            PrintCentered(WIN_STATUS, 0, sColor_Red, sStatus);
+        else if (sTL->state == STATE_PLAYER_TURN && sTL->cur.type == TL_NONE)
+            PrintCentered(WIN_STATUS, 0, sColor_Gold, sTL->mustThreeSpades ? sText_HelpLeadThreeSpades : sText_HelpLead);
+        else if (sTL->state == STATE_PLAYER_TURN)
+            PrintCentered(WIN_STATUS, 0, sColor_Gold, sText_HelpTurn);
         break;
     }
-    AddTextPrinterParameterized3(WIN_STATUS, FONT_SMALL, 4, 0, sColor_Normal, TEXT_SKIP_DRAW, gStringVar4);
-    AddTextPrinterParameterized3(WIN_STATUS, FONT_SMALL, 4, 12, sColor_Gold, TEXT_SKIP_DRAW, help);
     CopyWindowToVram(WIN_STATUS, COPYWIN_FULL);
 }
 
@@ -925,8 +962,7 @@ static void DoPlay(u8 seat, const struct TLCombo *combo)
 {
     u8 beat = TL_Beats(combo, &sTL->cur);
 
-    StringCopy(gStringVar1, sSeatNames[seat]);
-    StringCopy(gStringVar2, sComboNames[combo->type]);
+    SetStatus(NULL);
     if (beat == TL_BEAT_CHOP)
     {
         u8 value = TL_ChopValue(&sTL->cur);
@@ -934,12 +970,12 @@ static void DoPlay(u8 seat, const struct TLCombo *combo)
             sTL->bonusHalves += value;
         if (sTL->curOwner == TL_PLAYER)
             sTL->penaltyHalves += value;
-        SetStatusExpanded(sText_Chopped);
+        sTL->chopSeat = seat;
         PlaySE(SE_BANG);
     }
     else
     {
-        SetStatusExpanded(sText_Played);
+        sTL->chopSeat = TL_SEATS;
         PlaySE(SE_CARD);
     }
     TL_RemoveCards(sTL->hand[seat], &sTL->handCount[seat], combo);
@@ -952,9 +988,6 @@ static void DoPlay(u8 seat, const struct TLCombo *combo)
     {
         sTL->finished[seat] = TRUE;
         sTL->place[seat] = ++sTL->numOut;
-        StringCopy(gStringVar1, sSeatNames[seat]);
-        StringCopy(gStringVar2, sPlaceNames[sTL->place[seat]]);
-        SetStatusExpanded(sText_IsOut);
         // Play on until the player is out, or is the last one holding cards
         if (seat == TL_PLAYER || sTL->numOut == TL_SEATS - 1)
             sTL->handOver = TRUE;
@@ -964,8 +997,8 @@ static void DoPlay(u8 seat, const struct TLCombo *combo)
 
 static void DoPass(u8 seat)
 {
-    StringCopy(gStringVar1, sSeatNames[seat]);
-    SetStatusExpanded(sText_Passed);
+    SetStatus(NULL);
+    sTL->chopSeat = TL_SEATS;
     sTL->passed[seat] = TRUE;
     StartPause(PASS_PAUSE);
 }
@@ -977,9 +1010,6 @@ static void BeginTurn(void)
         sTL->state = STATE_PLAYER_TURN;
         if (sTL->cursor >= sTL->handCount[TL_PLAYER])
             sTL->cursor = sTL->handCount[TL_PLAYER] - 1;
-        // Keep the last opponent's play on screen; add whose turn it is
-        if (sTL->cur.type == TL_NONE)
-            SetStatus(sTL->mustThreeSpades ? sText_YourLeadThreeSpades : sText_YourLead);
     }
     else
     {
@@ -1015,6 +1045,7 @@ static void StartHand(void)
     sTL->bonusHalves = 0;
     sTL->penaltyHalves = 0;
     sTL->stuckHalves = 0;
+    sTL->chopSeat = TL_SEATS;
     PlaySE(SE_CARD);
 
     // Instant wins end the hand at once. Every seat is checked; ties split the pot.
@@ -1086,7 +1117,7 @@ static void StartHand(void)
         sTL->mustThreeSpades = FALSE;
     }
     sTL->curOwner = sTL->seat;
-    SetStatus(sText_HelpWait);
+    SetStatus(NULL);
     BeginTurn();
 }
 
@@ -1189,6 +1220,8 @@ static void Task_TienLen(u8 taskId)
         {
             PlaySE(SE_SELECT);
             sTL->selected ^= (1 << sTL->cursor);
+            SetStatus(NULL);
+            DrawStatus();
             DrawCards();
         }
         else if (JOY_NEW(B_BUTTON))
@@ -1214,12 +1247,16 @@ static void Task_TienLen(u8 taskId)
         {
             PlaySE(SE_SELECT);
             sTL->cursor--;
+            SetStatus(NULL);
+            DrawStatus();
             DrawCards();
         }
         else if (JOY_REPEAT(DPAD_RIGHT) && sTL->cursor + 1 < sTL->handCount[TL_PLAYER])
         {
             PlaySE(SE_SELECT);
             sTL->cursor++;
+            SetStatus(NULL);
+            DrawStatus();
             DrawCards();
         }
         break;
@@ -1322,9 +1359,10 @@ static void InitTienLenScreen(void)
         sTL->tableShown[i] = NOT_SHOWN;
     }
     sTL->firstHand = TRUE;
+    sTL->chopSeat = TL_SEATS;
     sTL->stake = ClampStake(GC_CARD_STAKE_MIN);
     sTL->state = STATE_FADE_IN;
-    sStatus = sText_HelpWait;
+    sStatus = NULL;
     RedrawAll();
 
     CopyBgTilemapBufferToVram(0);

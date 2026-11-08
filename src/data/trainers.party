@@ -4820,7 +4820,7 @@ Adamant Nature
 IVs: 21 HP / 21 Atk / 17 Def / 21 SpA / 17 SpD / 17 Spe  
 - Icicle Spear  
 - Rock Blast  
-- Wave Crash  
+- Liquidation  
 - Self-Destruct
 
 Nosepass @ Oran Berry
@@ -4982,74 +4982,75 @@ Music: Female
 Double Battle: No
 AI: Smart Trainer
 
-Ninetales @ Heat Rock
+Torkoal @ Heat Rock
 Ability: Drought
-Level: 28
-EVs: 160 SpA / 160 Spe
-Timid Nature
-IVs: 0 Atk
-Signature Move: Fire Blast
-- Flamethrower
-- Solar Beam
-- Will-O-Wisp
-- Nasty Plot
-
-Scovillain @ Life Orb
-Ability: Chlorophyll
-Level: 28
-EVs: 160 Atk / 160 Spe
-Adamant Nature
-Signature Move: Flamethrower
-- Seed Bomb
-- Fire Fang
-- Crunch
-- Zen Headbutt
-
-Centiskorch @ Muscle Band
-Ability: Flash Fire
-Level: 29
-EVs: 160 Atk / 160 Spe
-Jolly Nature
-Signature Move: Flare Blitz
-- Fire Lash
-- Lunge
-- Crunch
-- Coil
-
-Arcanine @ Sitrus Berry
-Ability: Intimidate
-Level: 29
-EVs: 160 HP / 160 Def
-Impish Nature
-Signature Move: Extreme Speed
-- Flare Blitz
-- Crunch
-- Wild Charge
-- Morning Sun
-
-Houndoom @ Houndoominite
-Ability: Flash Fire
 Level: 30
-EVs: 160 SpA / 160 Spe
-Timid Nature
-IVs: 0 Atk
-Signature Move: Fire Blast
-- Flamethrower
-- Dark Pulse
-- Sludge Bomb
-- Nasty Plot
-
-Torkoal @ Leftovers
-Ability: Drought
-Level: 31
 Tera Type: Grass
 EVs: 160 HP / 160 Def
 Bold Nature
-Signature Move: Overheat
+Signature Move: Solar Beam
+- Stealth Rock
+- Clear Smog
 - Lava Plume
 - Body Press
+
+Turtonator @ Leftovers
+Ability: Shell Armor
+Level: 29
+EVs: 160 HP / 160 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Sunny Day
+- Flamethrower
+- Dragon Tail
+- Will-O-Wisp
+
+Rotom-Heat @ Leftovers
+Ability: Levitate
+Level: 29
+EVs: 160 HP / 160 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Hex
+- Overheat
+- Volt Switch
+- Will-O-Wisp
+- Thunder Wave
+
+Scovillain @ Life Orb
+Ability: Chlorophyll
+Level: 29
+EVs: 160 Atk / 160 Spe
+Adamant Nature
+Signature Move: Seed Bomb
+- Flare Blitz
+- Crunch
+- Zen Headbutt
+- Trailblaze
+
+Ceruledge @ Scope Lens
+Ability: Flash Fire
+Level: 30
+EVs: 160 Atk / 160 Spe
+Naughty Nature
+Signature Move: Bitter Blade
+- Shadow Claw
+- Psycho Cut
+- Shadow Sneak
+- Swords Dance
+
+Camerupt @ Cameruptite
+Ability: Magma Armor
+Level: 33
+EVs: 160 HP / 160 SpA
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Earth Power
+- Flamethrower
 - Solar Beam
-- Stealth Rock
+- Ancient Power
+- Yawn
 
 === TRAINER_NORMAN_1 ===
 Name: NORMAN
@@ -7944,7 +7945,7 @@ Lanturn
 Level: 43
 IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
 - Thunderbolt
-- Earthquake
+- Surf
 
 === TRAINER_JANI ===
 Name: JANI
@@ -15794,7 +15795,7 @@ Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Icicle Spear
 - Rock Blast
-- Wave Crash
+- Liquidation
 - Protect
 
 Probopass @ Sitrus Berry
@@ -15862,7 +15863,7 @@ Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Icicle Spear
 - Rock Blast
-- Wave Crash
+- Liquidation
 - Protect
 
 Probopass @ Sitrus Berry
@@ -15928,7 +15929,7 @@ Tera Type: Water
 EVs: 168 HP / 168 Atk / 84 Spe
 Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-Signature Move: Wave Crash
+Signature Move: Earthquake
 - Icicle Spear
 - Rock Blast
 - Liquidation
@@ -16009,7 +16010,7 @@ Tera Type: Water
 EVs: 252 HP / 252 Atk / 4 Spe
 Adamant Nature
 IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-Signature Move: Wave Crash
+Signature Move: Earthquake
 - Icicle Spear
 - Rock Blast
 - Liquidation
@@ -16628,73 +16629,74 @@ Music: Female
 Double Battle: Yes
 AI: Smart Trainer
 
-Ninetales @ Heat Rock
+Torkoal @ Heat Rock
 Ability: Drought
-Level: 35
-EVs: 200 SpA / 200 Spe
-Timid Nature
-IVs: 0 Atk
-Signature Move: Fire Blast
+Level: 38
+Tera Type: Grass
+EVs: 200 HP / 200 Def
+Bold Nature
+Signature Move: Solar Beam
 - Heat Wave
-- Solar Beam
+- Body Press
+- Clear Smog
+- Protect
+
+Turtonator @ Leftovers
+Ability: Shell Armor
+Level: 36
+EVs: 200 HP / 200 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Heat Wave
+- Sunny Day
+- Dragon Tail
+- Protect
+
+Rotom-Heat @ Leftovers
+Ability: Levitate
+Level: 36
+EVs: 200 HP / 200 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Hex
+- Overheat
+- Electroweb
 - Will-O-Wisp
 - Protect
 
 Scovillain @ Life Orb
 Ability: Chlorophyll
-Level: 36
+Level: 37
 EVs: 200 Atk / 200 Spe
 Adamant Nature
-Signature Move: Flamethrower
-- Seed Bomb
-- Fire Fang
+Signature Move: Seed Bomb
+- Flare Blitz
 - Crunch
+- Zen Headbutt
 - Protect
 
-Centiskorch @ Muscle Band
+Ceruledge @ Scope Lens
 Ability: Flash Fire
 Level: 37
 EVs: 200 Atk / 200 Spe
-Jolly Nature
-Signature Move: Flare Blitz
-- Fire Lash
-- Lunge
-- Crunch
+Naughty Nature
+Signature Move: Bitter Blade
+- Shadow Claw
+- Psycho Cut
+- Shadow Sneak
 - Protect
 
-Arcanine @ Sitrus Berry
-Ability: Intimidate
-Level: 37
-EVs: 200 HP / 200 Def
-Impish Nature
-Signature Move: Extreme Speed
-- Flare Blitz
-- Snarl
-- Will-O-Wisp
-- Protect
-
-Houndoom @ Houndoominite
-Ability: Flash Fire
-Level: 38
-EVs: 200 SpA / 200 Spe
-Timid Nature
-IVs: 0 Atk
-Signature Move: Fire Blast
-- Heat Wave
-- Dark Pulse
-- Sludge Bomb
-- Nasty Plot
-
-Torkoal @ Leftovers
-Ability: Drought
+Camerupt @ Cameruptite
+Ability: Magma Armor
 Level: 40
-Tera Type: Grass
-EVs: 200 HP / 200 Def
-Bold Nature
-Signature Move: Eruption
+EVs: 200 HP / 200 SpA
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Earth Power
 - Heat Wave
-- Body Press
 - Solar Beam
+- Yawn
 - Protect
 
 === TRAINER_FLANNERY_3 ===
@@ -16706,74 +16708,74 @@ Music: Female
 Double Battle: Yes
 AI: Smart Trainer
 
-Ninetales @ Heat Rock
+Torkoal @ Heat Rock
 Ability: Drought
-Level: 40
-EVs: 240 SpA / 240 Spe
-Timid Nature
-IVs: 0 Atk
-Signature Move: Fire Blast
-- Heat Wave
-- Solar Beam
-- Will-O-Wisp
-- Protect
-
-Camerupt @ Sitrus Berry
-Ability: Solid Rock
-Level: 41
-EVs: 240 HP / 240 SpA
-Quiet Nature
-IVs: 0 Atk
-Signature Move: Eruption
-- Heat Wave
-- Earth Power
-- Yawn
-- Protect
-
-Centiskorch @ Muscle Band
-Ability: Flash Fire
-Level: 42
-EVs: 240 Atk / 240 Spe
-Jolly Nature
-Signature Move: Flare Blitz
-- Fire Lash
-- Lunge
-- Crunch
-- Protect
-
-Arcanine @ Sitrus Berry
-Ability: Intimidate
-Level: 42
-EVs: 240 HP / 240 Def
-Impish Nature
-Signature Move: Extreme Speed
-- Flare Blitz
-- Snarl
-- Will-O-Wisp
-- Protect
-
-Houndoom @ Houndoominite
-Ability: Flash Fire
 Level: 43
-EVs: 240 SpA / 240 Spe
-Timid Nature
-IVs: 0 Atk
-Signature Move: Fire Blast
-- Heat Wave
-- Dark Pulse
-- Sludge Bomb
-- Nasty Plot
-
-Torkoal @ Leftovers
-Ability: Drought
-Level: 45
 Tera Type: Grass
 EVs: 240 HP / 240 Def
 Bold Nature
-Signature Move: Eruption
+Signature Move: Solar Beam
 - Heat Wave
 - Body Press
+- Clear Smog
+- Protect
+
+Turtonator @ Leftovers
+Ability: Shell Armor
+Level: 41
+EVs: 240 HP / 240 Def
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Heat Wave
+- Sunny Day
+- Dragon Tail
+- Protect
+
+Rotom-Heat @ Leftovers
+Ability: Levitate
+Level: 41
+EVs: 240 HP / 240 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Hex
+- Overheat
+- Electroweb
+- Will-O-Wisp
+- Protect
+
+Talonflame @ Sharp Beak
+Ability: Gale Wings
+Level: 42
+EVs: 240 Atk / 240 Spe
+Jolly Nature
+Signature Move: Brave Bird
+- Flare Blitz
+- Tailwind
+- Will-O-Wisp
+- Protect
+
+Ceruledge @ Scope Lens
+Ability: Flash Fire
+Level: 42
+EVs: 240 Atk / 240 Spe
+Naughty Nature
+Signature Move: Bitter Blade
+- Shadow Claw
+- Psycho Cut
+- Shadow Sneak
+- Protect
+
+Camerupt @ Cameruptite
+Ability: Magma Armor
+Level: 45
+EVs: 240 HP / 240 SpA
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Earth Power
+- Heat Wave
 - Solar Beam
+- Yawn
 - Protect
 
 === TRAINER_FLANNERY_4 ===
@@ -16785,45 +16787,33 @@ Music: Female
 Double Battle: Yes
 AI: Smart Trainer
 
-Ninetales @ Heat Rock
+Torkoal @ Heat Rock
 Ability: Drought
-Level: 45
-EVs: 252 SpA / 252 Spe / 6 HP
-Timid Nature
-IVs: 0 Atk
-Signature Move: Fire Blast
-- Heat Wave
-- Solar Beam
-- Will-O-Wisp
-- Protect
-
-Camerupt @ Sitrus Berry
-Ability: Solid Rock
-Level: 46
-EVs: 252 HP / 252 SpA / 6 Def
-Quiet Nature
-IVs: 0 Atk
-Signature Move: Eruption
-- Heat Wave
-- Earth Power
-- Yawn
-- Protect
-
-Magcargo @ Leftovers
-Ability: Flame Body
-Level: 47
+Level: 48
+Tera Type: Grass
 EVs: 252 HP / 252 Def / 6 SpD
 Bold Nature
-IVs: 0 Atk
-Signature Move: Lava Plume
+Signature Move: Solar Beam
 - Heat Wave
-- Power Gem
-- Shell Smash
+- Body Press
+- Clear Smog
+- Protect
+
+Turtonator @ Leftovers
+Ability: Shell Armor
+Level: 46
+EVs: 252 HP / 252 Def / 6 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Heat Wave
+- Sunny Day
+- Dragon Tail
 - Protect
 
 Arcanine @ Sitrus Berry
 Ability: Intimidate
-Level: 47
+Level: 46
 EVs: 252 HP / 252 Def / 6 SpD
 Impish Nature
 Signature Move: Extreme Speed
@@ -16832,28 +16822,38 @@ Signature Move: Extreme Speed
 - Will-O-Wisp
 - Protect
 
-Houndoom @ Houndoominite
-Ability: Flash Fire
-Level: 48
-EVs: 252 SpA / 252 Spe / 6 HP
-Timid Nature
-IVs: 0 Atk
-Signature Move: Fire Blast
-- Heat Wave
-- Dark Pulse
-- Sludge Bomb
-- Nasty Plot
+Talonflame @ Sharp Beak
+Ability: Gale Wings
+Level: 47
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Brave Bird
+- Flare Blitz
+- Tailwind
+- Will-O-Wisp
+- Protect
 
-Torkoal @ Leftovers
-Ability: Drought
+Ceruledge @ Scope Lens
+Ability: Flash Fire
+Level: 47
+EVs: 252 Atk / 252 Spe / 6 HP
+Naughty Nature
+Signature Move: Bitter Blade
+- Shadow Claw
+- Psycho Cut
+- Shadow Sneak
+- Protect
+
+Camerupt @ Cameruptite
+Ability: Magma Armor
 Level: 50
-Tera Type: Grass
-EVs: 252 HP / 252 Def / 6 SpD
-Bold Nature
-Signature Move: Eruption
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Earth Power
 - Heat Wave
-- Body Press
 - Solar Beam
+- Yawn
 - Protect
 
 === TRAINER_FLANNERY_5 ===
@@ -16865,44 +16865,33 @@ Music: Female
 Double Battle: Yes
 AI: Smart Trainer
 
-Talonflame @ Sharp Beak
-Ability: Gale Wings
-Level: 50
-EVs: 252 Atk / 252 Spe / 6 HP
-Jolly Nature
-Signature Move: Brave Bird
-- Flare Blitz
-- Tailwind
-- Swords Dance
-- Protect
-
-Camerupt @ Sitrus Berry
-Ability: Solid Rock
-Level: 51
-EVs: 252 HP / 252 SpA / 6 Def
-Quiet Nature
-IVs: 0 Atk
-Signature Move: Eruption
-- Heat Wave
-- Earth Power
-- Yawn
-- Protect
-
-Magcargo @ Leftovers
-Ability: Flame Body
-Level: 52
+Torkoal @ Heat Rock
+Ability: Drought
+Level: 53
+Tera Type: Grass
 EVs: 252 HP / 252 Def / 6 SpD
 Bold Nature
-IVs: 0 Atk
-Signature Move: Lava Plume
+Signature Move: Solar Beam
 - Heat Wave
-- Power Gem
-- Shell Smash
+- Body Press
+- Clear Smog
+- Protect
+
+Turtonator @ Leftovers
+Ability: Shell Armor
+Level: 51
+EVs: 252 HP / 252 Def / 6 SpA
+Modest Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Heat Wave
+- Sunny Day
+- Dragon Tail
 - Protect
 
 Arcanine @ Sitrus Berry
 Ability: Intimidate
-Level: 52
+Level: 51
 EVs: 252 HP / 252 Def / 6 SpD
 Impish Nature
 Signature Move: Extreme Speed
@@ -16911,28 +16900,39 @@ Signature Move: Extreme Speed
 - Will-O-Wisp
 - Protect
 
-Houndoom @ Houndoominite
-Ability: Flash Fire
-Level: 53
-EVs: 252 SpA / 252 Spe / 6 HP
-Timid Nature
-IVs: 0 Atk
-Signature Move: Fire Blast
-- Heat Wave
-- Dark Pulse
-- Sludge Bomb
-- Nasty Plot
+Talonflame @ Sharp Beak
+Ability: Gale Wings
+Level: 52
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Brave Bird
+- Flare Blitz
+- Tailwind
+- Will-O-Wisp
+- Protect
 
-Torkoal @ Leftovers
-Ability: Drought
-Level: 55
-Tera Type: Grass
-EVs: 252 HP / 252 Def / 6 SpD
-Bold Nature
-Signature Move: Eruption
+Chandelure @ Life Orb
+Ability: Flash Fire
+Level: 52
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Shadow Ball
 - Heat Wave
-- Body Press
+- Energy Ball
+- Will-O-Wisp
+- Protect
+
+Camerupt @ Cameruptite
+Ability: Magma Armor
+Level: 55
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Earth Power
+- Heat Wave
 - Solar Beam
+- Yawn
 - Protect
 
 === TRAINER_NORMAN_2 ===
@@ -19254,23 +19254,75 @@ Pic: Leader Brock Frlg
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Golem
-Level: 12
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Garganacl @ Leftovers
+Ability: Purifying Salt
+Level: 42
+EVs: 252 HP / 4 Def / 252 SpD
+Careful Nature
+Signature Move: Stone Edge
+- Stealth Rock
+- Salt Cure
+- Body Press
+- Recover
 
-Steelix
-Level: 12
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Kabutops @ Life Orb
+Ability: Battle Armor
+Level: 41
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+Signature Move: Liquidation
+- Aqua Jet
+- Stone Edge
+- Knock Off
+- Rapid Spin
 
-Omastar
-Level: 13
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Omastar @ White Herb
+Ability: Shell Armor
+Level: 41
+EVs: 4 HP / 252 SpA / 252 Spe
+Modest Nature
+IVs: 0 Atk
+Signature Move: Scald
+- Shell Smash
+- Hydro Pump
+- Ice Beam
+- Earth Power
 
-Kabutops
-Level: 14
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Rhyperior @ Rockium Z
+Ability: Solid Rock
+Level: 43
+EVs: 252 HP / 252 Atk / 4 Def
+Impish Nature
+Signature Move: Rock Wrecker
+- Stone Edge
+- Rock Blast
+- High Horsepower
+- Megahorn
+
+Tyranitar @ Assault Vest
+Ability: Sand Stream
+Level: 44
+Tera Type: Grass
+EVs: 252 HP / 252 Atk / 4 Def
+Adamant Nature
+Signature Move: Stone Edge
+- Rock Slide
+- Crunch
+- Earthquake
+- Tera Blast
+
+Aerodactyl @ Aerodactylite
+Ability: Unnerve
+Level: 45
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+Signature Move: Stone Edge
+- Rock Slide
+- Dual Wingbeat
+- Earthquake
+- Roost
 
 === TRAINER_GUEST_MISTY ===
 Name: MISTY
@@ -19279,23 +19331,76 @@ Pic: Leader Misty Frlg
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Golduck
-Level: 18
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Gyarados @ Leftovers
+Ability: Intimidate
+Level: 44
+Tera Type: Ground
+EVs: 4 HP / 252 Atk / 252 Spe
+Adamant Nature
+Signature Move: Earthquake
+- Dragon Dance
+- Waterfall
+- Crunch
+- Ice Fang
 
-Lapras
-Level: 19
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Slowbro @ Leftovers
+Ability: Regenerator
+Level: 42
+EVs: 252 HP / 252 Def / 4 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Flamethrower
+- Scald
+- Psyshock
+- Slack Off
+- Thunder Wave
 
-Gyarados
-Level: 19
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Quagsire @ Leftovers
+Ability: Unaware
+Level: 41
+EVs: 252 HP / 252 Def / 4 Atk
+Relaxed Nature
+Signature Move: Liquidation
+- Earthquake
+- Scald
+- Toxic
+- Recover
 
-Starmie
-Level: 21
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Cloyster @ White Herb
+Ability: Skill Link
+Level: 41
+EVs: 4 HP / 252 Atk / 252 Spe
+Adamant Nature
+Signature Move: Liquidation
+- Shell Smash
+- Icicle Spear
+- Rock Blast
+- Ice Shard
+
+Lapras @ Waterium Z
+Ability: Shell Armor
+Level: 43
+EVs: 252 HP / 252 SpA / 4 SpD
+Calm Nature
+IVs: 0 Atk
+Signature Move: Sparkling Aria
+- Hydro Pump
+- Freeze-Dry
+- Ice Beam
+- Thunderbolt
+
+Starmie @ Starminite
+Ability: Natural Cure
+Level: 45
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+Signature Move: Liquidation
+- Waterfall
+- Triple Axel
+- Zen Headbutt
+- Recover
 
 === TRAINER_GUEST_LT_SURGE ===
 Name: LT. SURGE
@@ -19304,23 +19409,79 @@ Pic: Leader Lt Surge Frlg
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Electrode
-Level: 21
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Electrode-Hisui @ Focus Sash
+Ability: Static
+Level: 41
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Energy Ball
+- Thunder Wave
+- Taunt
+- Volt Switch
+- Leaf Storm
 
-Magnezone
-Level: 22
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Rotom-Wash @ Leftovers
+Ability: Levitate
+Level: 42
+EVs: 252 HP / 252 Def / 4 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Hydro Pump
+- Volt Switch
+- Will-O-Wisp
+- Pain Split
 
-Electivire
-Level: 23
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Jolteon @ Choice Scarf
+Ability: Volt Absorb
+Level: 41
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Thunder
+- Thunderbolt
+- Shadow Ball
+- Volt Switch
+- Alluring Voice
 
-Raichu
-Level: 24
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Magnezone @ Assault Vest
+Ability: Magnet Pull
+Level: 43
+Tera Type: Flying
+EVs: 252 HP / 252 SpA / 4 SpD
+Modest Nature
+IVs: 0 Atk
+Signature Move: Zap Cannon
+- Thunderbolt
+- Flash Cannon
+- Volt Switch
+- Tera Blast
+
+Electivire @ Electrium Z
+Ability: Motor Drive
+Level: 44
+EVs: 4 HP / 252 Atk / 252 Spe
+Adamant Nature
+Signature Move: Cross Chop
+- Wild Charge
+- Ice Punch
+- Earthquake
+- Knock Off
+
+Raichu @ Raichunite Y
+Ability: Lightning Rod
+Level: 45
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Zap Cannon
+- Thunder
+- Focus Blast
+- Grass Knot
+- Volt Switch
 
 === TRAINER_GUEST_ERIKA ===
 Name: ERIKA
@@ -19329,23 +19490,78 @@ Pic: Leader Erika Frlg
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Tangrowth
-Level: 24
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Amoonguss @ Rocky Helmet
+Ability: Regenerator
+Level: 43
+EVs: 252 HP / 252 Def / 4 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Sludge Bomb
+- Spore
+- Giga Drain
+- Clear Smog
+- Synthesis
 
-Victreebel
-Level: 26
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Vileplume @ Black Sludge
+Ability: Effect Spore
+Level: 41
+EVs: 252 HP / 4 SpA / 252 SpD
+Calm Nature
+IVs: 0 Atk
+Signature Move: Sludge Bomb
+- Strength Sap
+- Giga Drain
+- Moonblast
+- Stun Spore
 
-Bellossom
-Level: 27
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Victreebel @ Scope Lens
+Ability: Gluttony
+Level: 41
+EVs: 4 HP / 252 Atk / 252 Spe
+Naughty Nature
+Signature Move: Power Whip
+- Leaf Blade
+- Poison Jab
+- Sucker Punch
+- Knock Off
 
-Vileplume
-Level: 29
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tangrowth @ Grassium Z
+Ability: Regenerator
+Level: 44
+EVs: 252 HP / 252 Atk / 4 Def
+Impish Nature
+Signature Move: Rock Slide
+- Power Whip
+- Knock Off
+- Earthquake
+- Leech Seed
+
+Bellossom @ Leftovers
+Ability: Healer
+Level: 42
+Tera Type: Fairy
+EVs: 252 HP / 252 SpA / 4 Spe
+Modest Nature
+IVs: 0 Atk
+Signature Move: Leaf Storm
+- Quiver Dance
+- Giga Drain
+- Moonblast
+- Strength Sap
+
+Venusaur @ Venusaurite
+Ability: Overgrow
+Level: 45
+EVs: 252 HP / 252 Def / 4 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Leaf Storm
+- Giga Drain
+- Sludge Bomb
+- Earth Power
+- Synthesis
 
 === TRAINER_GUEST_KOGA ===
 Name: KOGA
@@ -19354,23 +19570,77 @@ Pic: Leader Koga Frlg
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Crobat
-Level: 37
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Weezing @ Rocky Helmet
+Ability: Levitate
+Level: 42
+EVs: 252 HP / 252 Def / 4 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Toxic Spikes
+- Will-O-Wisp
+- Pain Split
+- Sludge Bomb
 
-Muk
-Level: 39
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-
-Venomoth
+Crobat @ Black Sludge
+Ability: Infiltrator
 Level: 41
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+Signature Move: Cross Poison
+- Brave Bird
+- U-turn
+- Toxic
+- Taunt
 
-Weezing
+Venomoth @ Leftovers
+Ability: Tinted Lens
+Level: 41
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Psychic
+- Quiver Dance
+- Bug Buzz
+- Sludge Bomb
+- Sleep Powder
+
+Toxapex @ Black Sludge
+Ability: Regenerator
 Level: 43
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tera Type: Flying
+EVs: 252 HP / 252 Def / 4 SpD
+Bold Nature
+Signature Move: Sludge Bomb
+- Scald
+- Toxic
+- Haze
+- Recover
+
+Muk-Alola @ Poisonium Z
+Ability: Poison Touch
+Level: 44
+EVs: 252 HP / 252 Atk / 4 SpD
+Careful Nature
+Signature Move: Poison Jab
+- Gunk Shot
+- Knock Off
+- Drain Punch
+- Shadow Sneak
+
+Gengar @ Gengarite
+Ability: Cursed Body
+Level: 45
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Shadow Ball
+- Hex
+- Sludge Bomb
+- Focus Blast
+- Will-O-Wisp
 
 === TRAINER_GUEST_SABRINA ===
 Name: SABRINA
@@ -19379,23 +19649,76 @@ Pic: Leader Sabrina Frlg
 Gender: Female
 Music: Female
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Mr Mime
-Level: 37
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-
-Slowbro
-Level: 39
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-
-Espeon
+Mr Mime @ Light Clay
+Ability: Filter
 Level: 41
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+EVs: 252 HP / 252 Def / 4 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Dazzling Gleam
+- Reflect
+- Light Screen
+- Psychic
+- Thunder Wave
 
-Alakazam
+Bronzong @ Leftovers
+Ability: Levitate
+Level: 41
+EVs: 252 HP / 252 Def / 4 Atk
+Relaxed Nature
+Signature Move: Psychic
+- Stealth Rock
+- Gyro Ball
+- Earthquake
+- Toxic
+
+Hypno @ Leftovers
+Ability: Insomnia
+Level: 42
+EVs: 252 HP / 4 SpA / 252 SpD
+Calm Nature
+Signature Move: Psycho Cut
+- Confuse Ray
+- Psychic
+- Foul Play
+- Thunder Wave
+
+Gallade @ Scope Lens
+Ability: Sharpness
 Level: 43
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tera Type: Fighting
+EVs: 4 HP / 252 Atk / 252 Spe
+Naughty Nature
+Signature Move: Close Combat
+- Psycho Cut
+- Sacred Sword
+- Night Slash
+- Leaf Blade
+
+Metagross @ Psychium Z
+Ability: Clear Body
+Level: 44
+EVs: 252 HP / 252 Atk / 4 Spe
+Adamant Nature
+Signature Move: Ice Punch
+- Meteor Mash
+- Zen Headbutt
+- Earthquake
+- Bullet Punch
+
+Alakazam @ Alakazite
+Ability: Magic Guard
+Level: 45
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Psyshock
+- Psychic
+- Focus Blast
+- Shadow Ball
+- Dazzling Gleam
 
 === TRAINER_GUEST_BLAINE ===
 Name: BLAINE
@@ -19404,23 +19727,77 @@ Pic: Leader Blaine Frlg
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Ninetales
+Arcanine @ Sitrus Berry
+Ability: Intimidate
+Level: 43
+EVs: 252 HP / 252 Atk / 4 Def
+Impish Nature
+Signature Move: Close Combat
+- Extreme Speed
+- Flare Blitz
+- Will-O-Wisp
+- Morning Sun
+
+Talonflame @ Heavy-Duty Boots
+Ability: Gale Wings
+Level: 41
+EVs: 4 HP / 252 Atk / 252 Spe
+Adamant Nature
+Signature Move: Dual Wingbeat
+- Brave Bird
+- Flare Blitz
+- U-turn
+- Roost
+
+Magmortar @ Life Orb
+Ability: Flame Body
+Level: 41
+EVs: 4 HP / 252 SpA / 252 Spe
+Modest Nature
+IVs: 0 Atk
+Signature Move: Flamethrower
+- Fire Blast
+- Thunderbolt
+- Focus Blast
+- Will-O-Wisp
+
+Skeledirge @ Leftovers
+Ability: Unaware
 Level: 42
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Tera Type: Water
+EVs: 252 HP / 252 Def / 4 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Earth Power
+- Torch Song
+- Hex
+- Will-O-Wisp
+- Slack Off
 
-Magmortar
-Level: 45
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-
-Rapidash
+Volcarona @ Firium Z
+Ability: Flame Body
 Level: 44
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+EVs: 4 HP / 252 SpA / 252 Spe
+Timid Nature
+IVs: 0 Atk
+Signature Move: Flamethrower
+- Quiver Dance
+- Fiery Dance
+- Bug Buzz
+- Giga Drain
 
-Arcanine
-Level: 47
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+Charizard @ Charizardite X
+Ability: Blaze
+Level: 45
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+Signature Move: Thunder Punch
+- Dragon Dance
+- Flare Blitz
+- Dragon Claw
+- Earthquake
 
 === TRAINER_GUEST_GIOVANNI ===
 Name: GIOVANNI
@@ -19429,20 +19806,72 @@ Pic: Leader Giovanni Frlg
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 
-Dugtrio
+Nidoqueen @ Leftovers
+Ability: Sheer Force
+Level: 42
+Tera Type: Water
+EVs: 252 HP / 4 SpA / 252 SpD
+Calm Nature
+IVs: 0 Atk
+Signature Move: Ice Beam
+- Stealth Rock
+- Earth Power
+- Sludge Bomb
+- Toxic
+
+Dugtrio @ Choice Scarf
+Ability: Arena Trap
+Level: 41
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+Signature Move: High Horsepower
+- Earthquake
+- Sucker Punch
+- Stone Edge
+- Throat Chop
+
+Mamoswine @ Life Orb
+Ability: Thick Fat
+Level: 41
+EVs: 4 HP / 252 Atk / 252 Spe
+Adamant Nature
+Signature Move: Icicle Spear
+- Icicle Crash
+- Earthquake
+- Ice Shard
+- Knock Off
+
+Marowak @ Thick Club
+Ability: Rock Head
+Level: 43
+EVs: 252 HP / 252 Atk / 4 Def
+Adamant Nature
+Signature Move: Stone Edge
+- Bonemerang
+- Double-Edge
+- Knock Off
+- Fire Punch
+
+Nidoking @ Groundium Z
+Ability: Sheer Force
+Level: 44
+EVs: 4 HP / 252 SpA / 252 Spe
+Rash Nature
+Signature Move: Thunderbolt
+- Earth Power
+- Sludge Wave
+- Ice Beam
+- Fire Blast
+
+Garchomp @ Garchompite
+Ability: Rough Skin
 Level: 45
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-
-Nidoqueen
-Level: 46
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-
-Rhyperior
-Level: 48
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
-
-Nidoking
-Level: 50
-IVs: 24 HP / 24 Atk / 24 Def / 24 SpA / 24 SpD / 24 Spe
+EVs: 4 HP / 252 Atk / 252 Spe
+Jolly Nature
+Signature Move: Dragon Claw
+- Earthquake
+- Scale Shot
+- Stone Edge
+- Fire Fang

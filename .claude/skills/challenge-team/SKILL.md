@@ -10,10 +10,16 @@ Build hard, fair boss teams for Fantasy Retold. This is about **gameplay under t
 ## Read first (live, every time)
 
 1. `combat.md`: the battle rules. It is the source of truth; never work from memory or from a copy. Sections you will lean on: §2 Stamina (incl. AI Stamina Management), §3 Dodge / Recuperate, §4 Trauma, §5 nature innates, §6 status rails, §7 archetype targets, §9 held items, §10 Signature / Itemized Moves, §11 Smart Trainer AI.
-2. `design.md` §2: **Gym & Rival Lineups** and **Gym Leader Rematches** (level curve, EV budgets, party size, gimmick rules), **Gauntlets**, **Guest Gym Leaders** (tag team / doubles formats, the "strongest 3" pick), **Elite Four & Champion levels**.
+2. `design.md` §2: **Gym & Rival Lineups** and **Gym Leader Rematches** (level curve, EV budgets, party size, gimmick rules), **Gauntlets**, **Guest Gym Leaders** (tag team / doubles formats, the "strongest 4 in tag team / 3 in doubles" pick), **Elite Four & Champion levels**.
 3. [references/meta.md](references/meta.md): how the rules reshape roles, stats, types and support, and what the AI can pilot.
 4. [references/output-template.md](references/output-template.md): the exact output layout.
 5. The current party in `src/data/trainers.party`, if the battle already exists (the `=== TRAINER_X ===` block).
+
+**Move pools: always use [scripts/learnables.py](scripts/learnables.py)**, never `all_learnables.json` directly. The json is 2 MB, sorted alphabetically (a partial read drops late moves like Swords Dance or U-turn), uses its own form keys and old move names, and leaves out pre-evolution, universal and form-change moves. Run from the repo root:
+
+* `python3 .claude/skills/challenge-team/scripts/learnables.py Garchomp Rotom-Wash`: the full pool of each species (add `--sources` to see where each move comes from);
+* `... Garchomp --has "Stealth Rock" "Swords Dance"`: check specific moves;
+* `... --trainer TRAINER_WINONA_1`: check every move and Signature Move in a written block.
 
 ## Inputs
 
@@ -44,6 +50,7 @@ Ask only for what's missing and can't be inferred; take sensible defaults otherw
 3. **Stop and wait for approval.** The user may redirect; iterate on the short form, which is cheap.
 4. **AI gaps.** For every simple behaviour the plan relies on that the AI can't do yet, propose a separate task (a new session card, own initiative) with: the behaviour, where it would go (`src/battle_ai_fr_tactics.c`, `src/battle_ai_main.c` Stamina steps, `src/battle_ai_switch.c`), and a test idea. Never implement AI changes inside this skill's run.
 5. **On approval, write it.** Edit the `=== TRAINER_X ===` block(s) in `src/data/trainers.party` directly: full sets (moves, nature, EVs, IVs, item, ability, `Tera Type:`, `Signature Move:`), keeping the file's conventions (see the Winona / Flannery blocks). Then:
+   * run `scripts/learnables.py --trainer TRAINER_X` on every block you wrote and fix anything it flags;
    * re-run the analysis briefly on the final sets (did a move or EV choice change a matchup?), and report only what changed;
    * update `design.md` §2 (the lineup table / team bullets, or the gauntlet entry) and remove any `TODO` marker for that battle in `trainers.party`;
    * if the work changes a battle rule, that belongs in `combat.md`, not here.

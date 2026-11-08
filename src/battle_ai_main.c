@@ -4399,6 +4399,10 @@ static void AI_CompareDamagingMoves(enum BattlerId battlerAtk, enum BattlerId ba
             if (moves[compareId] != MOVE_NONE && GetMovePower(moves[compareId]) != 0)
             {
                 noOfHits[compareId] = GetNoOfHitsToKOBattler(battlerAtk, battlerDef, compareId, AI_ATTACKING, CONSIDER_ENDURE);
+                // Fantasy Retold: a move that needs a charge turn (Solar Beam outside sun) takes two turns per hit,
+                // so it can't win the comparison as if it were a one-turn hit (combat.md §11).
+                if (noOfHits[compareId] > 0 && IsTwoTurnNotSemiInvulnerableMove(battlerAtk, moves[compareId]))
+                    noOfHits[compareId] *= 2;
                 moveIsFaster[compareId] = AI_IsFaster(battlerAtk, battlerDef, moves[compareId], predictedMove, CONSIDER_PRIORITY);
                 tempMoveScores[compareId] = AI_SCORE_DEFAULT;
                 if (ShouldUseSpreadDamageMove(battlerAtk, moves[compareId], compareId, noOfHits[compareId]))

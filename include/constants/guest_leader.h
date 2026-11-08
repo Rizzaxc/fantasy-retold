@@ -9,7 +9,15 @@
 #else
 #define GUEST_LEADER_CHANCE 100 // % per roll (dev builds: always, for testing)
 #endif
-#define GUEST_LEADER_TRIM_SIZE 3 // mons each leader brings in tag team / doubles
+#define GUEST_LEADER_TAG_TEAM_SIZE 4 // mons each leader brings in tag team
+#define GUEST_LEADER_DOUBLES_SIZE 3  // mons each leader brings in doubles
+#define GUEST_LEADER_ALL_GIMMICKS_GYM 6 // from this gym on a guest uses all its gimmicks; before, one rolled
+
+// Gimmick a guest keeps, rolled with the format (stored in VAR_GUEST_LEADER)
+#define GUEST_GIMMICK_ALL 0
+#define GUEST_GIMMICK_MEGA 1
+#define GUEST_GIMMICK_Z_MOVE 2
+#define GUEST_GIMMICK_TERA 3
 
 // Locked format, rolled on engage
 #define GUEST_FORMAT_NONE 0    // not rolled yet

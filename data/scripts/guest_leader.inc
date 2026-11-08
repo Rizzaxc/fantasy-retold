@@ -69,8 +69,11 @@ Common_EventScript_GuestLeaderSolo::
 	goto Common_EventScript_GuestLeaderWon
 
 Common_EventScript_GuestLeaderWon::
+	specialvar VAR_0x800A, GuestLeader_RollReward
 	specialvar VAR_0x8009, GuestLeader_OnWin
 	msgbox gStringVar4, MSGBOX_DEFAULT
+	giveitem VAR_0x800A
+	call_if_eq VAR_RESULT, FALSE, Common_EventScript_GuestLeaderBagFull
 	goto_if_eq VAR_0x8009, ITEM_NONE, Common_EventScript_GuestLeaderWonDone
 	giveitem VAR_0x8009
 	call_if_eq VAR_RESULT, FALSE, Common_EventScript_GuestLeaderBagFull

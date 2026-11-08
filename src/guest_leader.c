@@ -20,14 +20,18 @@
 // Fantasy Retold: guest gym leaders (design.md §2). From the 4th gym on, the first fight with a leader may host a
 // guest leader from another region (Kanto for now). The guest is rolled per gym (20%) and rerolled on every whiteout
 // until that gym is beaten; the format (tag team / doubles / guest only) is rolled when the player engages and stays
-// locked until a win or a whiteout. Guest parties are authored at their home-region levels and shifted at battle time
-// so their ace matches the home leader's ace; EVs follow the level. In tag team and doubles each leader only brings
-// their strongest GUEST_LEADER_TRIM_SIZE mons. Scripts pass the gym number (1-8) in VAR_0x8008.
+// locked until a win or a whiteout, with the gimmick a guest keeps before GUEST_LEADER_ALL_GIMMICKS_GYM (Mega, Z-Move
+// or Tera). Guest parties are authored with a Lv45 ace and 510 EVs and shifted at battle time so their ace matches the
+// home leader's ace; EVs follow the level. Each leader only brings their strongest mons: GUEST_LEADER_TAG_TEAM_SIZE
+// in tag team, GUEST_LEADER_DOUBLES_SIZE in doubles. A win also gives a random, not yet owned Gem / Z-Crystal /
+// Mega Stone of the guest. Scripts pass the gym number (1-8) in VAR_0x8008.
 
 // VAR_GUEST_LEADER: guest index + 1 (0 = no guest), the locked format, and the gym the roll is for.
 #define GUEST_VAR_GUEST_MASK   0x000F
 #define GUEST_VAR_FORMAT_SHIFT 4
 #define GUEST_VAR_FORMAT_MASK  (0x3 << GUEST_VAR_FORMAT_SHIFT)
+#define GUEST_VAR_GIMMICK_SHIFT 6
+#define GUEST_VAR_GIMMICK_MASK (0x3 << GUEST_VAR_GIMMICK_SHIFT)
 #define GUEST_VAR_GYM_SHIFT    8
 #define GUEST_VAR_GYM_MASK     (0xF << GUEST_VAR_GYM_SHIFT)
 
@@ -41,6 +45,11 @@ struct GuestLeader
     u16 gfxId; // overworld sprite for the gym entrance (design.md §2)
     enum Type type;
     enum Item tm; // given on top of the home rewards; ITEM_NONE gives nothing
+    enum Item gem;       // reward candidates (one rolled, never one already owned): the type's Gem,
+    enum Item zCrystal;  // its type Z-Crystal
+    enum Item megaStone; // and the stone of the guest's Mega
+    enum Item megaAltItem; // held instead of the Mega Stone when the Mega is rolled away (gyms 4-5)
+    enum Item zAltItem;    // held instead of the Z-Crystal when the Z-Move is rolled away (gyms 4-5)
     const u8 *intro;
     const u8 *defeat; // in battle
     const u8 *postBattle;
@@ -62,6 +71,11 @@ static const struct GuestLeader sGuestLeaders[] =
         .gfxId = OBJ_EVENT_GFX_BROCK,
         .type = TYPE_ROCK,
         .tm = ITEM_NONE,
+        .gem = ITEM_ROCK_GEM,
+        .zCrystal = ITEM_ROCKIUM_Z,
+        .megaStone = ITEM_AERODACTYLITE,
+        .megaAltItem = ITEM_LIFE_ORB,
+        .zAltItem = ITEM_LEFTOVERS,
         .intro = COMPOUND_STRING("BROCK: I'm BROCK of PEWTER CITY!\pMy rock-hard willpower came all the\nway from KANTO to test you!"),
         .defeat = COMPOUND_STRING("Your POKéMON cracked my defense.\nWell earned!"),
         .postBattle = COMPOUND_STRING("BROCK: Strong trainers grow on\nevery kind of terrain, huh?\pTake this. It's a KANTO keepsake."),
@@ -72,6 +86,11 @@ static const struct GuestLeader sGuestLeaders[] =
         .gfxId = OBJ_EVENT_GFX_MISTY,
         .type = TYPE_WATER,
         .tm = ITEM_NONE,
+        .gem = ITEM_WATER_GEM,
+        .zCrystal = ITEM_WATERIUM_Z,
+        .megaStone = ITEM_STARMINITE,
+        .megaAltItem = ITEM_LIFE_ORB,
+        .zAltItem = ITEM_LEFTOVERS,
         .intro = COMPOUND_STRING("MISTY: I'm MISTY, CERULEAN's\nGYM LEADER!\pMy policy is an all-out offensive\nwith WATER-type POKéMON!"),
         .defeat = COMPOUND_STRING("Wow! You're too much!"),
         .postBattle = COMPOUND_STRING("MISTY: Hmph! Fine, you win.\pHere, take this. Don't let it\ngo to your head!"),
@@ -82,6 +101,11 @@ static const struct GuestLeader sGuestLeaders[] =
         .gfxId = OBJ_EVENT_GFX_LT_SURGE,
         .type = TYPE_ELECTRIC,
         .tm = ITEM_NONE,
+        .gem = ITEM_ELECTRIC_GEM,
+        .zCrystal = ITEM_ELECTRIUM_Z,
+        .megaStone = ITEM_RAICHUNITE_Y,
+        .megaAltItem = ITEM_LIFE_ORB,
+        .zAltItem = ITEM_LIFE_ORB,
         .intro = COMPOUND_STRING("LT. SURGE: Hey, kid! Lightning\nstrikes twice in this GYM today!\pI'll zap you like I did my\nenemies in war!"),
         .defeat = COMPOUND_STRING("Whoa!\nYou're the real deal, kid!"),
         .postBattle = COMPOUND_STRING("LT. SURGE: You've got guts, kid!\nHere, a souvenir from VERMILION!"),
@@ -92,6 +116,11 @@ static const struct GuestLeader sGuestLeaders[] =
         .gfxId = OBJ_EVENT_GFX_ERIKA,
         .type = TYPE_GRASS,
         .tm = ITEM_NONE,
+        .gem = ITEM_GRASS_GEM,
+        .zCrystal = ITEM_GRASSIUM_Z,
+        .megaStone = ITEM_VENUSAURITE,
+        .megaAltItem = ITEM_BLACK_SLUDGE,
+        .zAltItem = ITEM_ROCKY_HELMET,
         .intro = COMPOUND_STRING("ERIKA: Oh, how lovely… I'm ERIKA\nof CELADON CITY.\pI study the art of flower\narranging. Shall we battle?"),
         .defeat = COMPOUND_STRING("Oh! I concede defeat.\nYou are remarkably strong."),
         .postBattle = COMPOUND_STRING("ERIKA: What a refreshing battle.\nPlease accept this, with my thanks."),
@@ -102,6 +131,11 @@ static const struct GuestLeader sGuestLeaders[] =
         .gfxId = OBJ_EVENT_GFX_KOGA,
         .type = TYPE_POISON,
         .tm = ITEM_NONE,
+        .gem = ITEM_POISON_GEM,
+        .zCrystal = ITEM_POISONIUM_Z,
+        .megaStone = ITEM_GENGARITE,
+        .megaAltItem = ITEM_LIFE_ORB,
+        .zAltItem = ITEM_BLACK_SLUDGE,
         .intro = COMPOUND_STRING("KOGA: Fwahahaha! A mere child\ndares challenge me?\pI, KOGA of FUCHSIA, shall show you\nthe true terror of a ninja!"),
         .defeat = COMPOUND_STRING("Humph!\nYou have proven your worth!"),
         .postBattle = COMPOUND_STRING("KOGA: Take this as proof that\nyou bested a ninja master."),
@@ -112,6 +146,11 @@ static const struct GuestLeader sGuestLeaders[] =
         .gfxId = OBJ_EVENT_GFX_SABRINA,
         .type = TYPE_PSYCHIC,
         .tm = ITEM_NONE,
+        .gem = ITEM_PSYCHIC_GEM,
+        .zCrystal = ITEM_PSYCHIUM_Z,
+        .megaStone = ITEM_ALAKAZITE,
+        .megaAltItem = ITEM_LIFE_ORB,
+        .zAltItem = ITEM_LIFE_ORB,
         .intro = COMPOUND_STRING("SABRINA: I am SABRINA of SAFFRON.\nI foresaw your arrival.\pI also foresee your defeat."),
         .defeat = COMPOUND_STRING("This loss shocks me!\nBut a loss is a loss."),
         .postBattle = COMPOUND_STRING("SABRINA: I did not foresee this.\nTake it. You have earned it."),
@@ -122,6 +161,11 @@ static const struct GuestLeader sGuestLeaders[] =
         .gfxId = OBJ_EVENT_GFX_BLAINE,
         .type = TYPE_FIRE,
         .tm = ITEM_NONE,
+        .gem = ITEM_FIRE_GEM,
+        .zCrystal = ITEM_FIRIUM_Z,
+        .megaStone = ITEM_CHARIZARDITE_X,
+        .megaAltItem = ITEM_LIFE_ORB,
+        .zAltItem = ITEM_LEFTOVERS,
         .intro = COMPOUND_STRING("BLAINE: Hah! I am BLAINE, the\nhotheaded quiz master of CINNABAR!\pMy fiery POKéMON will incinerate\nall challengers!"),
         .defeat = COMPOUND_STRING("I have burned down to nothing!\nNot even ashes remain!"),
         .postBattle = COMPOUND_STRING("BLAINE: You've earned this!\nCome visit CINNABAR sometime!"),
@@ -132,6 +176,11 @@ static const struct GuestLeader sGuestLeaders[] =
         .gfxId = OBJ_EVENT_GFX_GIOVANNI,
         .type = TYPE_GROUND,
         .tm = ITEM_NONE,
+        .gem = ITEM_GROUND_GEM,
+        .zCrystal = ITEM_GROUNDIUM_Z,
+        .megaStone = ITEM_GARCHOMPITE,
+        .megaAltItem = ITEM_LIFE_ORB,
+        .zAltItem = ITEM_LIFE_ORB,
         .intro = COMPOUND_STRING("GIOVANNI: So you are the trainer\nHOENN is talking about.\pI am GIOVANNI of VIRIDIAN.\nShow me what you're made of."),
         .defeat = COMPOUND_STRING("Ha!\nThat was a truly intense fight!"),
         .postBattle = COMPOUND_STRING("GIOVANNI: I underestimated you.\nTake this. You will need it."),
@@ -182,7 +231,18 @@ static void SetStoredFormat(u32 format)
     VarSet(VAR_GUEST_LEADER, value | (format << GUEST_VAR_FORMAT_SHIFT));
 }
 
-// Rolls whether a guest visits this gym and who, and clears the locked format.
+static u32 GetStoredGimmick(void)
+{
+    return (VarGet(VAR_GUEST_LEADER) & GUEST_VAR_GIMMICK_MASK) >> GUEST_VAR_GIMMICK_SHIFT;
+}
+
+static void SetStoredGimmick(u32 gimmick)
+{
+    u16 value = VarGet(VAR_GUEST_LEADER) & ~GUEST_VAR_GIMMICK_MASK;
+    VarSet(VAR_GUEST_LEADER, value | (gimmick << GUEST_VAR_GIMMICK_SHIFT));
+}
+
+// Rolls whether a guest visits this gym and who, and clears the locked format (and gimmick).
 static void RollGuest(u32 gym)
 {
     u8 pool[ARRAY_COUNT(sGuestLeaders)];
@@ -277,6 +337,24 @@ static bool32 IsTrimmedLeader(u16 trainerId)
     return trainerId == sGuestLeaders[guest].trainerId || trainerId == GetHomeLeader(gym)->trainerId;
 }
 
+// Before GUEST_LEADER_ALL_GIMMICKS_GYM a guest keeps only the gimmick rolled with the format: a dropped Mega Stone /
+// Z-Crystal is swapped for the guest's alternative item, a dropped Tera Type is cleared (design.md §2).
+static void StripUnrolledGimmicks(struct TrainerMon *mon, const struct GuestLeader *guest)
+{
+    u32 kept = GetStoredGimmick();
+    enum HoldEffect holdEffect;
+
+    if (kept == GUEST_GIMMICK_ALL)
+        return;
+    holdEffect = GetItemHoldEffect(mon->heldItem);
+    if (holdEffect == HOLD_EFFECT_MEGA_STONE && kept != GUEST_GIMMICK_MEGA)
+        mon->heldItem = guest->megaAltItem;
+    else if (holdEffect == HOLD_EFFECT_Z_CRYSTAL && kept != GUEST_GIMMICK_Z_MOVE)
+        mon->heldItem = guest->zAltItem;
+    if (kept != GUEST_GIMMICK_TERA)
+        mon->teraType = TYPE_NONE;
+}
+
 struct StrengthKey
 {
     u8 index;
@@ -303,8 +381,9 @@ static bool32 IsStronger(const struct StrengthKey *a, const struct StrengthKey *
     return a->random > b->random;
 }
 
-// Ranks by level, gimmick, held item, total EVs, total IVs, then at random. The picked mons keep their party order.
-static u32 PickStrongest(const struct TrainerMon *party, u32 partySize, const struct TrainerMon *scaled, u8 *indices)
+// Ranks by level, gimmick, held item, total EVs, total IVs, then at random, and keeps the best `size`.
+// The picked mons keep their party order.
+static u32 PickStrongest(const struct TrainerMon *party, u32 partySize, const struct TrainerMon *scaled, u32 size, u8 *indices)
 {
     struct StrengthKey keys[PARTY_SIZE], tmp;
     u32 i, j, count;
@@ -313,8 +392,8 @@ static u32 PickStrongest(const struct TrainerMon *party, u32 partySize, const st
     {
         keys[i].index = i;
         keys[i].level = scaled[i].lvl;
-        keys[i].gimmick = HasGimmick(&party[i]);
-        keys[i].item = party[i].heldItem != ITEM_NONE;
+        keys[i].gimmick = HasGimmick(&scaled[i]);
+        keys[i].item = scaled[i].heldItem != ITEM_NONE;
         keys[i].evs = 0;
         if (scaled[i].ev != NULL)
         {
@@ -330,7 +409,7 @@ static u32 PickStrongest(const struct TrainerMon *party, u32 partySize, const st
             SWAP(keys[j], keys[j - 1], tmp);
     }
 
-    count = min(partySize, GUEST_LEADER_TRIM_SIZE);
+    count = min(partySize, size);
     for (i = 0; i < count; i++)
         indices[i] = keys[i].index;
     for (i = 1; i < count; i++)
@@ -346,7 +425,8 @@ static u32 PickStrongest(const struct TrainerMon *party, u32 partySize, const st
 bool32 GuestLeader_TryCreateParty(struct Pokemon *party, u16 trainerId)
 {
     const struct Trainer *trainer = GetTrainerStructFromId(trainerId);
-    bool32 isGuest = GetGuestIndexByTrainer(trainerId) != NO_GUEST;
+    u32 guestIndex = GetGuestIndexByTrainer(trainerId);
+    bool32 isGuest = guestIndex != NO_GUEST;
     bool32 trim = IsTrimmedLeader(trainerId);
     struct TrainerMon scaled[PARTY_SIZE];
     u8 evs[PARTY_SIZE][NUM_STATS];
@@ -369,11 +449,14 @@ bool32 GuestLeader_TryCreateParty(struct Pokemon *party, u16 trainerId)
             ScaleTrainerMonEvs(trainer->party[i].ev, trainer->party[i].lvl, scaled[i].lvl, evs[i]);
             scaled[i].ev = evs[i];
         }
+        if (isGuest)
+            StripUnrolledGimmicks(&scaled[i], &sGuestLeaders[guestIndex]);
     }
 
     if (trim)
     {
-        count = PickStrongest(trainer->party, partySize, scaled, indices);
+        u32 size = GetStoredFormat() == GUEST_FORMAT_TAG ? GUEST_LEADER_TAG_TEAM_SIZE : GUEST_LEADER_DOUBLES_SIZE;
+        count = PickStrongest(trainer->party, partySize, scaled, size, indices);
     }
     else
     {
@@ -447,6 +530,10 @@ u16 GuestLeader_RollFormat(void)
             format = (Random() % 2) ? GUEST_FORMAT_TAG : GUEST_FORMAT_SOLO;
         }
         SetStoredFormat(format);
+        if (GetStoredGym() < GUEST_LEADER_ALL_GIMMICKS_GYM)
+            SetStoredGimmick(GUEST_GIMMICK_MEGA + Random() % 3);
+        else
+            SetStoredGimmick(GUEST_GIMMICK_ALL);
     }
     return format;
 }
@@ -500,6 +587,39 @@ void GuestLeader_ConfigureBattle(void)
         gNoOfApproachingTrainers = 2;
         break;
     }
+}
+
+static bool32 IsItemOwned(enum Item item)
+{
+    u32 i;
+
+    if (CheckBagHasItem(item, 1))
+        return TRUE;
+    for (i = 0; i < gPlayerPartyCount; i++)
+    {
+        if (GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM) == item)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// Call before GuestLeader_OnWin. Returns one of the guest's type Gem, type Z-Crystal and Mega Stone at random, never
+// one the player already owns (bag or held by a party mon); the Gem if all three are owned.
+u16 GuestLeader_RollReward(void)
+{
+    const struct GuestLeader *guest = &sGuestLeaders[GetStoredGuest()];
+    enum Item candidates[] = { guest->gem, guest->zCrystal, guest->megaStone };
+    enum Item pool[ARRAY_COUNT(candidates)];
+    u32 i, count = 0;
+
+    for (i = 0; i < ARRAY_COUNT(candidates); i++)
+    {
+        if (!IsItemOwned(candidates[i]))
+            pool[count++] = candidates[i];
+    }
+    if (count == 0)
+        return guest->gem;
+    return pool[Random() % count];
 }
 
 // After the win: marks the guest as beaten, marks the home leader as beaten (guest-only never fights them), buffers

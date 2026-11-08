@@ -98,7 +98,7 @@ The AI's **innates are visible to the player only once they fire**, which helps 
 
 * **Singles.** The Stamina clock decides it. Lead with a hazard setter or an exhauster; the AI's pivoting (Regenerator / Natural Cure / Quick Start) is a real asset.
 * **Doubles.** Spread moves (×0.75) chip both foes' HP and, if physical, their Stamina. Speed control and redirection are worth more. A Stupefied mon can hit its own ally: give the team Own Tempo / Psychic types or avoid relying on single-target nukes next to a confusion-weak partner.
-* **Tag team** (guest leaders, gauntlets): back to back with no heal. HP, PP, Signature PP and Lv2+ statuses carry over; Stamina is fresh each battle and Trauma resets per battle (its HP loss stays). Plan the first team to **leave lasting damage**: Toxic, Burn ×2, chip. In guest tag / doubles, each leader brings only its **3 strongest** (`design.md` §2, Guest Gym Leaders), so make the intended three actually rank highest.
+* **Tag team** (guest leaders, gauntlets): back to back with no heal. HP, PP, Signature PP and Lv2+ statuses carry over; Stamina is fresh each battle and Trauma resets per battle (its HP loss stays). Plan the first team to **leave lasting damage**: Toxic, Burn ×2, chip. In a guest tag team each leader brings only its **4 strongest**, in doubles its **3 strongest** (`design.md` §2, Guest Gym Leaders), so make the intended four / three actually rank highest.
 
 ## 8. What the AI can pilot
 
