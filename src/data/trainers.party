@@ -4591,48 +4591,75 @@ Pic: Elite Four Sidney
 Gender: Male
 Music: Elite Four
 Double Battle: No
-AI: Basic Trainer / Force Setup First Turn
+AI: Smart Trainer
 Mugshot: Purple
 
-Mightyena
+Grimmsnarl @ Light Clay
+Ability: Prankster
 Level: 52
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Roar
-- Double Edge
-- Sand Attack
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Spirit Break
+- Reflect
+- Light Screen
+- Thunder Wave
+- Parting Shot
+
+Spiritomb @ Leftovers
+Ability: Pressure
+Level: 53
+EVs: 252 HP / 252 Def / 6 SpD
+Careful Nature
+Signature Move: Poltergeist
+- Will-O-Wisp
+- Pain Split
+- Sucker Punch
+- Foul Play
+
+Krookodile @ Darkinium Z
+Ability: Intimidate
+Level: 53
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Earthquake
+- Stealth Rock
 - Crunch
+- Close Combat
+- Gunk Shot
 
-Shiftry
+Crawdaunt @ Scope Lens
+Ability: Adaptability
 Level: 54
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Torment
-- Double Team
-- Swagger
-- Extrasensory
-
-Cacturne
-Level: 52
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Leech Seed
-- Feint Attack
-- Needle Arm
-- Cotton Spore
-
-Crawdaunt
-Level: 54
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Surf
+EVs: 252 HP / 252 Atk / 6 Def
+Brave Nature
+Signature Move: Knock Off
+- Crabhammer
+- Night Slash
+- Aqua Jet
 - Swords Dance
-- Strength
-- Facade
 
-Absol @ Sitrus Berry
+Kingambit @ Black Glasses
+Ability: Supreme Overlord
+Level: 54
+Tera Type: Fairy
+EVs: 252 HP / 252 Atk / 6 Def
+Adamant Nature
+Signature Move: Kowtow Cleave
+- Sucker Punch
+- Iron Head
+- Low Kick
+- Swords Dance
+
+Absol @ Absolite
+Ability: Justified
 Level: 55
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Aerial Ace
-- Rock Slide
-- Swords Dance
-- Slash
+EVs: 252 Atk / 252 Spe / 6 HP
+Naughty Nature
+Signature Move: Play Rough
+- Night Slash
+- Psycho Cut
+- Stone Edge
+- Sucker Punch
 
 === TRAINER_PHOEBE ===
 Name: PHOEBE
@@ -4641,48 +4668,77 @@ Pic: Elite Four Phoebe
 Gender: Female
 Music: Elite Four
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 Mugshot: Green
 
-Dusclops
+Houndstone @ Leftovers
+Ability: Fluffy
 Level: 54
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Shadow Punch
-- Confuse Ray
-- Curse
-- Protect
+EVs: 252 HP / 252 Def / 6 SpD
+Impish Nature
+Signature Move: Poltergeist
+- Yawn
+- Body Press
+- Shadow Sneak
+- Roar
 
-Banette
+Mimikyu @ Scope Lens
+Ability: Disguise
 Level: 55
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Shadow Ball
-- Grudge
-- Will O Wisp
-- Feint Attack
+EVs: 252 Atk / 252 Spe / 6 HP
+Naughty Nature
+Signature Move: Play Rough
+- Swords Dance
+- Shadow Claw
+- Shadow Sneak
+- Drain Punch
 
-Sableye
+Chandelure @ Life Orb
+Ability: Flash Fire
+Level: 55
+EVs: 252 SpA / 252 Spe / 6 HP
+Modest Nature
+IVs: 0 Atk
+Signature Move: Fire Blast
+- Shadow Ball
+- Flamethrower
+- Energy Ball
+- Will-O-Wisp
+
+Annihilape @ Leftovers
+Ability: Defiant
 Level: 56
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Shadow Ball
-- Double Team
-- Night Shade
-- Feint Attack
+Tera Type: Fighting
+EVs: 252 HP / 252 Def / 6 Atk
+Impish Nature
+Signature Move: Rage Fist
+- Bulk Up
+- Drain Punch
+- Gunk Shot
+- Taunt
 
-Banette
-Level: 55
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Shadow Ball
-- Psychic
-- Thunderbolt
-- Facade
+Dusknoir @ Ghostium Z
+Ability: Frisk
+Level: 56
+EVs: 252 HP / 252 Def / 6 Atk
+Impish Nature
+Signature Move: Earthquake
+- Poltergeist
+- Will-O-Wisp
+- Pain Split
+- Shadow Sneak
 
-Dusclops @ Sitrus Berry
+Gengar @ Gengarite
+Ability: Cursed Body
 Level: 57
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Shadow Ball
-- Ice Beam
-- Rock Slide
-- Earthquake
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Shadow Ball
+- Hypnosis
+- Hex
+- Sludge Bomb
+- Focus Blast
 
 === TRAINER_GLACIA ===
 Name: GLACIA
@@ -4691,48 +4747,78 @@ Pic: Elite Four Glacia
 Gender: Female
 Music: Elite Four
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 Mugshot: Pink
 
-Sealeo
+Ninetales-Alola @ Light Clay
+Ability: Snow Warning
 Level: 56
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Encore
-- Body Slam
-- Hail
-- Ice Ball
-
-Glalie
-Level: 56
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Light Screen
-- Crunch
-- Icy Wind
-- Ice Beam
-
-Sealeo
-Level: 58
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Attract
-- Double Edge
-- Hail
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Freeze-Dry
+- Aurora Veil
 - Blizzard
+- Moonblast
+- Encore
 
-Glalie
+Mamoswine @ Life Orb
+Ability: Thick Fat
+Level: 57
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Earthquake
+- Stealth Rock
+- Icicle Crash
+- Ice Shard
+- Knock Off
+
+Cloyster @ White Herb
+Ability: Skill Link
+Level: 57
+EVs: 252 Atk / 252 Spe / 6 HP
+Hasty Nature
+Signature Move: Liquidation
+- Shell Smash
+- Icicle Spear
+- Rock Blast
+- Rapid Spin
+
+Walrein @ Icium Z
+Ability: Thick Fat
 Level: 58
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Shadow Ball
-- Explosion
-- Hail
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Blizzard
 - Ice Beam
-
-Walrein @ Sitrus Berry
-Level: 59
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Surf
-- Body Slam
+- Toxic
+- Encore
+
+Baxcalibur @ Life Orb
+Ability: Thermal Exchange
+Level: 58
+Tera Type: Ground
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Icicle Crash
+- Dragon Dance
+- Glaive Rush
+- Earthquake
+- Ice Shard
+
+Froslass @ Froslassite
+Ability: Cursed Body
+Level: 59
+EVs: 252 SpA / 252 Spe / 6 HP
+Timid Nature
+IVs: 0 Atk
+Signature Move: Blizzard
 - Ice Beam
-- Sheer Cold
+- Shadow Ball
+- Hex
+- Taunt
 
 === TRAINER_DRAKE ===
 Name: DRAKE
@@ -4741,48 +4827,76 @@ Pic: Elite Four Drake
 Gender: Male
 Music: Elite Four
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 Mugshot: Blue
 
-Shelgon
+Archaludon @ Leftovers
+Ability: Stamina
 Level: 58
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Rock Tomb
-- Dragon Claw
-- Protect
-- Double Edge
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Draco Meteor
+- Stealth Rock
+- Body Press
+- Flash Cannon
+- Thunderbolt
 
-Altaria
+Dragalge @ Black Sludge
+Ability: Adaptability
+Level: 58
+EVs: 252 HP / 252 SpA / 6 Def
+Modest Nature
+Signature Move: Sludge Bomb
+- Toxic
+- Draco Meteor
+- Focus Blast
+- Flip Turn
+
+Kommo-O @ Kommonium Z
+Ability: Bulletproof
+Level: 59
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Drain Punch
+- Clanging Scales
+- Close Combat
+- Poison Jab
+- Iron Head
+
+Dragapult @ Life Orb
+Ability: Infiltrator
 Level: 60
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Double Edge
-- Dragon Breath
-- Dragon Dance
-- Aerial Ace
+EVs: 130 Atk / 128 SpA / 252 Spe
+Naive Nature
+Signature Move: Fire Blast
+- Will-O-Wisp
+- Hex
+- Dragon Darts
+- U-turn
 
-Kingdra
-Level: 59
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Smokescreen
-- Dragon Dance
-- Surf
-- Body Slam
-
-Flygon
-Level: 59
-IVs: 30 HP / 30 Atk / 30 Def / 30 SpA / 30 SpD / 30 Spe
-- Flamethrower
-- Crunch
-- Dragon Breath
-- Earthquake
-
-Salamence @ Sitrus Berry
-Level: 61
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Flamethrower
+Dragonite @ Leftovers
+Ability: Multiscale
+Level: 60
+Tera Type: Normal
+EVs: 252 HP / 252 Atk / 6 Spe
+Adamant Nature
+Signature Move: Extreme Speed
 - Dragon Claw
-- Rock Slide
-- Crunch
+- Earthquake
+- Fire Punch
+- Roost
+
+Salamence @ Salamencite
+Ability: Intimidate
+Level: 61
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Double-Edge
+- Dragon Dance
+- Dragon Claw
+- Earthquake
+- Roost
 
 === TRAINER_ROXANNE_1 ===
 Name: ROXANNE
@@ -6570,56 +6684,79 @@ Pic: Champion Wallace
 Gender: Male
 Music: Male
 Double Battle: No
-AI: Basic Trainer
+AI: Smart Trainer
 Mugshot: Yellow
 
-Wailord
-Level: 63
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Rain Dance
-- Water Spout
-- Double Edge
-- Blizzard
-
-Tentacruel
+Tentacruel @ Black Sludge
+Ability: Clear Body
 Level: 61
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Toxic
-- Hydro Pump
-- Sludge Bomb
+EVs: 252 HP / 252 Def / 6 SpA
+Calm Nature
+Signature Move: Sludge Bomb
+- Toxic Spikes
+- Rapid Spin
+- Knock Off
+- Surf
+
+Lanturn @ Leftovers
+Ability: Volt Absorb
+Level: 62
+EVs: 252 HP / 252 Def / 6 SpA
+Sassy Nature
+IVs: 0 Atk
+Signature Move: Thunderbolt
+- Thunder Wave
+- Volt Switch
+- Surf
 - Ice Beam
 
-Ludicolo
+Gastrodon @ Leftovers
+Ability: Storm Drain
 Level: 62
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Giga Drain
-- Surf
-- Leech Seed
-- Double Team
+EVs: 252 HP / 252 Def / 6 SpA
+Relaxed Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Recover
+- Earth Power
+- Ice Beam
+- Clear Smog
 
-Whiscash
+Primarina @ Primarium Z
+Ability: Liquid Voice
 Level: 62
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
-- Earthquake
-- Surf
-- Amnesia
-- Hyper Beam
+EVs: 252 HP / 252 SpA / 6 Def
+Quiet Nature
+IVs: 0 Atk
+Signature Move: Hydro Pump
+- Calm Mind
+- Sparkling Aria
+- Moonblast
+- Ice Beam
 
-Gyarados
+Gyarados @ Gyaradosite
+Ability: Intimidate
 Level: 62
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+EVs: 252 Atk / 252 Spe / 6 HP
+Jolly Nature
+Signature Move: Waterfall
 - Dragon Dance
+- Crunch
 - Earthquake
-- Hyper Beam
-- Surf
+- Ice Fang
 
-Milotic @ Sitrus Berry
+Milotic @ Leftovers
+Ability: Competitive
 Level: 64
-IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
+Tera Type: Dragon
+EVs: 252 HP / 252 Def / 6 SpA
+Bold Nature
+IVs: 0 Atk
+Signature Move: Dragon Pulse
 - Recover
 - Surf
 - Ice Beam
-- Toxic
+- Haze
 
 === TRAINER_ANDREW ===
 Name: ANDREW
